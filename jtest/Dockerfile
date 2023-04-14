@@ -21,10 +21,10 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 # Create a user group 'jenkins'
-RUN addgroup -S jenkins
+RUN groupadd -S jenkins
 
 # Create a user 'jenkins' under 'jenkins'
-RUN adduser -S -D -h /usr/app/src jenkins jenkins
+RUN useradd -S -D -h /usr/app/src jenkins jenkins
 
 ## Fix permissions
 RUN chown -R jenkins:jenkins .
