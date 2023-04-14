@@ -33,6 +33,7 @@ pipeline {
         stage('Build') {
             steps {
                 cleanWs()
+                // checkout git repos before copying artifacts from previous job
                 sh '''
                     mkdir parabank-jenkins
                     git clone -b selenium-demo-tia https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
@@ -117,8 +118,8 @@ pipeline {
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='builtin://Unit Tests' \
                     -Dparasoft.runModifiedTests=true \
-                    -Djtest.referenceCoverageFile=/target/jtest/ut/coverage.xml \
-                    -Djtest.referenceReportFile=/target/jtest/ut/report.xml \
+                    -Djtest.referenceCoverageFile=/parabank/target/jtest/ut/coverage.xml \
+                    -Djtest.referenceReportFile=/parabank/target/jtest/ut/report.xml \
                     -Djtest.report=./target/jtest/ut \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
