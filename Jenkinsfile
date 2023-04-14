@@ -6,26 +6,27 @@ pipeline {
         
         // App Settings
         parabank_port=8090
-        project_name="Parabank Jenkins"
-        buildId="ParabankJenkins-${BUILD_ID}"
-        jtestSessionTag="ParabankJenkins-Jtest"
-        soatestSessionTag="ParabankJenkins-SOAtest"
+
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}"
         ls_user="${PARASOFT_LS_USER}"
         ls_pass="${PARASOFT_LS_PASS}"
         
+        // Parasoft DTP Settings
+        dtp_url="${dtp_url}"
+        project_name="Parabank Jenkins"
+        buildId="ParabankJenkins-${BUILD_ID}"
+        jtestSessionTag="ParabankJenkins-Jtest"
+        soatestSessionTag="ParabankJenkins-SOAtest"
+        dtp_publish=${dtp_publish}
+
         // Parasoft Jtest Settings
-        jtestConfig="jtest.dtp://Parabank SA-MA-UT"    
+        jtestConfig="jtest.dtp://Parabank SA-MA"    
         unitCovImage="${project_name};${project_name}_UnitTest"
 
         // Parasoft SOAtest Settings
         //fucntionalCovImage="${project_name};${project_name}_FunctionalTest"
-        
-        // Parasoft DTP Settings
-        dtp_url="${dtp_url}"
-        dtp_publish=false
     }
     stages {
         stage('Build') {
@@ -54,8 +55,8 @@ pipeline {
                     license.network.password=${ls_pass}
                     build.id="${buildId}"
                     dtp.url=${dtp_url}
-                    dtp.user=demo
-                    dtp.password=demo-user
+                    dtp.user=${ls_user}
+                    dtp.password=${ls_pass}
                     report.coverage.images="${unitCovImage}"
                     dtp.project=${project_name}" >> parabank-jenkins/jtest/jtestcli.properties
 
@@ -71,15 +72,35 @@ pipeline {
                     -w "$PWD" \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
+
                     mvn \
-                    -Dmaven.test.failure.ignore=true \
-                    test-compile jtest:agent \
-                    test jtest:jtest \
+                    jtest:jtest \
+                    -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='/home/parasoft/jtestcli.properties' \
                     -Djtest.config='${jtestConfig}' \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    #mvn \
+                    #jtest:jtest \
+                    #-DskipTests=true \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='/home/parasoft/jtestcli.properties' \
+                    #-Djtest.config='builtin://Metrics' \
+                    #-Dproperty.session.tag='${jtestSessionTag}' \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    #mvn \
+                    #-Dmaven.test.failure.ignore=true \
+                    #test-compile jtest:agent \
+                    #test jtest:jtest \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='/home/parasoft/jtestcli.properties' \
+                    #-Djtest.config='builtin://Unit Tests' \
+                    #-Dproperty.session.tag='${jtestSessionTag}' \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+
                     #mvn \
                     #-DskipTests=true \
                     #package jtest:monitor \
