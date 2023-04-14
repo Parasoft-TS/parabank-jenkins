@@ -40,8 +40,8 @@ pipeline {
 
                     mkdir parabank
                     git clone -b selenium-demo https://github.com/parasoft/parabank parabank
-                    git checkout master
-                    git checkout selenium-demo
+                    git checkout origin/master
+                    git checkout origin/selenium-demo
 
                     mkdir monitor
                 '''
