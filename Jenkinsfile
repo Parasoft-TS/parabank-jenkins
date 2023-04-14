@@ -8,6 +8,8 @@ pipeline {
         parabank_port=8090
         project_name="Parabank Jenkins"
         buildId="ParabankJenkins-${BUILD_ID}"
+        jtestSessionTag="ParabankJenkins-Jtest"
+        soatestSessionTag="ParabankJenkins-SOAtest"
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}"
@@ -76,6 +78,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='/home/parasoft/jtestcli.properties' \
                     -Djtest.config='${jtestConfig}' \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     #mvn \
                     #-DskipTests=true \
