@@ -20,15 +20,11 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
-# Create a user group 'jenkins' and user 'jenkins'
-RUN groupadd jenkins \
-    && useradd --gid jenkins --shell /bin/bash --create-home jenkins
-
 ## Fix permissions
-RUN chown -R jenkins:jenkins .
+RUN chown -R parasoft:parasoft .
 
 ## Switch user back and configure MVN
-USER jenkins:jenkins
+USER parasoft:parasoft
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
