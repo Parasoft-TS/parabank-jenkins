@@ -118,8 +118,8 @@ pipeline {
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='builtin://Unit Tests' \
                     -Dparasoft.runModifiedTests=true \
-                    -Djtest.referenceCoverageFile=/parabank/target/jtest/ut/coverage.xml \
-                    -Djtest.referenceReportFile=/parabank/target/jtest/ut/report.xml \
+                    -Djtest.referenceCoverageFile=target/jtest/ut/coverage.xml \
+                    -Djtest.referenceReportFile=target/jtest/ut/report.xml \
                     -Djtest.report=./target/jtest/ut \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
