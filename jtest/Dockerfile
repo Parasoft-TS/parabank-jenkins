@@ -20,11 +20,9 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
-# Create a user group 'jenkins'
-RUN groupadd -S jenkins
-
-# Create a user 'jenkins' under 'jenkins'
-RUN useradd -S -D -h /usr/app/src jenkins jenkins
+# Create a user group 'jenkins' and user 'jenkins'
+RUN groupadd --gid 1000 jenkins \
+    && useradd --uid 1000 --gid jenkins --shell /bin/bash --create-home jenkins
 
 ## Fix permissions
 RUN chown -R jenkins:jenkins .
