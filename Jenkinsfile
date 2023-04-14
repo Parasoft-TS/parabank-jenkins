@@ -69,7 +69,6 @@ pipeline {
                     docker run \
                     --user jenkins:jenkins \
                     --rm -i \
-                    -u 0:0 \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
