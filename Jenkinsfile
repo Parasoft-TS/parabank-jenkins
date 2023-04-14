@@ -112,7 +112,7 @@ pipeline {
                     package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    
+                    "
                     # Unzip monitor.zip
                     unzip **/target/*/*/monitor.zip -d .
                     ls -la monitor
