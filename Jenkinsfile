@@ -45,7 +45,7 @@ pipeline {
                 '''
 
                 // copy artifacts from baseline pipeline job
-                copyArtifacts(projectName: 'Parabank-Baseline-Ephemeral');
+                copyArtifacts(projectName: 'Parabank-Baseline-Ephemeral', target: copied/);
 
                 // build the project
                 sh  '''
@@ -88,16 +88,16 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
-                    mvn compile 
-                    #jtest:jtest \
-                    #-DskipTests=true \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='${jtestSAConfig}' \
-                    #-Djtest.report=./target/jtest/sa-tia \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSAConfig}' \
+                    -Djtest.report=./target/jtest/sa-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     #mvn \
                     #jtest:jtest \
@@ -110,20 +110,20 @@ pipeline {
                     #-Dproperty.session.tag='${jtestSessionTag}' \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn \
-                    -Dmaven.test.failure.ignore=true \
-                    test-compile tia:affected-tests \
-                    jtest:agent test jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Dparasoft.runModifiedTests=true \
-                    -Djtest.referenceCoverageFile=target/jtest/ut/coverage.xml \
-                    -Djtest.referenceReportFile=target/jtest/ut/report.xml \
-                    -Djtest.report=target/jtest/ut-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.session.tag='${jtestSessionTag}' \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn \
+                    #-Dmaven.test.failure.ignore=true \
+                    #test-compile tia:affected-tests \
+                    #test jtest:jtest \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='builtin://Unit Tests' \
+                    #-Dparasoft.runModifiedTests=true \
+                    #-Djtest.referenceCoverageFile=copied/target/jtest/ut/coverage.xml \
+                    #-Djtest.referenceReportFile=copied/target/jtest/ut/report.xml \
+                    #-Djtest.report=target/jtest/ut-tia \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.session.tag='${jtestSessionTag}' \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     #mvn \
                     #-DskipTests=true \
