@@ -19,7 +19,7 @@ pipeline {
         buildId="ParabankJenkins-${BUILD_ID}"
         jtestSessionTag="ParabankJenkins-Jtest"
         soatestSessionTag="ParabankJenkins-SOAtest"
-        dtp_publish=${dtp_publish}
+        dtp_publish="${dtp_publish}"
 
         // Parasoft Jtest Settings
         jtestConfig="jtest.dtp://Parabank SA-MA"    
