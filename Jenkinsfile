@@ -94,7 +94,7 @@ pipeline {
                     #-s /home/parasoft/.m2/settings.xml \
                     #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     #-Djtest.config='${jtestSAConfig}' \
-                    #-Djtest.report=./target/jtest/sa \
+                    #-Djtest.report=./target/jtest/sa-tia \
                     #-Djtest.showSettings=true \
                     #-Dproperty.session.tag='${jtestSessionTag}' \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
@@ -105,7 +105,7 @@ pipeline {
                     #-s /home/parasoft/.m2/settings.xml \
                     #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     #-Djtest.config='${jtestMAConfig}' \
-                    #-Djtest.report=./target/jtest/ma \
+                    #-Djtest.report=./target/jtest/ma-tia \
                     #-Djtest.showSettings=true \
                     #-Dproperty.session.tag='${jtestSessionTag}' \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
@@ -120,7 +120,7 @@ pipeline {
                     -Dparasoft.runModifiedTests=true \
                     -Djtest.referenceCoverageFile=target/jtest/ut/coverage.xml \
                     -Djtest.referenceReportFile=target/jtest/ut/report.xml \
-                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.report=target/jtest/ut-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
