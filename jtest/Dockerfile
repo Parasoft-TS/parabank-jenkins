@@ -21,10 +21,10 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
-RUN chown -R jenkins:jenkins .
+RUN chown -R parasoft:parasoft .
 
 ## Switch user back and configure MVN
-USER jenkins:jenkins
+USER parasoft:parasoft
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
