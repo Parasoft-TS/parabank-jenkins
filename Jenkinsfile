@@ -45,7 +45,7 @@ pipeline {
                 '''
 
                 // copy artifacts from baseline pipeline job
-                copyArtifacts(projectName: 'Parabank-Baseline-Ephemeral', target: copied/);
+                copyArtifacts(projectName: 'Parabank-Baseline-Ephemeral', target: 'copied/');
 
                 // build the project
                 sh  '''
