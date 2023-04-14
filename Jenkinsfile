@@ -67,7 +67,7 @@ pipeline {
 
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    --user ${env.BUILD_USER_ID}:${env.BUILD_USER_ID} \
+                    --user jenkins:jenkins \
                     --rm -i \
                     -u 0:0 \
                     -v "$PWD:$PWD" \
