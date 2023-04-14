@@ -119,22 +119,22 @@ pipeline {
                     #ls -la monitor
 
                     echo '---> Parsing static analysis reports'
-                        step([$class: 'ParasoftPublisher', 
+                        step(\[$class: 'ParasoftPublisher', 
                             useReportPattern: true, 
                             reportPattern: '**/target/jtest/*.xml', 
-                            settings: '']) 
+                            settings: ''\]) 
 
                     echo '---> Parsing 10.x unit test reports'
-                        step([$class: 'XUnitPublisher', 
-                            tools: [
-                                [$class: 'ParasoftType', 
+                        step(\[$class: 'XUnitPublisher', 
+                            tools: \[
+                                \[$class: 'ParasoftType', 
                                     pattern: '**/target/jtest/*.xml', 
                                     failIfNotNew: false, 
                                     skipNoTestFiles: true, 
                                     stopProcessingIfError: false
-                        ]
-                    ]
-                ])
+                        \]
+                    \]
+                \])
 
                     '''
             }
@@ -171,6 +171,10 @@ pipeline {
     post {
         // Clean after build
         always {
+            archiveArtifacts artifacts: '**/target/*.war, **/target/jtest/**, **/soatest/report/**',
+                fingerprint: true, 
+                onlyIfSuccessful: true
+            
             cleanWs(cleanWhenNotBuilt: false,
                 deleteDirs: true,
                 disableDeferredWipeout: false,
