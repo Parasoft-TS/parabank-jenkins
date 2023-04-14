@@ -22,8 +22,8 @@ pipeline {
         dtp_publish="${dtp_publish}"
 
         // Parasoft Jtest Settings
-        jtestSAConfig="jtest.dtp://Parabank SA"
-        jtestMAConfig="builtin://Metrics"
+        jtestSAConfig="jtest.dtp://Parabank SA - TIA"
+        jtestMAConfig="jtest.dtp://Metrics - TIA"
         unitCovImage="${project_name};${project_name}_UnitTest"
 
         // Parasoft SOAtest Settings
@@ -38,11 +38,11 @@ pipeline {
                 sh  '''
                     mkdir parabank-jenkins
                     git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
-                    git checkout selenium-demo
+                    git checkout -b selenium-demo
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
-                    git checkout selenium-demo
+                    git checkout -b selenium-demo
 
                     mkdir monitor
 
@@ -57,6 +57,16 @@ pipeline {
                     license.network.url=${ls_url}
                     license.network.user=${ls_user}
                     license.network.password=${ls_pass}
+                    
+                    scontrol.git.exec=git
+                    scontrol.rep1.git.branch=selenium-demo
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+
+                    scontrol.rep1.type=git
+                    scope.local=true
+                    scope.scontrol=true
+                    scope.xmlmap=false
+
                     build.id="${buildId}"
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
