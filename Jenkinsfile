@@ -68,7 +68,6 @@ pipeline {
 
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    --user "$(id -u):$(id -g)" -v /etc/passwd:/etc/passwd:ro \
                     --rm -i \
                     -u 0:0 \
                     -v "$PWD:$PWD" \
@@ -76,7 +75,7 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
-                    mvn \
+                    mvn test-compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
@@ -90,7 +89,7 @@ pipeline {
                     #jtest:jtest \
                     #-DskipTests=true \
                     #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='/home/parasoft/jtestcli.properties' \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     #-Djtest.config='builtin://Metrics' \
                     #-Djtest.showSettings=true \
                     #-Dproperty.session.tag='${jtestSessionTag}' \
@@ -101,7 +100,7 @@ pipeline {
                     #test-compile jtest:agent \
                     #test jtest:jtest \
                     #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='/home/parasoft/jtestcli.properties' \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     #-Djtest.config='builtin://Unit Tests' \
                     #-Djtest.showSettings=true \
                     #-Dproperty.session.tag='${jtestSessionTag}' \
@@ -111,7 +110,7 @@ pipeline {
                     #-DskipTests=true \
                     #package jtest:monitor \
                     #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='/home/parasoft/jtestcli.properties'; \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     #"
                     ## Unzip monitor.zip
                     #unzip **/target/*/*/monitor.zip -d .
