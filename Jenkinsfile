@@ -7,7 +7,7 @@ pipeline {
         // App Settings
         parabank_port=8090
         project_name="Parabank Jenkins"
-        buildId="${project_name}-${BUILD_ID}"
+        buildId="ParabankJenkins-${BUILD_ID}"
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}"
@@ -55,10 +55,10 @@ pipeline {
                     dtp.user=demo
                     dtp.password=demo-user
                     report.coverage.images="${unitCovImage}"
-                    dtp.project=${project_name}" >> jenkins/jtest/jtestcli.properties
+                    dtp.project=${project_name}" >> parabank-jenkins/jtest/jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
-                    cat jenkins/jtest/jtestcli.properties
+                    cat parabank-jenkins/jtest/jtestcli.properties
                     '''
             }
         }
