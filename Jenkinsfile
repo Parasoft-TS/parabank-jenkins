@@ -33,122 +33,125 @@ pipeline {
         stage('Build') {
             steps {
                 cleanWs()
-                                
+
+                // copy artifacts from baseline pipeline job
+                copyArtifacts(projectName: 'Parabank-Baseline-Ephemeral');
+
                 // build the project
-                sh  '''
-                    mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
-                    git checkout -b selenium-demo
+                // sh  '''
+                //     mkdir parabank-jenkins
+                //     git clone -b selenium-demo-tia https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
-                    mkdir parabank
-                    git clone https://github.com/parasoft/parabank parabank
-                    git checkout -b selenium-demo
+                //     mkdir parabank
+                //     git clone -b selenium-demo https://github.com/parasoft/parabank parabank
 
-                    mkdir monitor
+                //     mkdir monitor
 
-                    # Set Up and write .properties file
-                    echo $"
-                    parasoft.eula.accepted=true
-                    jtest.license.use_network=true
-                    jtest.license.network.edition=custom_edition
-                    jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Change Based Testing
-                    license.network.use.specified.server=true
-                    license.network.auth.enabled=true
-                    license.network.url=${ls_url}
-                    license.network.user=${ls_user}
-                    license.network.password=${ls_pass}
+                //     # Set Up and write .properties file
+                //     echo $"
+                //     parasoft.eula.accepted=true
+                //     jtest.license.use_network=true
+                //     jtest.license.network.edition=custom_edition
+                //     jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Change Based Testing
+                //     license.network.use.specified.server=true
+                //     license.network.auth.enabled=true
+                //     license.network.url=${ls_url}
+                //     license.network.user=${ls_user}
+                //     license.network.password=${ls_pass}
                     
-                    scontrol.git.exec=git
-                    scontrol.rep1.git.branch=selenium-demo
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                //     scontrol.git.exec=git
+                //     scontrol.rep1.git.branch=selenium-demo
+                //     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                //     scontrol.rep1.type=git
+                //     scope.local=true
+                //     scope.scontrol=true
+                //     scope.xmlmap=false
 
-                    scontrol.rep1.type=git
-                    scope.local=true
-                    scope.scontrol=true
-                    scope.xmlmap=false
+                //     build.id="${buildId}"
+                //     dtp.url=${dtp_url}
+                //     dtp.user=${ls_user}
+                //     dtp.password=${ls_pass}
+                //     report.coverage.images="${unitCovImage}"
+                //     dtp.project=${project_name}" >> parabank-jenkins/jtest/jtestcli.properties
 
-                    build.id="${buildId}"
-                    dtp.url=${dtp_url}
-                    dtp.user=${ls_user}
-                    dtp.password=${ls_pass}
-                    report.coverage.images="${unitCovImage}"
-                    dtp.project=${project_name}" >> parabank-jenkins/jtest/jtestcli.properties
+                //     # Debug: Print jtestcli.properties file
+                //     cat parabank-jenkins/jtest/jtestcli.properties
 
-                    # Debug: Print jtestcli.properties file
-                    cat parabank-jenkins/jtest/jtestcli.properties
+                //     # Run Maven build with Jtest tasks via Docker
+                //     docker run \
+                //     -u 0:0 \
+                //     --rm -i \
+                //     -v "$PWD:$PWD" \
+                //     -w "$PWD" \
+                //     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                //     cd parabank; \
 
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u 0:0 \
-                    --rm -i \
-                    -v "$PWD:$PWD" \
-                    -w "$PWD" \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    cd parabank; \
+                //     mvn compile \
+                //     jtest:jtest \
+                //     -DskipTests=true \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.config='${jtestSAConfig}' \
+                //     -Djtest.report=./target/jtest/sa \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.session.tag='${jtestSessionTag}' \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.session.tag='${jtestSessionTag}' \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     mvn \
+                //     jtest:jtest \
+                //     -DskipTests=true \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.config='${jtestMAConfig}' \
+                //     -Djtest.report=./target/jtest/ma \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.session.tag='${jtestSessionTag}' \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestMAConfig}' \
-                    -Djtest.report=./target/jtest/ma \
-                    -Djtest.showSettings=true \
-                    -Dproperty.session.tag='${jtestSessionTag}' \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     mvn \
+                //     -Dmaven.test.failure.ignore=true \
+                //     test-compile tia:affected-tests \
+                //     jtest:agent test jtest:jtest \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.config='builtin://Unit Tests' \
+                //     -Dparasoft.runModifiedTests=true \
+                //     -Djtest.referenceCoverageFile= \
+                //     -Djtest.referenceReportFile= \
+                //     -Djtest.report=./target/jtest/ut \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.session.tag='${jtestSessionTag}' \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn \
-                    -Dmaven.test.failure.ignore=true \
-                    test-compile jtest:agent \
-                    test jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.session.tag='${jtestSessionTag}' \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     #mvn \
+                //     #-DskipTests=true \
+                //     #package jtest:monitor \
+                //     #-s /home/parasoft/.m2/settings.xml \
+                //     #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     "
+                //     # Unzip monitor.zip
+                //     #unzip **/target/*/*/monitor.zip -d .
+                //     #ls -la monitor
 
-                    #mvn \
-                    #-DskipTests=true \
-                    #package jtest:monitor \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    "
-                    # Unzip monitor.zip
-                    #unzip **/target/*/*/monitor.zip -d .
-                    #ls -la monitor
+                //     #echo '---> Parsing static analysis reports'
+                //     #    step([$class: 'ParasoftPublisher', 
+                //     #        useReportPattern: true, 
+                //     #        reportPattern: '**/target/jtest/*.xml', 
+                //     #        settings: '']) 
 
-                    #echo '---> Parsing static analysis reports'
-                    #    step([$class: 'ParasoftPublisher', 
-                    #        useReportPattern: true, 
-                    #        reportPattern: '**/target/jtest/*.xml', 
-                    #        settings: '']) 
+                //     #echo '---> Parsing 10.x unit test reports'
+                //     #    step([$class: 'XUnitPublisher', 
+                //     #        tools: [
+                //     #            [$class: 'ParasoftType', 
+                //     #                pattern: '**/target/jtest/*.xml', 
+                //     #                failIfNotNew: false, 
+                //     #                skipNoTestFiles: true, 
+                //     #                stopProcessingIfError: false
+                //     #        ]
+                //     #    ]
+                //     #])
 
-                    #echo '---> Parsing 10.x unit test reports'
-                    #    step([$class: 'XUnitPublisher', 
-                    #        tools: [
-                    #            [$class: 'ParasoftType', 
-                    #                pattern: '**/target/jtest/*.xml', 
-                    #                failIfNotNew: false, 
-                    #                skipNoTestFiles: true, 
-                    #                stopProcessingIfError: false
-                    #        ]
-                    #    ]
-                    #])
-
-                    '''
+                //     '''
             }
         }
         stage('Deploy') {
