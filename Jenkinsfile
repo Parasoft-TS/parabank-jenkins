@@ -70,14 +70,22 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
                     mvn \
-                    -DskipTests=true \
-                    package jtest:monitor \
+                    -Dmaven.test.failure.ignore=true \
+                    test-compile jtest:agent \
+                    test jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='/home/parasoft/jtestcli.properties'; \
-                    "
-                    # Unzip monitor.zip
-                    unzip **/target/*/*/monitor.zip -d .
-                    ls -la monitor
+                    -Djtest.settings='/home/parasoft/jtestcli.properties' \
+                    -Djtest.config='${jtestConfig}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn \
+                    #-DskipTests=true \
+                    #package jtest:monitor \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='/home/parasoft/jtestcli.properties'; \
+                    #"
+                    ## Unzip monitor.zip
+                    #unzip **/target/*/*/monitor.zip -d .
+                    #ls -la monitor
 
                     '''
             }
