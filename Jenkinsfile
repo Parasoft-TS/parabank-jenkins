@@ -40,8 +40,6 @@ pipeline {
 
                     mkdir parabank
                     git clone -b selenium-demo https://github.com/parasoft/parabank parabank
-                    #git checkout origin/master
-                    #git checkout origin/selenium-demo
 
                     mkdir monitor
                 '''
@@ -105,16 +103,16 @@ pipeline {
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #jtest:jtest \
-                    #-DskipTests=true \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='${jtestMAConfig}' \
-                    #-Djtest.report=./target/jtest/ma-tia \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestMAConfig}' \
+                    -Djtest.report=./target/jtest/ma-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     mvn \
                     -Dmaven.test.failure.ignore=true \
