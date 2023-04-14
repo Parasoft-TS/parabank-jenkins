@@ -113,7 +113,7 @@ pipeline {
                     mvn compile \
                     -Dmaven.test.failure.ignore=true \
                     test-compile tia:affected-tests \
-                    test jtest:jtest \
+                    jtest:agent test jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='builtin://Unit Tests' \
