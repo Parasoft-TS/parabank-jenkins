@@ -64,8 +64,6 @@ pipeline {
                     # Debug: Print jtestcli.properties file
                     cat parabank-jenkins/jtest/jtestcli.properties
 
-                    pwd
-
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
                     --rm -i \
@@ -81,6 +79,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestConfig}' \
+                    -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
@@ -91,30 +90,32 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='builtin://Metrics' \
+                    -Djtest.report=./target/jtest/ma \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #-Dmaven.test.failure.ignore=true \
-                    #test-compile jtest:agent \
-                    #test jtest:jtest \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='builtin://Unit Tests' \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn \
+                    -Dmaven.test.failure.ignore=true \
+                    test-compile jtest:agent \
+                    test jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #-DskipTests=true \
-                    #package jtest:monitor \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #"
-                    ## Unzip monitor.zip
-                    #unzip **/target/*/*/monitor.zip -d .
-                    #ls -la monitor
+                    mvn \
+                    -DskipTests=true \
+                    package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    
+                    # Unzip monitor.zip
+                    unzip **/target/*/*/monitor.zip -d .
+                    ls -la monitor
 
                     '''
             }
