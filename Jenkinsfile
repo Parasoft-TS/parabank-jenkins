@@ -42,7 +42,7 @@ pipeline {
                     mkdir parabank-jenkins
                     git clone -b selenium-demo-tia https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
-                    //mkdir parabank
+                    #mkdir parabank
                     git clone -b selenium-demo https://github.com/parasoft/parabank parabank
 
                     mkdir monitor
