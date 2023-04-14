@@ -124,17 +124,17 @@ pipeline {
                     #        reportPattern: '**/target/jtest/*.xml', 
                     #        settings: '']) 
 
-                    echo '---> Parsing 10.x unit test reports'
-                        step([$class: 'XUnitPublisher', 
-                            tools: [
-                                [$class: 'ParasoftType', 
-                                    pattern: '**/target/jtest/*.xml', 
-                                    failIfNotNew: false, 
-                                    skipNoTestFiles: true, 
-                                    stopProcessingIfError: false
-                        ]
-                    ]
-                ])
+                    #echo '---> Parsing 10.x unit test reports'
+                    #    step([$class: 'XUnitPublisher', 
+                    #        tools: [
+                    #            [$class: 'ParasoftType', 
+                    #                pattern: '**/target/jtest/*.xml', 
+                    #                failIfNotNew: false, 
+                    #                skipNoTestFiles: true, 
+                    #                stopProcessingIfError: false
+                    #        ]
+                    #    ]
+                    #])
 
                     '''
             }
