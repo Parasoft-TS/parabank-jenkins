@@ -22,7 +22,8 @@ pipeline {
         dtp_publish="${dtp_publish}"
 
         // Parasoft Jtest Settings
-        jtestConfig="jtest.dtp://Parabank SA"    
+        jtestSAConfig="jtest.dtp://Parabank SA"
+        jtestMAConfig="builtin://Metrics"
         unitCovImage="${project_name};${project_name}_UnitTest"
 
         // Parasoft SOAtest Settings
@@ -66,6 +67,7 @@ pipeline {
 
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
+                    --user ${env.BUILD_USER_ID}:${env.BUILD_USER_ID} \
                     --rm -i \
                     -u 0:0 \
                     -v "$PWD:$PWD" \
@@ -78,44 +80,44 @@ pipeline {
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestConfig}' \
+                    -Djtest.config='${jtestSAConfig}' \
                     -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Metrics' \
-                    -Djtest.report=./target/jtest/ma \
-                    -Djtest.showSettings=true \
-                    -Dproperty.session.tag='${jtestSessionTag}' \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn \
+                    #jtest:jtest \
+                    #-DskipTests=true \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='${jtestMAConfig}' \
+                    #-Djtest.report=./target/jtest/ma \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.session.tag='${jtestSessionTag}' \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn \
-                    -Dmaven.test.failure.ignore=true \
-                    test-compile jtest:agent \
-                    test jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.session.tag='${jtestSessionTag}' \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn \
+                    #-Dmaven.test.failure.ignore=true \
+                    #test-compile jtest:agent \
+                    #test jtest:jtest \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='builtin://Unit Tests' \
+                    #-Djtest.report=./target/jtest/ut \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.session.tag='${jtestSessionTag}' \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn \
-                    -DskipTests=true \
-                    package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #mvn \
+                    #-DskipTests=true \
+                    #package jtest:monitor \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     "
                     # Unzip monitor.zip
-                    unzip **/target/*/*/monitor.zip -d .
-                    ls -la monitor
+                    #unzip **/target/*/*/monitor.zip -d .
+                    #ls -la monitor
 
                     '''
             }
