@@ -118,23 +118,23 @@ pipeline {
                     #unzip **/target/*/*/monitor.zip -d .
                     #ls -la monitor
 
-                    echo '---> Parsing static analysis reports'
-                        step(\[$class: 'ParasoftPublisher', 
-                            useReportPattern: true, 
-                            reportPattern: '**/target/jtest/*.xml', 
-                            settings: ''\]) 
+                    #echo '---> Parsing static analysis reports'
+                    #    step([$class: 'ParasoftPublisher', 
+                    #        useReportPattern: true, 
+                    #        reportPattern: '**/target/jtest/*.xml', 
+                    #        settings: '']) 
 
                     echo '---> Parsing 10.x unit test reports'
-                        step(\[$class: 'XUnitPublisher', 
-                            tools: \[
-                                \[$class: 'ParasoftType', 
+                        step([$class: 'XUnitPublisher', 
+                            tools: [
+                                [$class: 'ParasoftType', 
                                     pattern: '**/target/jtest/*.xml', 
                                     failIfNotNew: false, 
                                     skipNoTestFiles: true, 
                                     stopProcessingIfError: false
-                        \]
-                    \]
-                \])
+                        ]
+                    ]
+                ])
 
                     '''
             }
