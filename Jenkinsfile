@@ -79,7 +79,7 @@ pipeline {
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='$PWD/parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settings='./parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestConfig}' \
                     -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
