@@ -85,28 +85,28 @@ pipeline {
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #jtest:jtest \
-                    #-DskipTests=true \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='${jtestMAConfig}' \
-                    #-Djtest.report=./target/jtest/ma \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestMAConfig}' \
+                    -Djtest.report=./target/jtest/ma \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #-Dmaven.test.failure.ignore=true \
-                    #test-compile jtest:agent \
-                    #test jtest:jtest \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='builtin://Unit Tests' \
-                    #-Djtest.report=./target/jtest/ut \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn \
+                    -Dmaven.test.failure.ignore=true \
+                    test-compile jtest:agent \
+                    test jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     #mvn \
                     #-DskipTests=true \
@@ -117,6 +117,24 @@ pipeline {
                     # Unzip monitor.zip
                     #unzip **/target/*/*/monitor.zip -d .
                     #ls -la monitor
+
+                    echo '---> Parsing static analysis reports'
+                        step([$class: 'ParasoftPublisher', 
+                            useReportPattern: true, 
+                            reportPattern: '**/target/jtest/*.xml', 
+                            settings: '']) 
+
+                    echo '---> Parsing 10.x unit test reports'
+                        step([$class: 'XUnitPublisher', 
+                            tools: [
+                                [$class: 'ParasoftType', 
+                                    pattern: '**/target/jtest/*.xml', 
+                                    failIfNotNew: false, 
+                                    skipNoTestFiles: true, 
+                                    stopProcessingIfError: false
+                        ]
+                    ]
+                ])
 
                     '''
             }
@@ -155,7 +173,7 @@ pipeline {
         always {
             cleanWs(cleanWhenNotBuilt: false,
                 deleteDirs: true,
-                disableDeferredWipeout: true,
+                disableDeferredWipeout: false,
                 notFailBuild: true,
                 patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
                     [pattern: '.propsfile', type: 'EXCLUDE']])
