@@ -59,6 +59,24 @@ pipeline {
 
                     # Debug: Print jtestcli.properties file
                     cat parabank-jenkins/jtest/jtestcli.properties
+
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run --rm -i \
+                    -u 0:0 \
+                    -v "$PWD:$PWD" \
+                    -w "$PWD" \
+                    $(docker build -q ./jenkins/jtest) /bin/bash -c " \
+                    cd parabank; \
+                    mvn \
+                    -DskipTests=true \
+                    package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='/home/parasoft/jtestcli.properties'; \
+                    "
+                    # Unzip monitor.zip
+                    unzip **/target/*/*/monitor.zip -d .
+                    ls -la monitor
+
                     '''
             }
         }
