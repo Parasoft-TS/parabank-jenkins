@@ -66,7 +66,9 @@ pipeline {
                     pwd
 
                     # Run Maven build with Jtest tasks via Docker
-                    docker run --user "$(id -u):$(id -g)" --rm -i \
+                    docker run \
+                    --user "$(id -u):$(id -g)" -v /etc/passwd:/etc/passwd:ro \
+                    --rm -i \
                     -u 0:0 \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
