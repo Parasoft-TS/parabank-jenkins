@@ -65,8 +65,8 @@ pipeline {
                     
                     scontrol.git.exec=git
                     scontrol.rep1.type=git
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
-                    scontrol.rep1.git.workspace=parabank/
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank
+                    scontrol.rep1.git.workspace=$PWD/parabank/
                     scontrol.rep1.git.branch=selenium-demo
                     
                     scope.scontrol.files.filter.mode=branch
