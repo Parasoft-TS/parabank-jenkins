@@ -22,7 +22,7 @@ pipeline {
         dtp_publish="${dtp_publish}"
 
         // Parasoft Jtest Settings
-        jtestConfig="jtest.dtp://Parabank SA-MA"    
+        jtestConfig="jtest.dtp://Parabank SA"    
         unitCovImage="${project_name};${project_name}_UnitTest"
 
         // Parasoft SOAtest Settings
@@ -79,7 +79,7 @@ pipeline {
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='/home/parasoft/jtestcli.properties' \
+                    -Djtest.settings='$PWD/parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestConfig}' \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
