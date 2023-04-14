@@ -77,7 +77,7 @@ pipeline {
                     mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
-                    -s ./parabank-jenkins/jtest/.m2/settings.xml \
+                    -s ../parabank-jenkins/jtest/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestSAConfig}' \
                     -Djtest.report=./target/jtest/sa \
