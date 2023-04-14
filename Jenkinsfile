@@ -75,7 +75,7 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
-                    mvn test-compile \
+                    mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
@@ -85,15 +85,15 @@ pipeline {
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #jtest:jtest \
-                    #-DskipTests=true \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='builtin://Metrics' \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Metrics' \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     #mvn \
                     #-Dmaven.test.failure.ignore=true \
