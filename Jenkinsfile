@@ -33,20 +33,21 @@ pipeline {
         stage('Build') {
             steps {
                 cleanWs()
+                sh '''
+                    mkdir parabank-jenkins
+                    git clone -b selenium-demo-tia https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+
+                    mkdir parabank
+                    git clone -b selenium-demo https://github.com/parasoft/parabank parabank
+
+                    mkdir monitor
+                '''
 
                 // copy artifacts from baseline pipeline job
                 copyArtifacts(projectName: 'Parabank-Baseline-Ephemeral');
 
                 // build the project
                 sh  '''
-                    mkdir parabank-jenkins
-                    git clone -b selenium-demo-tia https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
-
-                    #mkdir parabank
-                    git clone -b selenium-demo https://github.com/parasoft/parabank parabank
-
-                    mkdir monitor
-
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
