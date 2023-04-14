@@ -38,11 +38,11 @@ pipeline {
                 sh  '''
                     mkdir parabank-jenkins
                     git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
-                    git checkout selenium-demo
+                    git checkout -b selenium-demo
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
-                    git checkout selenium-demo
+                    git checkout -b selenium-demo
 
                     mkdir monitor
 
