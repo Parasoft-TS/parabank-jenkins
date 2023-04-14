@@ -60,12 +60,14 @@ pipeline {
                     # Debug: Print jtestcli.properties file
                     cat parabank-jenkins/jtest/jtestcli.properties
 
+                    pwd
+
                     # Run Maven build with Jtest tasks via Docker
                     docker run --rm -i \
                     -u 0:0 \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
-                    $(docker build -q ./jenkins/jtest) /bin/bash -c " \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
                     mvn \
                     -DskipTests=true \
