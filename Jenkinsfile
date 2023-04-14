@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    tools {
-        maven 'maven'
-        jdk 'JDK 11'
-    }
     environment {
         // Git Settings
         gitBranch="${gitBranch}"
