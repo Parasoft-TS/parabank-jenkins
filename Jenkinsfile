@@ -81,6 +81,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='$PWD/parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestConfig}' \
+                    -Djtest.showSettings=true \
                     -Dproperty.session.tag='${jtestSessionTag}' \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
@@ -90,6 +91,7 @@ pipeline {
                     #-s /home/parasoft/.m2/settings.xml \
                     #-Djtest.settings='/home/parasoft/jtestcli.properties' \
                     #-Djtest.config='builtin://Metrics' \
+                    #-Djtest.showSettings=true \
                     #-Dproperty.session.tag='${jtestSessionTag}' \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
@@ -100,6 +102,7 @@ pipeline {
                     #-s /home/parasoft/.m2/settings.xml \
                     #-Djtest.settings='/home/parasoft/jtestcli.properties' \
                     #-Djtest.config='builtin://Unit Tests' \
+                    #-Djtest.showSettings=true \
                     #-Dproperty.session.tag='${jtestSessionTag}' \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
