@@ -40,6 +40,8 @@ pipeline {
 
                     mkdir parabank
                     git clone -b selenium-demo https://github.com/parasoft/parabank parabank
+                    git checkout master
+                    git checkout selenium-demo
 
                     mkdir monitor
                 '''
@@ -62,9 +64,13 @@ pipeline {
                     license.network.password=${ls_pass}
                     
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=selenium-demo
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                    scontrol.rep1.git.workspace=parabank/
+                    scontrol.rep1.git.branch=selenium-demo
+                    
+                    scope.scontrol.files.filter.mode=branch
+                    scope.scontrol.ref.branch=origin/master
                     scope.local=true
                     scope.scontrol=true
                     scope.xmlmap=false
@@ -110,20 +116,20 @@ pipeline {
                     #-Dproperty.session.tag='${jtestSessionTag}' \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    #mvn \
-                    #-Dmaven.test.failure.ignore=true \
-                    #test-compile tia:affected-tests \
-                    #jtest:agent test jtest:jtest \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='builtin://Unit Tests' \
-                    #-Dparasoft.runModifiedTests=true \
-                    #-Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
-                    #-Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
-                    #-Djtest.report=target/jtest/ut-tia \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.session.tag='${jtestSessionTag}' \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn \
+                    -Dmaven.test.failure.ignore=true \
+                    test-compile tia:affected-tests \
+                    jtest:agent test jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Dparasoft.runModifiedTests=true \
+                    -Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
+                    -Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
+                    -Djtest.report=target/jtest/ut-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.session.tag='${jtestSessionTag}' \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     #mvn \
                     #-DskipTests=true \
