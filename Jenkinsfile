@@ -1,12 +1,8 @@
 pipeline {
     agent any
     environment {
-        // Git Settings
-        gitBranch="${gitBranch}"
-        
         // App Settings
         parabank_port=8090
-
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}"
@@ -139,6 +135,7 @@ pipeline {
                     #unzip **/target/*/*/monitor.zip -d .
                     #ls -la monitor
 
+                    # TODO: Findings plugin seems broken
                     #echo '---> Parsing static analysis reports'
                     #    step([$class: 'ParasoftPublisher', 
                     #        useReportPattern: true, 
