@@ -30,7 +30,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                cleanWs()
+                //cleanWs()
                                 
                 // build the project
                 sh  '''
