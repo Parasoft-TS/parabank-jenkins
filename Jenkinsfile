@@ -104,14 +104,11 @@ pipeline {
                     export MOUNT="/usr/local/parasoft/soatest"
                     docker run --rm -i \
                     --name soatest \
-                    -u 1000:1000 \
+                    -u jenkins \
                     -e ACCEPT_EULA=true \
                     -v "$PWD/parabank-jenkins/soatest:$MOUNT" \
                     --network=demo-net \
-                    parasoft/soavirt /bin/bash -c " \
-                    
-                    getent passwd 1000; \
-                    getent group 1000; \
+                    $(docker build --no-cache -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     mkdir $MOUNT/report; \
                     pwd; \
