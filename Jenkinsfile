@@ -97,7 +97,30 @@ pipeline {
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    
                     cd parabank; \
+
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSAConfig}' \
+                    -Djtest.report=./target/jtest/sa \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    mvn test-compile \
+                    jtest:agent \
+                    test \
+                    jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
@@ -137,9 +160,9 @@ pipeline {
 
                     # Health Check
                     sleep 15
-                    docker ps -f name=parabank-baseline
-                    curl -iv --raw http://localhost:8090/parabank
-                    curl -iv --raw http://localhost:8050/status
+                    docker ps -f name=${app_name}
+                    curl -iv --raw http://localhost:${parabank_port}/parabank
+                    curl -iv --raw http://localhost:${parabank_cov_port}/status
                     '''
             }
         }
@@ -169,7 +192,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://172.17.0.1\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://${app_name}\\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.binaries.include=com/parasoft/**
 
@@ -198,15 +221,15 @@ pipeline {
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    
                     cd soatest; \
                     mkdir report; \
-                    pwd; \
-                    ls -ll; \
+                    #pwd; \
+                    #ls -ll; \
 
                     mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
-                    ls -la /usr/local/parasoft/soavirt_workspace/; \
                     cp -f -R /usr/local/parasoft/soatest/TestAssets /usr/local/parasoft/soavirt_workspace/TestAssets; \
-                    ls -la /usr/local/parasoft/soavirt_workspace/TestAssets/; \
+                    #ls -la /usr/local/parasoft/soavirt_workspace/TestAssets/; \
                     
                     cd ../soavirt; \
                     ./soatestcli \
@@ -217,10 +240,13 @@ pipeline {
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /TestAssets \
+                    -environment "172.17.0.1" \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -showsettings \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
+                    -publish ${dtp_publish} \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
@@ -244,7 +270,7 @@ pipeline {
                 sh  '''
                         
                 # Clean up
-                #docker container stop ${app_name}
+                docker container stop ${app_name}
                     
                 '''
             }
@@ -253,15 +279,15 @@ pipeline {
     post {
         // Clean after build
         always {
-            //sh 'docker container rm ${app_name}'
-            //sh 'docker image prune -f'
+            sh 'docker container rm ${app_name}'
+            sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
             )
 
-            //deleteDir()
+            deleteDir()
         }
     }
 }
