@@ -96,7 +96,8 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     # Unzip monitor.zip
-                    unzip ./parabank/target/jtest/monitor/monitor.zip -d .
+                    mkdir monitor
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     ls -la monitor
                     "
                     '''
