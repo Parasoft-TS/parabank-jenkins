@@ -30,6 +30,11 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                script {
+                    def currentUsername = sh(script: 'whoami', returnStdout: true).trim()
+                    echo "Jenkins job is running as user: ${currentUsername}"
+                }
+                
                 deleteDir()
                                 
                 // build the project
