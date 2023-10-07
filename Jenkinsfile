@@ -187,19 +187,26 @@ pipeline {
             }
         }
     }
-    // post {
-    //     // Clean after build
-    //     always {
-    //         archiveArtifacts artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
-    //             fingerprint: true, 
-    //             onlyIfSuccessful: true
-            
-    //         cleanWs(cleanWhenNotBuilt: false,
-    //             deleteDirs: true,
-    //             disableDeferredWipeout: false,
-    //             notFailBuild: true,
-    //             patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
-    //                 [pattern: '.propsfile', type: 'EXCLUDE']])
-    //     }
-    // }
+    post {
+        // Clean after build
+        always {
+            sh 'docker container rm parabank-baseline'
+            sh 'docker image prune -f'
+
+            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
+                fingerprint: true, 
+                onlyIfSuccessful: true
+            )
+
+            cleanWs(cleanWhenNotBuilt: false,
+                deleteDirs: true,
+                disableDeferredWipeout: false,
+                notFailBuild: true,
+                patterns: [
+                    [pattern: '.gitignore', type: 'INCLUDE'],
+                    [pattern: '.propsfile', type: 'EXCLUDE']
+                ]
+            )
+        }
+    }
 }
