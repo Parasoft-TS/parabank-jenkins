@@ -195,7 +195,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    ${image}
+                    $(docker build -q ./parabank-jenkins/parabank-docker) \
 
                     # Health Check
                     sleep 15
