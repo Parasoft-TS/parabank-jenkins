@@ -83,6 +83,7 @@ pipeline {
                     --rm -i \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
+                    --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
