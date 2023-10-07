@@ -94,7 +94,16 @@ pipeline {
                     pwd \
                     ls -ll \
                     cd parabank; \
-
+                    "
+                    docker run \
+                    -u 1000:1000 \
+                    --rm -i \
+                    -v "$PWD:/home/parasoft" \
+                    -w "/home/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    cd parabank; \
+                    
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
