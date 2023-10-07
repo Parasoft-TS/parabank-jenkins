@@ -114,7 +114,7 @@ pipeline {
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 sh  '''
-                    export MOUNT="/usr/local/parasoft/soavirt"
+                    export MOUNT="/usr/local/parasoft/soavirt/soatest"
                     docker run --rm -i \
                     --name soatest \
                     -u jenkins \
