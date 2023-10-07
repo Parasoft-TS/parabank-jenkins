@@ -11,7 +11,7 @@ pipeline {
         parabank_jms_port=63616
 
         // Docker host ip
-        host_ip=172.17.0.1
+        host_ip="172.17.0.1"
 
         // Jenkins UID:GID
         jenkins_uid=995
