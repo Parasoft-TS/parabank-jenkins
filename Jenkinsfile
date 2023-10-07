@@ -1,7 +1,13 @@
 pipeline {
     agent any
+    options {
+        // This is required if you want to clean before build
+        skipDefaultCheckout(true)
+    }
     environment {
         // App Settings
+        project_name="Parabank-Jenkins"
+        app_name="parabank-baseline"
         parabank_port=8090
         parabank_cov_port=8050
 
@@ -12,19 +18,18 @@ pipeline {
         
         // Parasoft DTP Settings
         dtp_url="${PARASOFT_DTP_URL}"
-        project_name="Parabank-Jenkins"
+        dtp_publish="${PARASOFT_DTP_PUBLISH}"
         buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
         jtestSessionTag="ParabankJenkins-Jtest"
         soatestSessionTag="ParabankJenkins-SOAtest"
-        dtp_publish="${PARASOFT_DTP_PUBLISH}"
-
+        
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
         jtestMAConfig="jtest.builtin://Metrics"
-        soatestConfig="soatest.user://Example Configuration"
         unitCovImage="Parabank_All;Parabank_UnitTest"
 
         // Parasoft SOAtest Settings
+        soatestConfig="soatest.user://Example Configuration"
         soatestCovImage="Parabank_All;Parabank_SOAtest"
     }
     stages {
@@ -36,6 +41,7 @@ pipeline {
                 }
                 
                 deleteDir()
+                cleanWs()
                                 
                 // build the project
                 sh  '''
