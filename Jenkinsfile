@@ -91,8 +91,8 @@ pipeline {
                     -w "/home/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    pwd \
-                    ls -ll \
+                    pwd; \
+                    ls -ll; \
                     cd parabank; \
                     "
                     docker run \
@@ -103,7 +103,7 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
-                    
+
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
