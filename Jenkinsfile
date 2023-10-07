@@ -30,7 +30,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                cleanWs()
+                deleteDir()
                                 
                 // build the project
                 sh  '''
@@ -196,16 +196,6 @@ pipeline {
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
-            )
-
-            cleanWs(cleanWhenNotBuilt: false,
-                deleteDirs: true,
-                disableDeferredWipeout: false,
-                notFailBuild: true,
-                patterns: [
-                    [pattern: '.gitignore', type: 'INCLUDE'],
-                    [pattern: '.propsfile', type: 'EXCLUDE']
-                ]
             )
         }
     }
