@@ -88,70 +88,25 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
+                    mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.skip=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn test-compile \
-                    jtest:agent \
-                    test \
-                    jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
                     # Unzip monitor.zip
                     #unzip **/target/*/*/monitor.zip -d .
                     #ls -la monitor
+                    "
                     '''
-
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/**/*.xml'
-                    )],
-                    unhealthy: 10, // Adjust as needed
-                    healthy: 5,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    qualityGates: [[
-                        threshold: 5,
-                        type: 'TOTAL_ERROR',
-                        unstable: false
-                    ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
-
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/report.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
-            }
         }
         stage('Deploy') {
             steps {
                 // deploy the project
                 sh  '''
-                    #TODO
+                    # Run Maven build with Jtest tasks via Docker
+
                     '''
             }
         }
