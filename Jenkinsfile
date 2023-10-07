@@ -30,53 +30,9 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                cleanWs()
+                //cleanWs()
                                 
                 // build the project
-                sh  '''
-                    mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
-                    
-                    mkdir parabank
-                    git clone https://github.com/parasoft/parabank parabank
-
-                    pwd
-                    ls -ll
-
-                    # Set Up and write .properties file
-                    echo $"
-                    parasoft.eula.accepted=true
-                    jtest.license.use_network=true
-                    jtest.license.network.edition=custom_edition
-                    jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Change Based Testing
-                    license.network.use.specified.server=true
-                    license.network.auth.enabled=true
-                    license.network.url=${ls_url}
-                    license.network.user=${ls_user}
-                    license.network.password=${ls_pass}
-
-                    report.associations=false
-                    report.coverage.images="${unitCovImage}"
-                    report.scontrol=full
-                    scope.local=true
-                    scope.scontrol=true
-                    scope.xmlmap=false
-                    
-                    scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
-                    scontrol.rep1.type=git
-
-                    build.id="${buildId}"
-                    session.tag="${jtestSessionTag}"
-                    dtp.url=${dtp_url}
-                    dtp.user=${ls_user}
-                    dtp.password=${ls_pass}
-                    dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
-
-                    # Debug: Print jtestcli.properties file
-                    cat ./parabank-jenkins/jtest/jtestcli.properties
-                    '''
 
 
                 echo '---> Parsing 10.x unit test reports'
