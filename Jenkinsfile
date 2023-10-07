@@ -98,20 +98,6 @@ pipeline {
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
                     $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    whoami; \
-                    id jenkins; \
-                    id parasoft; \
-                    "
-                    
-                    docker run \
-                    -u jenkins \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
-                    --network=demo-net \
-                    $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
                     mvn package jtest:monitor \
@@ -139,6 +125,7 @@ pipeline {
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
+                    -u jenkins \
                     -d \
                     -p ${parabank_port}:8080 \
                     -p ${parabank_cov_port}:8050 \
