@@ -77,32 +77,7 @@ pipeline {
                     # Debug: Print jtestcli.properties file
                     cat ./parabank-jenkins/jtest/jtestcli.properties
                     '''
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u 0:0 \
-                    --rm -i \
-                    -v "$PWD:$PWD" \
-                    -w "$PWD" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    cd parabank; \
 
-                    mvn \
-                    compile test-compile jtest:agent \
-                    test jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    # Unzip monitor.zip
-                    #unzip **/target/*/*/monitor.zip -d .
-                    #ls -la monitor
-                    '''
 
                 echo '---> Parsing 10.x unit test reports'
                 script {
@@ -111,7 +86,7 @@ pipeline {
                         tools: [[$class: 'ParasoftType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
-                            pattern: './parabank/target/jtest/**/*.xml', 
+                            pattern: '/parabank/target/jtest/ut/*.xml', 
                             skipNoTestFiles: true, 
                             stopProcessingIfError: false
                         ]]
