@@ -178,7 +178,7 @@ pipeline {
                     '''
                 sh  '''
                     docker run \
-                    -u jenkins \
+                    -u 995:991 \
                     --rm -i \
                     --name soatest \
                     -e ACCEPT_EULA=true \
@@ -210,19 +210,19 @@ pipeline {
                     #-report $MOUNT/report \
                     "
                     '''
-                echo '---> Parsing 9.x soatest reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
-                        tools: [[$class: 'ParasoftSOAtest9xType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/soatest/report/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
+                // echo '---> Parsing 9.x soatest reports'
+                // script {
+                //     step([$class: 'XUnitPublisher', 
+                //         thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                //         tools: [[$class: 'ParasoftSOAtest9xType', 
+                //             deleteOutputFiles: true, 
+                //             failIfNotNew: false, 
+                //             pattern: '**/soatest/report/*.xml', 
+                //             skipNoTestFiles: true, 
+                //             stopProcessingIfError: false
+                //         ]]
+                //     ])
+                // }
             }
         }
         stage('Release') {

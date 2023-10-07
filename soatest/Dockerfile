@@ -7,21 +7,19 @@ ARG HOST_GID=991
 USER root:root
 ARG USER_HOME_DIR=/usr/local/parasoft
 
-## Create a Jenkins user to match the EC-2 instance's jenkins user
-RUN groupadd jenkins -g 991
-RUN useradd -u 995 -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
-
 RUN rm -f /var/log/lastlog /var/log/faillog \
     && ln -s /dev/null /var/log/lastlog \
-    && ln -s /dev/null /var/log/faillog
+    && ln -s /dev/null /var/log/faillog \
+    && groupmod -g ${HOST_GID} parasoft \
+    && usermod -u ${HOST_UID} -g ${HOST_GID} parasoft
 
 ## Fix permissions
-RUN chown -h -R jenkins:jenkins .
+RUN chown -h -R ${HOST_UID}:${HOST_GID} ${USER_HOME_DIR}
 
 RUN touch /var/log/lastlog && \
     touch /var/log/faillog
 
-USER jenkins
+USER parasoft
 
 # Define working directory.
 WORKDIR ${USER_HOME_DIR}
