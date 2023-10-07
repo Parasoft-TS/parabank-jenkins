@@ -11,12 +11,12 @@ pipeline {
         ls_pass="${PARASOFT_LS_PASS}"
         
         // Parasoft DTP Settings
-        dtp_url="${DTP_URL}"
+        dtp_url="${PARASOFT_DTP_URL}"
         project_name="Parabank-Jenkins"
         buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
         jtestSessionTag="ParabankJenkins-Jtest"
         soatestSessionTag="ParabankJenkins-SOAtest"
-        dtp_publish="${DTP_PUBLISH}"
+        dtp_publish="${PARASOFT_DTP_PUBLISH}"
 
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
