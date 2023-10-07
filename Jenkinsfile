@@ -105,7 +105,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                deploy the project
+                // deploy the project
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
