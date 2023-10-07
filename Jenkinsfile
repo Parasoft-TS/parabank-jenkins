@@ -98,6 +98,7 @@ pipeline {
                     # Unzip monitor.zip
                     mkdir monitor
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    ls -ll
                     ls -la monitor
                     '''
             }
