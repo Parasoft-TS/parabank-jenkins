@@ -2,13 +2,16 @@
 FROM parasoft/jtest
 
 # Install MVN
+ARG HOST_UID=995
+ARG HOST_GID=991
+
 ## Permissions to create dirs
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
 ## Create a Jenkins user to match the EC-2 instance's jenkins user
-RUN groupadd jenkins -g 991
-RUN useradd -u 995 -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
+#RUN groupadd jenkins -g 991
+#RUN useradd -u 995 -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
@@ -18,7 +21,9 @@ RUN mkdir -p ${MAVEN_HOME} \
  && curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
  && tar -xzf /tmp/apache-maven.tar.gz -C ${MAVEN_HOME} --strip-components=1 \
  && rm -f /tmp/apache-maven.tar.gz \
- && ln -s ${MAVEN_HOME}/bin/mvn /usr/bin/mvn
+ && ln -s ${MAVEN_HOME}/bin/mvn /usr/bin/mvn \
+ && groupmod -g ${HOST_GID} parasoft \
+ && usermod -u ${HOST_UID} -g ${HOST_GID} parasoft
 
 ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 
@@ -27,10 +32,12 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
-RUN chown -R jenkins:jenkins .
+#RUN chown -R jenkins:jenkins .
+RUN chown -h -R ${HOST_UID}:${HOST_GID} ${USER_HOME_DIR}
 
 ## Switch user back and configure MVN
-USER jenkins
+#USER jenkins
+USER parasoft
 ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
 
 # Define working directory.

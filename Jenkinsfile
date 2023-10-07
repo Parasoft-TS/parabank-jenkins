@@ -7,6 +7,10 @@ pipeline {
         parabank_port=8090
         parabank_cov_port=8050
 
+        // Jenkins UID:GID
+        jenkins_uid=995
+        jenkins_gid=991
+
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}"
         ls_user="${PARASOFT_LS_USER}"
@@ -80,7 +84,7 @@ pipeline {
                     
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u jenkins \
+                    -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
@@ -178,7 +182,7 @@ pipeline {
                     '''
                 sh  '''
                     docker run \
-                    -u 995:991 \
+                    -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name soatest \
                     -e ACCEPT_EULA=true \
@@ -197,6 +201,9 @@ pipeline {
                     cp -f -R /usr/local/parasoft/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
                     ls -la /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     
+                    cd ../soavirt; \
+                    ls -ll; \
+
                     soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
