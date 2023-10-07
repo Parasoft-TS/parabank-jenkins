@@ -94,7 +94,8 @@ pipeline {
                     -u jenkins \
                     --rm -i \
                     --name jtest \
-                    -v "$PWD:/home/parasoft/jenkins" \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -105,7 +106,8 @@ pipeline {
                     -u jenkins \
                     --rm -i \
                     --name jtest \
-                    -v "$PWD:/home/parasoft/jenkins" \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
