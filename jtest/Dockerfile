@@ -32,7 +32,7 @@ COPY .m2 /home/parasoft/.m2
 RUN chown -R jenkins:jenkins .
 
 ## Switch user back and configure MVN
-USER jenkins:jenkins
+USER jenkins
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
 # Define working directory.
