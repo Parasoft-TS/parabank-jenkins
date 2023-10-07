@@ -240,12 +240,12 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    mkdir $MOUNT/report; \
+                    mkdir $MOUNT/soatest/report; \
                     pwd; \
                     ls -la $MOUNT; \
 
-                    mkdir ./parasoft/soavirt_workspace/TestAssets; \
-                    cp -f $MOUNT/soatest/TestAssets "./parasoft/soavirt_workspace/TestAssets"; \
+                    mkdir /usr/local/parasoft/soavirt_workspace/TestAssets; \
+                    cp -f $MOUNT/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
                     
