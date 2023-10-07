@@ -91,28 +91,7 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u 0:0 \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD:/home/parasoft/jenkins" \
-                    -w "/home/parasoft/jenkins" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    pwd;
-                    ls -ll;
-                    cd ../;
-                    pwd;
-                    ls -ll;
-                    cd ./apache-maven-3.9.5;
-                    ls -ll;
-                    cd ./bin;
-                    ls -ll;
-                    cd /usr/bin;
-                    ls -ll;
-                    "
-
-                    docker run \
-                    -u 0:0 \
+                    -u parasoft \
                     --rm -i \
                     --name jtest \
                     -v "$PWD:/home/parasoft/jenkins" \
@@ -227,8 +206,8 @@ pipeline {
     post {
         // Clean after build
         always {
-            //sh 'docker container rm parabank-baseline'
-            //sh 'docker image prune -f'
+            sh 'docker container rm parabank-baseline'
+            sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
                 fingerprint: true, 
