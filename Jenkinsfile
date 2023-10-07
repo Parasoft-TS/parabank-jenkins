@@ -131,16 +131,16 @@ pipeline {
                     #ls -la monitor
 
                     echo '---> Parsing 10.x unit test reports'
-                        step([$class: 'XUnitPublisher', 
-                            tools: [
-                                [$class: 'ParasoftType', 
+                        step(\[$class: 'XUnitPublisher', 
+                            tools: \[
+                                \[$class: 'ParasoftType', 
                                     pattern: './parabank/target/jtest/**/*.xml', 
                                     failIfNotNew: false, 
                                     skipNoTestFiles: true, 
                                     stopProcessingIfError: false
-                            ]
-                        ]
-                    ])
+                            \]
+                        \]
+                    \])
 
                     '''
                 node('any') {
@@ -224,7 +224,7 @@ pipeline {
     // post {
     //     // Clean after build
     //     always {
-    //         archiveArtifacts artifacts: '**/target/*.war, **/target/jtest/**, **/soatest/report/**',
+    //         archiveArtifacts artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
     //             fingerprint: true, 
     //             onlyIfSuccessful: true
             
