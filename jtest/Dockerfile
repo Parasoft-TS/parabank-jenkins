@@ -6,7 +6,7 @@ FROM parasoft/jtest
 USER root
 
 ## Set MVN args
-ARG MAVEN_VERSION=3.6.3
+ARG MAVEN_VERSION=3.9.5
 ARG USER_HOME_DIR=/home/parasoft
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
