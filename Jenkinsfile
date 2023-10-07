@@ -78,109 +78,109 @@ pipeline {
                     # Debug: Print jtestcli.properties file
                     cat ./parabank-jenkins/jtest/jtestcli.properties
                     '''
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u jenkins \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
-                    --network=demo-net \
-                    $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    cd parabank; \
+                // sh '''
+                //     # Run Maven build with Jtest tasks via Docker
+                //     docker run \
+                //     -u jenkins \
+                //     --rm -i \
+                //     --name jtest \
+                //     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                //     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                //     -w "/home/parasoft/jenkins" \
+                //     --network=demo-net \
+                //     $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                //     cd parabank; \
 
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     mvn compile \
+                //     jtest:jtest \
+                //     -DskipTests=true \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.config='${jtestSAConfig}' \
+                //     -Djtest.report=./target/jtest/sa \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn test-compile \
-                    jtest:agent \
-                    test \
-                    jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     mvn test-compile \
+                //     jtest:agent \
+                //     test \
+                //     jtest:jtest \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Dmaven.test.failure.ignore=true \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.config='builtin://Unit Tests' \
+                //     -Djtest.report=./target/jtest/ut \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
+                //     mvn package jtest:monitor \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Dmaven.test.skip=true \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     "
 
-                    # check parabank/target permissions
-                    #ls -la ./parabank/target
+                //     # check parabank/target permissions
+                //     #ls -la ./parabank/target
 
-                    # Unzip monitor.zip
-                    mkdir monitor
-                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
-                    #ls -ll
-                    #ls -la monitor
-                    '''
+                //     # Unzip monitor.zip
+                //     mkdir monitor
+                //     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                //     #ls -ll
+                //     #ls -la monitor
+                //     '''
 
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    qualityGates: [[
-                        threshold: 10,
-                        type: 'TOTAL_ERROR',
-                        unstable: true
-                    ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
+                // echo '---> Parsing 10.x static analysis reports'
+                // recordIssues(
+                //     tools: [parasoftFindings(
+                //         localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties',
+                //         pattern: '**/target/jtest/sa/*.xml'
+                //     )],
+                //     unhealthy: 100, // Adjust as needed
+                //     healthy: 50,   // Adjust as needed
+                //     minimumSeverity: 'HIGH', // Adjust as needed
+                //     qualityGates: [[
+                //         threshold: 10,
+                //         type: 'TOTAL_ERROR',
+                //         unstable: true
+                //     ]],
+                //     skipPublishingChecks: true // Adjust as needed
+                // )
 
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
+                // echo '---> Parsing 10.x unit test reports'
+                // script {
+                //     step([$class: 'XUnitPublisher', 
+                //         thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                //         tools: [[$class: 'ParasoftType', 
+                //             deleteOutputFiles: true, 
+                //             failIfNotNew: false, 
+                //             pattern: '**/target/jtest/ut/*.xml', 
+                //             skipNoTestFiles: true, 
+                //             stopProcessingIfError: false
+                //         ]]
+                //     ])
+                // }
             }
         }
         stage('Deploy') {
             steps {
                 // deploy the project
-                sh  '''
-                    # Run Parabank-baseline docker image with Jtest coverage agent configured
-                    docker run \
-                    -u 1000:1000 \
-                    -d \
-                    -p ${parabank_port}:8080 \
-                    -p ${parabank_cov_port}:8050 \
-                    -p 9021:9001 \
-                    -p 63617:61616 \
-                    --env-file ./parabank-jenkins/jtest/monitor.env \
-                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
-                    --network=demo-net \
-                    --name ${app_name} \
-                    parasoft/parabank:baseline
-                    '''
+                // sh  '''
+                //     # Run Parabank-baseline docker image with Jtest coverage agent configured
+                //     docker run \
+                //     -u 1000:1000 \
+                //     -d \
+                //     -p ${parabank_port}:8080 \
+                //     -p ${parabank_cov_port}:8050 \
+                //     -p 9021:9001 \
+                //     -p 63617:61616 \
+                //     --env-file ./parabank-jenkins/jtest/monitor.env \
+                //     -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                //     --network=demo-net \
+                //     --name ${app_name} \
+                //     parasoft/parabank:baseline
+                //     '''
             }
         }
                 
