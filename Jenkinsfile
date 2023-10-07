@@ -101,7 +101,7 @@ pipeline {
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 sh  '''
-                    export MOUNT=/home/parasoft/soatest
+                    export MOUNT="/home/parasoft/soatest"
                     docker run --rm -i \
                     --name soatest \
                     -u 1000:1000 \
@@ -109,23 +109,27 @@ pipeline {
                     -v "$PWD/parabank-jenkins/soatest:$MOUNT" \
                     --network=demo-net \
                     parasoft/soavirt /bin/bash -c " \
+                    mkdir $MOUNT/report; \
+                    pwd; \
+                    ls -la $MOUNT; \
+
                     #mkdir /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/ \
-                    cp -f "$MOUNT"/TestAssets "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets"; \
+                    #cp -f $MOUNT/TestAssets "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets"; \
                     #ls -la /mnt/parasoft/soatest; \
-                    ls -la /usr/local/parasoft/parasoft/soavirt_workspace/; \
-                    ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
+                    #ls -la /usr/local/parasoft/parasoft/soavirt_workspace/; \
+                    #ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
                     
-                    soatestcli \
-                    -data /usr/local/parasoft/parasoft/soavirt_workspace \
-                    -settings $MOUNT/soatestcli.properties \
-                    -import /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/.project \
+                    #soatestcli \
+                    #-data /usr/local/parasoft/parasoft/soavirt_workspace \
+                    #-settings $MOUNT/soatestcli.properties \
+                    #-import /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/.project \
                     
-                    soatestcli \
-                    -resource /TestAssets \
-                    -config '${soatestConfig}' \
-                    -settings $MOUNT/soatestcli.properties \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
-                    -report $MOUNT/report \
+                    #soatestcli \
+                    #-resource /TestAssets \
+                    #-config '${soatestConfig}' \
+                    #-settings $MOUNT/soatestcli.properties \
+                    #-property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    #-report $MOUNT/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
