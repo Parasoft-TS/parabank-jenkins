@@ -195,34 +195,34 @@ pipeline {
                     mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     ls -la /usr/local/parasoft/soavirt_workspace; \
                     cp -f -R /usr/local/parasoft/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
-                    ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets; \
+                    ls -la /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     
-                    #soatestcli \
-                    #-data $MOUNT/soavirt_workspace \
-                    #-settings $MOUNT/soatest/soatestcli.properties \
-                    #-import $MOUNT/soavirt_workspace/TestAssets/.project \
+                    soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -import /usr/local/parasoft/soavirt_workspace/TestAssets/.project \
                     
-                    #soatestcli \
-                    #-resource /TestAssets \
-                    #-config '${soatestConfig}' \
-                    #-settings $MOUNT/soatest/soatestcli.properties \
-                    #-property application.coverage.runtime.dir=$MOUNT/soavirt_workspace/TestAssets/coverage_runtime_dir \
-                    #-report $MOUNT/report \
+                    soatestcli \
+                    -resource /TestAssets \
+                    -config '${soatestConfig}' \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    -report /usr/local/parasoft/soatest/report \
                     "
                     '''
-                // echo '---> Parsing 9.x soatest reports'
-                // script {
-                //     step([$class: 'XUnitPublisher', 
-                //         thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
-                //         tools: [[$class: 'ParasoftSOAtest9xType', 
-                //             deleteOutputFiles: true, 
-                //             failIfNotNew: false, 
-                //             pattern: '**/soatest/report/*.xml', 
-                //             skipNoTestFiles: true, 
-                //             stopProcessingIfError: false
-                //         ]]
-                //     ])
-                // }
+                echo '---> Parsing 9.x soatest reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                        tools: [[$class: 'ParasoftSOAtest9xType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/soatest/report/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Release') {
