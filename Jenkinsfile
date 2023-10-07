@@ -50,6 +50,19 @@ pipeline {
             steps {
                 // deploy the project
                 sh  '''
+                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                    docker run \
+                    -u 1000:1000 \
+                    -d \
+                    -p ${parabank_port}:8080 \
+                    -p ${parabank_cov_port}:8050 \
+                    -p 9021:9001 \
+                    -p 63617:61616 \
+                    --env-file ./parabank-jenkins/jtest/monitor.env \
+                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    --network=demo-net \
+                    --name ${app_name} \
+                    parasoft/parabank:baseline
                     '''
             }
         }
@@ -163,7 +176,7 @@ pipeline {
         // Clean after build
         always {
             //sh 'docker container rm ${app_name}'
-            sh 'docker image prune -f'
+            //sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
                 fingerprint: true, 
