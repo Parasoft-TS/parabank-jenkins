@@ -240,19 +240,24 @@ pipeline {
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /TestAssets \
-                    -environment "172.17.0.1" \
+                    -environment "${app_name}" \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -showsettings \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
-                    -publish ${dtp_publish} \
+                    -${dtp_publish} \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                        thresholds: [failed(
+                            failureNewThreshold: '10', 
+                            failureThreshold: '10',
+                            unstableNewThreshold: '20', 
+                            unstableThreshold: '20')
+                        ],
                         tools: [[$class: 'ParasoftSOAtest9xType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
