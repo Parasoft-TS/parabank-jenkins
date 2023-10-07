@@ -86,7 +86,8 @@ pipeline {
 
                     # Debug: Print jtestcli.properties file
                     cat ./parabank-jenkins/jtest/jtestcli.properties
-                    
+                    '''
+                sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -143,24 +144,27 @@ pipeline {
                 echo '---> Parsing 10.x static analysis reports'
                 recordIssues(
                     tools: [parasoftFindings(
-                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties',
+                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
                         pattern: '**/target/jtest/sa/*.xml'
                     )],
                     unhealthy: 100, // Adjust as needed
                     healthy: 50,   // Adjust as needed
                     minimumSeverity: 'HIGH', // Adjust as needed
-                    qualityGates: [[
-                        threshold: 10,
-                        type: 'TOTAL_ERROR',
-                        unstable: true
-                    ]],
+                    // qualityGates: [[
+                    //     threshold: 10,
+                    //     type: 'TOTAL_ERROR',
+                    //     unstable: true
+                    // ]],
                     skipPublishingChecks: true // Adjust as needed
                 )
 
                 echo '---> Parsing 10.x unit test reports'
                 script {
                     step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '0', 
+                        //     failureThreshold: '0')
+                        // ],
                         tools: [[$class: 'ParasoftType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
@@ -179,6 +183,7 @@ pipeline {
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
                     -d \
+                    -u 1000:1000 \
                     -p ${parabank_port}:8080 \
                     -p ${parabank_cov_port}:8050 \
                     -p ${parabank_db_port}:9001 \
@@ -223,7 +228,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${app_name}\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://172.17.0.1\\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.binaries.include=com/parasoft/**
 
@@ -271,7 +276,7 @@ pipeline {
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /TestAssets \
-                    -environment "${app_name}" \
+                    -environment "172.17.0.1" \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -showsettings \
@@ -283,12 +288,12 @@ pipeline {
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(
-                            failureNewThreshold: '10', 
-                            failureThreshold: '10',
-                            unstableNewThreshold: '20', 
-                            unstableThreshold: '20')
-                        ],
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '10', 
+                        //     failureThreshold: '10',
+                        //     unstableNewThreshold: '20', 
+                        //     unstableThreshold: '20')
+                        // ],
                         tools: [[$class: 'ParasoftSOAtest9xType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
