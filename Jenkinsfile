@@ -211,9 +211,8 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://[TODO]\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://${app_name}\\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
-                    application.coverage.runtime.dir=[TODO]\\runtime_coverage_data
                     application.coverage.binaries.include=com/parasoft/**
 
                     scontrol.git.exec=git
@@ -231,9 +230,38 @@ pipeline {
                     # Debug: Print soatestcli.properties file
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
-                // sh  '''
-
-                //     '''
+                sh  '''
+                    docker run --rm -i \
+                    -u 1000:1000 \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD:$PWD" \
+                    parasoft/soavirt /bin/bash -c " \
+                    soatestcli \
+                    -settings $PWD/parabank-jenkins/soatest/soatestcli.properties \
+                    -machineId; \
+                    ls -la $PWD/parabank-jenkins/soatest; \
+                    cp "$PWD/parabank-jenkins/soatest"/* "/root/parasoft/soavirt_workspace/TestAssets/"; \
+                    soatestcli \
+                    -resource /TestAssets \
+                    -config 'user://Example Configuration' \
+                    -settings $PWD/parasoft-jenkins/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=$PWD/parabank-jenkins/soatest/coverage_runtime_dir
+                    -report $PWD/parasoft-jenkins/soatest/report \
+                    "
+                    '''
+                echo '---> Parsing 9.x soatest reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                        tools: [[$class: 'ParasoftSOAtest9xType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/soatest/report/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Release') {
