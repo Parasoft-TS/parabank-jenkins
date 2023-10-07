@@ -43,6 +43,35 @@ pipeline {
 
                     #pwd
                     #ls -ll
+                    
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u jenkins \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    cd parabank; \
+                    
+                    mvn package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.skip=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+
+                    # check parabank/target permissions
+                    #ls -la ./parabank/target
+
+                    # Unzip monitor.zip
+                    mkdir monitor
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    #ls -ll
+                    #ls -la monitor
                     '''
             }
         }
@@ -50,6 +79,19 @@ pipeline {
             steps {
                 // deploy the project
                 sh  '''
+                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                    docker run \
+                    -u 1000:1000 \
+                    -d \
+                    -p ${parabank_port}:8080 \
+                    -p ${parabank_cov_port}:8050 \
+                    -p 9021:9001 \
+                    -p 63617:61616 \
+                    --env-file ./parabank-jenkins/jtest/monitor.env \
+                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    --network=demo-net \
+                    --name ${app_name} \
+                    parasoft/parabank:baseline
                     '''
             }
         }
