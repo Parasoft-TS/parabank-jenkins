@@ -85,10 +85,10 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u 0:0 \
+                    -u 1000:1000 \
                     --rm -i \
-                    -v "$PWD:$PWD" \
-                    -w "$PWD" \
+                    -v "$PWD:/home/parasoft" \
+                    -w "/home/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
@@ -100,9 +100,7 @@ pipeline {
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
-                    # fix parabank/target permissions
-                    ls -la ./parabank/target
-                    chown jenkins:jenkins -R ./parabank/target
+                    # check parabank/target permissions
                     ls -la ./parabank/target
 
                     # Unzip monitor.zip
