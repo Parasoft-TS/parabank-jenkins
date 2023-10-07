@@ -90,8 +90,11 @@ pipeline {
                     '''
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
+                    chown -R parasoft:parasoft ./parasoft
+                    ls -ll
+                    
                     docker run \
-                    -u 1000:1000 \
+                    -u parasoft \
                     --rm -i \
                     --name jtest \
                     -v "$PWD:/home/parasoft/jenkins" \
