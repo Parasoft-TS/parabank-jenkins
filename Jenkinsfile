@@ -170,19 +170,19 @@ pipeline {
             }
         }
     }
-    post {
-        // Clean after build
-        always {
-            archiveArtifacts artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
-                fingerprint: true, 
-                onlyIfSuccessful: true
+    // post {
+    //     // Clean after build
+    //     always {
+    //         archiveArtifacts artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
+    //             fingerprint: true, 
+    //             onlyIfSuccessful: true
             
-            cleanWs(cleanWhenNotBuilt: false,
-                deleteDirs: true,
-                disableDeferredWipeout: false,
-                notFailBuild: true,
-                patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
-                    [pattern: '.propsfile', type: 'EXCLUDE']])
-        }
-    }
+    //         cleanWs(cleanWhenNotBuilt: false,
+    //             deleteDirs: true,
+    //             disableDeferredWipeout: false,
+    //             notFailBuild: true,
+    //             patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+    //                 [pattern: '.propsfile', type: 'EXCLUDE']])
+    //     }
+    // }
 }
