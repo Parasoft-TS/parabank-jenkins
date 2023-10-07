@@ -13,9 +13,12 @@ RUN useradd -u ${HOST_UID} -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkin
 
 RUN rm -f /var/log/lastlog /var/log/faillog && \
     ln -s /dev/null /var/log/lastlog && \
-    ln -s /dev/null /var/log/faillog && \
-    chown -h -R ${HOST_UID}:${HOST_GID} ${USER_HOME_DIR} && \
-    touch /var/log/lastlog && \
+    ln -s /dev/null /var/log/faillog &&
+
+## Fix permissions
+RUN chown -R jenkins:jenkins .
+
+RUN touch /var/log/lastlog && \
     touch /var/log/faillog
 
 USER jenkins
