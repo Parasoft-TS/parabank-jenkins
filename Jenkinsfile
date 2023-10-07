@@ -80,7 +80,7 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u 0:0 \
+                    -u jenkins \
                     --rm -i \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
