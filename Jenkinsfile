@@ -94,12 +94,11 @@ pipeline {
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
-
+                    "
                     # Unzip monitor.zip
                     mkdir monitor
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     ls -la monitor
-                    "
                     '''
             }
         }
@@ -169,6 +168,9 @@ pipeline {
                     # Debug: Print soatestcli.properties file
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
+                // sh  '''
+
+                //     '''
             }
         }
         stage('Release') {
