@@ -109,21 +109,22 @@ pipeline {
                     -v "$PWD/parabank-jenkins/soatest:$MOUNT" \
                     --network=demo-net \
                     parasoft/soavirt /bin/bash -c " \
-                    mkdir /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/ \
+                    #mkdir /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/ \
                     cp "$MOUNT"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
                     #ls -la /mnt/parasoft/soatest; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
                     
                     soatestcli \
                     -data /usr/local/parasoft/parasoft/soavirt_workspace \
+                    -settings $MOUNT/soatestcli.properties \
                     -machineId \
                     
                     soatestcli \
                     -resource /TestAssets \
                     -config '${soatestConfig}' \
-                    -settings /mnt/parasoft/soatest/soatestcli.properties \
+                    -settings $MOUNT/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
-                    -report /mnt/parasoft/soatest/report \
+                    -report $MOUNT/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
