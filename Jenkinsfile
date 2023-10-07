@@ -99,9 +99,9 @@ pipeline {
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
                     $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    whoami \
-                    id jenkins \ 
-                    id parasoft \
+                    whoami; \
+                    id jenkins; \ 
+                    id parasoft; \
                     "
                     
                     docker run \
