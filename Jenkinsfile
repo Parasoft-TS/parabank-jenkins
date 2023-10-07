@@ -260,17 +260,12 @@ pipeline {
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
-                    
-                    cd soatest; \
-                    mkdir report; \
-                    #pwd; \
-                    #ls -ll; \
 
                     mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     cp -f -R /usr/local/parasoft/soatest/TestAssets /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     #ls -la /usr/local/parasoft/soavirt_workspace/TestAssets/; \
                     
-                    cd ../soavirt; \
+                    cd soavirt; \
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
@@ -326,7 +321,7 @@ pipeline {
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
-            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
+            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/sa, **/target/jtest/ut, **/target/jtest/monitor, **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
             )
