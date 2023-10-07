@@ -41,8 +41,8 @@ pipeline {
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
 
-                    pwd
-                    ls -ll
+                    #pwd
+                    #ls -ll
 
                     # Set Up and write .properties file
                     echo $"
@@ -122,13 +122,13 @@ pipeline {
                     "
 
                     # check parabank/target permissions
-                    ls -la ./parabank/target
+                    #ls -la ./parabank/target
 
                     # Unzip monitor.zip
                     mkdir monitor
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
-                    ls -ll
-                    ls -la monitor
+                    #ls -ll
+                    #ls -la monitor
                     '''
 
                 echo '---> Parsing 10.x static analysis reports'
@@ -155,7 +155,7 @@ pipeline {
                         tools: [[$class: 'ParasoftType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/report.xml', 
+                            pattern: '**/target/jtest/ut/*.xml', 
                             skipNoTestFiles: true, 
                             stopProcessingIfError: false
                         ]]
@@ -235,19 +235,19 @@ pipeline {
                     --name soatest \
                     -u 1000:1000 \
                     -e ACCEPT_EULA=true \
-                    -v "./soatest:/mnt/${USER}" \
+                    -v "./parabank-jenkins/soatest:/mnt/${USER}/" \
                     parasoft/soavirt /bin/bash -c " \
                     soatestcli \
-                    -settings ./parabank-jenkins/soatest/soatestcli.properties \
+                    -settings /mnt/${USER}/soatest/soatestcli.properties \
                     -machineId; \
-                    ls -la ./parabank-jenkins/soatest; \
+                    ls -la /mnt/${USER}/soatest; \
                     cp "/mnt/${USER}/soatest"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
                     soatestcli \
                     -resource /TestAssets \
                     -config '${soatestConfig}' \
-                    -settings ./parabank-jenkins/soatest/soatestcli.properties \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir
-                    -report ./parasoft-jenkins/soatest/report \
+                    -settings /mnt/${USER}/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    -report /mnt/${USER}/soatest/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
