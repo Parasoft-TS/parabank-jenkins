@@ -109,6 +109,10 @@ pipeline {
                     -v "$PWD/parabank-jenkins/soatest:$MOUNT" \
                     --network=demo-net \
                     parasoft/soavirt /bin/bash -c " \
+                    
+                    getent passwd 1000; \
+                    getent group 1000; \
+
                     mkdir $MOUNT/report; \
                     pwd; \
                     ls -la $MOUNT; \
