@@ -6,7 +6,7 @@ FROM parasoft/jtest
 USER root
 
 # Create a Jenkins user
-RUN groupadd -g 1001 jenkins && useradd -u 1001 -g jenkins -m -s /bin/bash jenkins
+RUN groupadd -g 1001 jenkins && useradd -u 1001 -g jenkins
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
