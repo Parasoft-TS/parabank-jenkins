@@ -9,7 +9,7 @@ ARG USER_HOME_DIR=/home/parasoft
 ## Create a Jenkins user
 #RUN groupadd jenkins -g 991
 #RUN useradd -u 995 -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
-#RUN mkdir -p ${USER_HOME_DIR}/jenkins
+RUN mkdir -p ${USER_HOME_DIR}/jenkins
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
