@@ -1,10 +1,10 @@
 # baseline image
 FROM parasoft/jtest
 
-# Install MVN
 ARG HOST_UID=995
 ARG HOST_GID=991
 
+# Install MVN
 ## Permissions to create dirs
 USER root
 ARG USER_HOME_DIR=/home/parasoft
