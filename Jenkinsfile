@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:stable-dind'
+            args '-u 0:0'
+        }
+    }
     environment {
         // App Settings
         parabank_port=8090
