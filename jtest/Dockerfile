@@ -1,15 +1,15 @@
 # baseline image
 FROM parasoft/jtest
 
-# Create a Jenkins user
-RUN groupadd jenkins
-RUN useradd -g jenkins -d /home/parasoft -m -s /bin/bash jenkins
-RUN usermod -aG jenkins parasoft
-ARG USER_HOME_DIR=/home/parasoft
-
 # Install MVN
 ## Permissions to create dirs
 USER root
+ARG USER_HOME_DIR=/home/parasoft
+
+# Create a Jenkins user
+RUN groupadd jenkins
+RUN useradd -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
+RUN usermod -aG jenkins parasoft
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
