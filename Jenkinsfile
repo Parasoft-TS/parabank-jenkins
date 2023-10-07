@@ -209,8 +209,6 @@ pipeline {
             //sh 'docker container rm parabank-baseline'
             //sh 'docker image prune -f'
 
-            sh 'sudo rm -R ./'
-
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
