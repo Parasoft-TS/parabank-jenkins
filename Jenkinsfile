@@ -105,19 +105,19 @@ pipeline {
                     --name soatest \
                     -u 1000:1000 \
                     -e ACCEPT_EULA=true \
-                    -v "./parabank-jenkins/soatest:/mnt/${USER}/" \
+                    -v "./parabank-jenkins/soatest:/mnt/parasoft/soatest" \
                     parasoft/soavirt /bin/bash -c " \
                     soatestcli \
-                    -settings /mnt/${USER}/soatest/soatestcli.properties \
+                    -settings /mnt/parasoft/soatest/soatestcli.properties \
                     -machineId; \
-                    ls -la /mnt/${USER}/soatest; \
-                    cp "/mnt/${USER}/soatest"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
+                    ls -la /mnt/parasoft/soatest; \
+                    cp "/mnt/parasoft/soatest"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
                     soatestcli \
                     -resource /TestAssets \
                     -config '${soatestConfig}' \
-                    -settings /mnt/${USER}/soatest/soatestcli.properties \
+                    -settings /mnt/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
-                    -report /mnt/${USER}/soatest/report \
+                    -report /mnt/parasoft/soatest/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
