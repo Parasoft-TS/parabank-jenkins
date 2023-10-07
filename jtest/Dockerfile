@@ -6,7 +6,7 @@ FROM parasoft/jtest
 USER root
 
 # Create a Jenkins user
-RUN groupadd -g 1001 jenkins && useradd -u 1001 -g jenkins -m -s /bin/bash jenkins
+RUN useradd -u 1001 -g parasoft -m -s /bin/bash jenkins
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
@@ -24,10 +24,10 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
-RUN chown -R jenkins:jenkins .
+RUN chown -R jenkins:parasoft .
 
 ## Switch user back and configure MVN
-USER jenkins:jenkins
+USER jenkins:parasoft
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
