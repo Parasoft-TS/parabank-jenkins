@@ -118,7 +118,7 @@ pipeline {
                     soatestcli \
                     -data /usr/local/parasoft/parasoft/soavirt_workspace \
                     -settings $MOUNT/soatestcli.properties \
-                    -import /TestAssets \
+                    -import /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/.project \
                     
                     soatestcli \
                     -resource /TestAssets \
