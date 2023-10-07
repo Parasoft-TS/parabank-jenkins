@@ -125,7 +125,7 @@ pipeline {
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
-                    -u jenkins \
+                    -u ec2-user \
                     -d \
                     -p ${parabank_port}:8080 \
                     -p ${parabank_cov_port}:8050 \
