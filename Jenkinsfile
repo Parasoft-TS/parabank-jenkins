@@ -96,8 +96,8 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     # Unzip monitor.zip
-                    #unzip **/target/*/*/monitor.zip -d .
-                    #ls -la monitor
+                    unzip ./parabank/target/jtest/monitor/monitor.zip -d .
+                    ls -la monitor
                     "
                     '''
             }
@@ -106,8 +106,19 @@ pipeline {
             steps {
                 // deploy the project
                 sh  '''
-                    # Run Maven build with Jtest tasks via Docker
-
+                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                    docker run \
+                    --rm \
+                    -d \
+                    -p 8090:8080 \
+                    -p 8050:8050 \
+                    -p 9021:9001 \
+                    -p 63617:61616 \
+                    --env-file ./parabank-jenkins/jtest/monitor.env 
+                    -v "./monitor:/home/docker/jtest/monitor" \
+                    --network=demo-net \
+                    --name parabank-baseline
+                    parasoft/parabank:baseline
                     '''
             }
         }
