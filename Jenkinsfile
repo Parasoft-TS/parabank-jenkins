@@ -40,6 +40,9 @@ pipeline {
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
 
+                    pwd
+                    ls -ll
+
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
