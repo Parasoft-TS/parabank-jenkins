@@ -97,6 +97,18 @@ pipeline {
                     -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    mvn test-compile \
+                    jtest:agent \
+                    test \
+                    jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     # Unzip monitor.zip
                     #unzip **/target/*/*/monitor.zip -d .
@@ -119,6 +131,20 @@ pipeline {
                     ]],
                     skipPublishingChecks: true // Adjust as needed
                 )
+
+                echo '---> Parsing 10.x unit test reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                        tools: [[$class: 'ParasoftType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/target/jtest/ut/report.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Deploy') {
@@ -189,19 +215,19 @@ pipeline {
             }
         }
     }
-    // post {
-    //     // Clean after build
-    //     always {
-    //         archiveArtifacts artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
-    //             fingerprint: true, 
-    //             onlyIfSuccessful: true
+    post {
+        // Clean after build
+        always {
+            archiveArtifacts artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
+                fingerprint: true, 
+                onlyIfSuccessful: true
             
-    //         cleanWs(cleanWhenNotBuilt: false,
-    //             deleteDirs: true,
-    //             disableDeferredWipeout: false,
-    //             notFailBuild: true,
-    //             patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
-    //                 [pattern: '.propsfile', type: 'EXCLUDE']])
-    //     }
-    // }
+            cleanWs(cleanWhenNotBuilt: false,
+                deleteDirs: true,
+                disableDeferredWipeout: false,
+                notFailBuild: true,
+                patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                    [pattern: '.propsfile', type: 'EXCLUDE']])
+        }
+    }
 }
