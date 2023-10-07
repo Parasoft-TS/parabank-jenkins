@@ -16,7 +16,7 @@ pipeline {
         buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
         jtestSessionTag="ParabankJenkins-Jtest"
         soatestSessionTag="ParabankJenkins-SOAtest"
-        dtp_publish="false"
+        dtp_publish="${DTP_PUBLISH}"
 
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
@@ -201,7 +201,7 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
                     dtp.password=${ls_pass}
-                    dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
+                    dtp.project=${project_name} > ./parabank-jenkins/soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
                     cat ./parabank-jenkins/soatest/soatestcli.properties
