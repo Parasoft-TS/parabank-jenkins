@@ -72,7 +72,6 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
                     dtp.password=${ls_pass}
-                    #dtp.project=${project_name}" >> parabank-jenkins/jtest/jtestcli.properties
                     dtp.project=${project_name}" >> jtest/jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
@@ -85,7 +84,6 @@ pipeline {
                     --rm -i \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     $(docker build -q ./jtest) /bin/bash -c " \
                     cd parabank; \
 
@@ -93,7 +91,6 @@ pipeline {
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.settings='../jtest/jtestcli.properties' \
                     -Djtest.config='${jtestSAConfig}' \
                     -Djtest.report=./target/jtest/sa \
@@ -104,7 +101,7 @@ pipeline {
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settings='../jtest/jtestcli.properties' \
                     -Djtest.config='${jtestMAConfig}' \
                     -Djtest.report=./target/jtest/ma \
                     -Djtest.showSettings=true \
@@ -115,7 +112,7 @@ pipeline {
                     test-compile jtest:agent \
                     test jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settings='../jtest/jtestcli.properties' \
                     -Djtest.config='builtin://Unit Tests' \
                     -Djtest.report=./target/jtest/ut \
                     -Djtest.showSettings=true \
@@ -125,7 +122,7 @@ pipeline {
                     -DskipTests=true \
                     package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settings='../jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -189,7 +186,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://localhost\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\://[TODO]\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.runtime.dir=[TODO]\\runtime_coverage_data
                     application.coverage.binaries.include=com/parasoft/**
@@ -200,13 +197,14 @@ pipeline {
                     scontrol.rep1.type=git
 
                     build.id="${buildId}"
+                    session.tag="${soatestSessionTag}"
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
                     dtp.password=${ls_pass}
-                    dtp.project=${project_name}" >> parabank-jenkins/soatest/soatestcli.properties
+                    dtp.project=${project_name}" >> /soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
-                    cat parabank-jenkins/jtest/soatestcli.properties
+                    cat soatest/soatestcli.properties
                     '''
             }
         }
