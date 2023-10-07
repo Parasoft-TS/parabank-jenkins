@@ -2,8 +2,8 @@
 ## Parabank Jenkins Pipeline (AWS EC2, docker)
 
 ## AWS EC2 Notes:
-- If using Jenkins running on EC2, where a jenkins:jenkins user was created and you're using the default node, review the jtest and soatest Dockerfile scripts to make sure the UID and GID settings match the UID:GID of your jenkins user.
-- If using DTP on the same EC2 instance as Jenkins (not recommended for customers), instead of using "host.docker.internal" for the LSS and DTP URL, use the docker host ip address.  Typically: 172.17.0.1
+- If using Jenkins running on EC2, where a jenkins:jenkins user was created and you're using the default node, review the jtest, soatest, and parabank-docker Dockerfile scripts to make sure the UID and GID settings match the UID:GID of your jenkins user.
+- If using DTP on the same EC2 instance as Jenkins (not recommended for customers), instead of using "host.docker.internal" for the LSS and DTP URL, use the docker host ip address.  (Typically: 172.17.0.1)
 - The docker script is connecting all containers to an external docker bridge network named "demo-net".  Make sure the Jenkins EC2 instance or build node (docker host) has this docker network created: docker network create demo-net
 
 ## Jenkins Setup:

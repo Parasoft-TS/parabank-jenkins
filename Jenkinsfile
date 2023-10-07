@@ -4,11 +4,12 @@ pipeline {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
         app_name="parabank-baseline" //docker container
+        app_short="PB" //parabank
         image="parasoft/parabank:baseline" //docker image
-        parabank_port=8090
-        parabank_cov_port=8050
-        parabank_db_port=9021
-        parabank_jms_port=63616
+        app_port=8090
+        app_cov_port=8050
+        app_db_port=9021
+        app_jms_port=63616
 
         // Docker host ip
         host_ip="172.17.0.1"
@@ -27,7 +28,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //or create additional Jenkins Pipeline parameters
         dtp_pass="${PARASOFT_DTP_PASS}" //or create additional Jenkins Pipeline parameters
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
+        buildId="${app_short}-${BUILD_TIMESTAMP}-${BUILD_ID}"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
@@ -187,10 +188,10 @@ pipeline {
                     docker run \
                     -d \
                     -u ${jenkins_uid}:${jenkins_gid} \
-                    -p ${parabank_port}:8080 \
-                    -p ${parabank_cov_port}:8050 \
-                    -p ${parabank_db_port}:9001 \
-                    -p ${parabank_jms_port}:61616 \
+                    -p ${app_port}:8080 \
+                    -p ${app_cov_port}:8050 \
+                    -p ${app_db_port}:9001 \
+                    -p ${app_jms_port}:61616 \
                     --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
@@ -200,8 +201,8 @@ pipeline {
                     # Health Check
                     sleep 15
                     docker ps -f name=${app_name}
-                    curl -iv --raw http://localhost:${parabank_port}/parabank
-                    curl -iv --raw http://localhost:${parabank_cov_port}/status
+                    curl -iv --raw http://localhost:${app_port}/parabank
+                    curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
             }
         }
@@ -231,7 +232,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${host_ip}\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://${host_ip}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.binaries.include=com/parasoft/**
 
