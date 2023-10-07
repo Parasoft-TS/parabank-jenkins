@@ -3,11 +3,11 @@ FROM parasoft/soavirt
 ARG HOST_UID=995
 ARG HOST_GID=991
 
+USER root:root
+
 ## Create a Jenkins user to match the EC-2 instance's jenkins user
 RUN groupadd jenkins -g ${HOST_GID}
 RUN useradd -u ${HOST_UID} -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
-
-USER root:root
 
 RUN rm -f /var/log/lastlog /var/log/faillog && \
     ln -s /dev/null /var/log/lastlog && \
