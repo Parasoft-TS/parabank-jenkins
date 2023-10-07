@@ -8,8 +8,8 @@ USER root:root
 ARG USER_HOME_DIR=/usr/local/parasoft
 
 ## Create a Jenkins user to match the EC-2 instance's jenkins user
-RUN groupadd jenkins -g ${HOST_GID}
-RUN useradd -u ${HOST_UID} -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
+RUN groupadd jenkins -g 991
+RUN useradd -u 995 -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
 
 RUN rm -f /var/log/lastlog /var/log/faillog \
     && ln -s /dev/null /var/log/lastlog \
