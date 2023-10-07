@@ -35,6 +35,14 @@ pipeline {
                                 
                 // build the project
                 sh  '''
+                    mkdir parabank-jenkins
+                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    
+                    mkdir parabank
+                    git clone https://github.com/parasoft/parabank parabank
+
+                    pwd
+                    ls -ll
                     '''
             }
         }
@@ -51,9 +59,6 @@ pipeline {
                 // test the project
                 sh  '''
                     docker ps -f name=parabank-baseline
-
-                    pwd
-                    ls -ll
 
                     # Set Up and write .properties file
                     echo $"
