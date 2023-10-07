@@ -10,6 +10,9 @@ pipeline {
         parabank_db_port=9021
         parabank_jms_port=63616
 
+        // Docker host ip
+        host_ip=172.17.0.1
+
         // Jenkins UID:GID
         jenkins_uid=995
         jenkins_gid=991
@@ -183,7 +186,7 @@ pipeline {
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
                     -d \
-                    -u 1000:1000 \
+                    -u ${jenkins_uid}:${jenkins_gid} \
                     -p ${parabank_port}:8080 \
                     -p ${parabank_cov_port}:8050 \
                     -p ${parabank_db_port}:9001 \
@@ -228,7 +231,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://172.17.0.1\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://${host_ip}\\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.binaries.include=com/parasoft/**
 
