@@ -30,7 +30,7 @@ COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
 RUN chown -R jenkins:jenkins .
-RUN chmod -R 755 .
+RUN chmod -R 766 .
 
 ## Switch user back and configure MVN
 USER jenkins

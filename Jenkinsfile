@@ -110,7 +110,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --no-cache -q -t jtest:custom ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
                     mvn package jtest:monitor \
