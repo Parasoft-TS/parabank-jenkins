@@ -10,8 +10,8 @@ Jenkins Setup:
 - Add the following Jenkins plugins: Build Timestamp Plugin, Build Name and Description Setter, Parasoft Environment Manager, Parasoft Findings, Pipeline, Timestamper
 
 Jenkins Parameterized Pipeline Build Paramaters:
-- PARASOFT_LS_URL (https\://172.17.0.1:8443)
-- PARASOFT_LS_USER (admin)
+- PARASOFT_LS_URL
+- PARASOFT_LS_USER
 - PARASOFT_LS_PASS
-- PARASOFT_DTP_URL (https://172.17.0.1:8443)
-- PARASOFT_DTP_PUBLISH (false)
+- PARASOFT_DTP_URL
+- PARASOFT_DTP_PUBLISH

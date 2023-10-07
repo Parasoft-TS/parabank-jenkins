@@ -2,9 +2,9 @@ pipeline {
     agent any
     environment {
         // App Settings
-        project_name="Parabank-Jenkins"
-        app_name="parabank-baseline"
-        image="parasoft/parabank:baseline"
+        project_name="Parabank-Jenkins" //DTP Project
+        app_name="parabank-baseline" //docker container
+        image="parasoft/parabank:baseline" //docker image
         parabank_port=8090
         parabank_cov_port=8050
         parabank_db_port=9021
@@ -15,13 +15,15 @@ pipeline {
         jenkins_gid=991
 
         // Parasoft Licenses
-        ls_url="${PARASOFT_LS_URL}"
-        ls_user="${PARASOFT_LS_USER}"
+        ls_url="${PARASOFT_LS_URL}" //https\://172.17.0.1:8443
+        ls_user="${PARASOFT_LS_USER}" //admin
         ls_pass="${PARASOFT_LS_PASS}"
         
         // Parasoft Common Settings
-        dtp_url="${PARASOFT_DTP_URL}"
-        dtp_publish="${PARASOFT_DTP_PUBLISH}"
+        dtp_url="${PARASOFT_DTP_URL}" //https://172.17.0.1:8443
+        dtp_user="${ls_user}" //or create additional Jenkins Pipeline parameters
+        dtp_pass="${ls_pass}" //or create additional Jenkins Pipeline parameters
+        dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
         buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
         
         // Parasoft Jtest Settings
@@ -78,8 +80,8 @@ pipeline {
                     build.id="${buildId}"
                     session.tag="${jtestSessionTag}"
                     dtp.url=${dtp_url}
-                    dtp.user=${ls_user}
-                    dtp.password=${ls_pass}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
@@ -164,7 +166,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${app_name}\\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://172.17.0.1\\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.binaries.include=com/parasoft/**
 
@@ -176,8 +178,8 @@ pipeline {
                     build.id="${buildId}"
                     session.tag="${soatestSessionTag}"
                     dtp.url=${dtp_url}
-                    dtp.user=${ls_user}
-                    dtp.password=${ls_pass}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
