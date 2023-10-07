@@ -12,8 +12,8 @@ pipeline {
         
         // Parasoft DTP Settings
         dtp_url="${DTP_URL}"
-        project_name="Parabank Jenkins"
-        buildId="ParabankJenkins-${BUILD_TIMESTAMP}-${BUILD_ID}"
+        project_name="Parabank-Jenkins"
+        buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
         jtestSessionTag="ParabankJenkins-Jtest"
         soatestSessionTag="ParabankJenkins-SOAtest"
         dtp_publish="false"
