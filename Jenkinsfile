@@ -114,21 +114,21 @@ pipeline {
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 sh  '''
-                    export MOUNT="/usr/local/parasoft/soavirt/soatest"
+                    export MOUNT="/usr/local/parasoft/soavirt"
                     docker run --rm -i \
                     --name soatest \
                     -u jenkins \
                     -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins/soatest:$MOUNT" \
+                    -v "$PWD/parabank-jenkins/soatest:$MOUNT/soatest" \
                     --network=demo-net \
-                    $(docker build --no-cache -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     mkdir $MOUNT/report; \
                     pwd; \
                     ls -la $MOUNT; \
 
-                    mkdir /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/ \
-                    cp -f $MOUNT/TestAssets "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets"; \
+                    mkdir $MOUNT/soavirt_workspace/TestAssets; \
+                    cp -f $MOUNT/soatest/TestAssets "$MOUNT/soavirt_workspace/TestAssets"; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
                     
