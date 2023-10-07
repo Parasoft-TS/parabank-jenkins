@@ -105,7 +105,7 @@ pipeline {
                     --name soatest \
                     -u 1000:1000 \
                     -e ACCEPT_EULA=true \
-                    -v "./parabank-jenkins/soatest:/mnt/parasoft/soatest" \
+                    -v "$PWD/parabank-jenkins/soatest:/mnt/parasoft/soatest" \
                     parasoft/soavirt /bin/bash -c " \
                     soatestcli \
                     -settings /mnt/parasoft/soatest/soatestcli.properties \
