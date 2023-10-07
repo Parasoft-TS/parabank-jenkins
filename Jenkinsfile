@@ -85,27 +85,28 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u 1000:1000 \
+                    -u 0:0 \
                     --rm -i \
-                    -v "$PWD:/home/parasoft" \
-                    -w "/home/parasoft" \
+                    --name jtest \
+                    -v "$PWD:/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
                     mvn package jtest:monitor \
-                    -s ../parabank-jenkins/jtest/.m2/settings.xml \
+                    -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     # check parabank/target permissions
-                    ls -la ./target
+                    ls -la ./parabank/target
 
                     # Unzip monitor.zip
                     mkdir monitor
-                    unzip -q ./target/jtest/monitor/monitor.zip -d .
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     ls -ll
                     ls -la monitor
                     '''
