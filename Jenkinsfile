@@ -193,8 +193,8 @@ pipeline {
                     ls -ll; \
 
                     mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
-                    cp -f /usr/local/parasoft/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
-                    ls -la /usr/local/parasoft/parasoft/soavirt_workspace; \
+                    ls -la /usr/local/parasoft/soavirt_workspace; \
+                    cp -f -R /usr/local/parasoft/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets; \
                     
                     #soatestcli \
