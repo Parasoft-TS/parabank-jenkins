@@ -91,32 +91,21 @@ pipeline {
                     -w "/home/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    pwd; \
-                    ls -ll; \
-                    cd parabank; \
-                    "
-                    docker run \
-                    -u 1000:1000 \
-                    --rm -i \
-                    -v "$PWD:/home/parasoft" \
-                    -w "/home/parasoft" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
                     mvn package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
+                    -s ../parabank-jenkins/jtest/.m2/settings.xml \
                     -Dmaven.test.skip=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     # check parabank/target permissions
-                    ls -la ./parabank/target
+                    ls -la ./target
 
                     # Unzip monitor.zip
                     mkdir monitor
-                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    unzip -q ./target/jtest/monitor/monitor.zip -d .
                     ls -ll
                     ls -la monitor
                     '''
