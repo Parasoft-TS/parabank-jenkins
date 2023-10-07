@@ -21,8 +21,8 @@ pipeline {
         
         // Parasoft Common Settings
         dtp_url="${PARASOFT_DTP_URL}" //https://172.17.0.1:8443
-        dtp_user="${ls_user}" //or create additional Jenkins Pipeline parameters
-        dtp_pass="${ls_pass}" //or create additional Jenkins Pipeline parameters
+        dtp_user="${PARASOFT_DTP_USER}" //or create additional Jenkins Pipeline parameters
+        dtp_pass="${PARASOFT_DTP_PASS}" //or create additional Jenkins Pipeline parameters
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
         buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
         
@@ -202,18 +202,17 @@ pipeline {
 
                     mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     ls -la /usr/local/parasoft/soavirt_workspace/; \
-                    cp -f -R /usr/local/parasoft/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
+                    cp -f -R /usr/local/parasoft/soatest/TestAssets /usr/local/parasoft/soavirt_workspace/TestAssets; \
                     ls -la /usr/local/parasoft/soavirt_workspace/TestAssets/; \
                     
                     cd ../soavirt; \
-                    ls -ll; \
-
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -import /usr/local/parasoft/soavirt_workspace/TestAssets/.project \
                     
                     ./soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
                     -resource /TestAssets \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \

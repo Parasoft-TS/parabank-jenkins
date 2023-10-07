@@ -4,7 +4,7 @@ FROM parasoft/soavirt
 ARG HOST_UID=995
 ARG HOST_GID=991
 
-USER root:root
+USER root
 ARG USER_HOME_DIR=/usr/local/parasoft
 
 RUN rm -f /var/log/lastlog /var/log/faillog \
