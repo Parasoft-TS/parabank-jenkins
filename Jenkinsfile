@@ -262,19 +262,19 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
-                    cp -f -R /usr/local/parasoft/soatest/TestAssets /usr/local/parasoft/soavirt_workspace/TestAssets; \
-                    #ls -la /usr/local/parasoft/soavirt_workspace/TestAssets/; \
+                    mkdir -p /usr/local/parasoft/soavirt_workspace/SOAtestProject; \
+                    cp -f -R /usr/local/parasoft/soatest/SOAtestProject /usr/local/parasoft/soavirt_workspace/SOAtestProject; \
+                    #ls -la /usr/local/parasoft/soavirt_workspace/SOAtestProject/; \
                     
                     cd soavirt; \
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/TestAssets/.project \
+                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project \
                     
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /TestAssets \
+                    -resource /SOAtestProject \
                     -environment "172.17.0.1" \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
