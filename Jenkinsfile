@@ -322,7 +322,7 @@ pipeline {
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
-            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/sa, **/target/jtest/ut, **/target/jtest/monitor, **/soatest/report/**',
+            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/sa/**, **/target/jtest/ut/**, **/target/jtest/monitor/**, **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
             )
