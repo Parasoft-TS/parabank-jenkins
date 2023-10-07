@@ -114,10 +114,10 @@ pipeline {
                     -p 8050:8050 \
                     -p 9021:9001 \
                     -p 63617:61616 \
-                    --env-file ./parabank-jenkins/jtest/monitor.env 
+                    --env-file ./parabank-jenkins/jtest/monitor.env \
                     -v "./monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
-                    --name parabank-baseline
+                    --name parabank-baseline \
                     parasoft/parabank:baseline
                     '''
             }
