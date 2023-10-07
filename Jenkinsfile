@@ -186,7 +186,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\://[TODO]\:${parabank_cov_port}
+                    application.coverage.agent.url=http\\://[TODO]\\:${parabank_cov_port}
                     application.coverage.images=${soatestCovImage}
                     application.coverage.runtime.dir=[TODO]\\runtime_coverage_data
                     application.coverage.binaries.include=com/parasoft/**
