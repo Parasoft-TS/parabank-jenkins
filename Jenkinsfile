@@ -81,19 +81,7 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u 1000:1000 \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
-                    --network=demo-net \
-                    $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    id parasoft; \
-                    "
-                    
-                    docker run \
-                    -u 1000:1000 \
+                    -u jenkins \
                     --rm -i \
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
