@@ -52,6 +52,9 @@ pipeline {
                 sh  '''
                     docker ps -f name=parabank-baseline
 
+                    pwd
+                    ls -ll
+
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
@@ -150,7 +153,7 @@ pipeline {
                 onlyIfSuccessful: true
             )
 
-            deleteDir()
+            //deleteDir()
         }
     }
 }
