@@ -109,7 +109,6 @@ pipeline {
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
-                    --rm \
                     -d \
                     -p 8090:8080 \
                     -p 8050:8050 \
@@ -128,6 +127,8 @@ pipeline {
             steps {
                 // test the project
                 sh  '''
+                    docker ps -f name=parabank-baseline
+
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
