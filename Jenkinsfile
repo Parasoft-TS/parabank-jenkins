@@ -100,6 +100,7 @@ pipeline {
                     #ls -la monitor
                     "
                     '''
+            }
         }
         stage('Deploy') {
             steps {
