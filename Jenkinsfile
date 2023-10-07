@@ -232,21 +232,22 @@ pipeline {
                     '''
                 sh  '''
                     docker run --rm -i \
+                    --name soatest \
                     -u 1000:1000 \
                     -e ACCEPT_EULA=true \
-                    -v "$PWD:$PWD" \
+                    -v "./soatest:/mnt/${USER}" \
                     parasoft/soavirt /bin/bash -c " \
                     soatestcli \
-                    -settings $PWD/parabank-jenkins/soatest/soatestcli.properties \
+                    -settings ./parabank-jenkins/soatest/soatestcli.properties \
                     -machineId; \
-                    ls -la $PWD/parabank-jenkins/soatest; \
-                    cp "$PWD/parabank-jenkins/soatest"/* "/root/parasoft/soavirt_workspace/TestAssets/"; \
+                    ls -la ./parabank-jenkins/soatest; \
+                    cp "/mnt/${USER}/soatest"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
                     soatestcli \
                     -resource /TestAssets \
-                    -config 'user://Example Configuration' \
-                    -settings $PWD/parasoft-jenkins/soatest/soatestcli.properties \
-                    -property application.coverage.runtime.dir=$PWD/parabank-jenkins/soatest/coverage_runtime_dir
-                    -report $PWD/parasoft-jenkins/soatest/report \
+                    -config '${soatestConfig}' \
+                    -settings ./parabank-jenkins/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir
+                    -report ./parasoft-jenkins/soatest/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
@@ -270,7 +271,7 @@ pipeline {
                 sh  '''
                         
                 # Clean up
-                docker container stop ${app_name}
+                #docker container stop ${app_name}
                     
                 '''
             }
@@ -279,7 +280,7 @@ pipeline {
     post {
         // Clean after build
         always {
-            sh 'docker container rm ${app_name}'
+            //sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
