@@ -91,6 +91,8 @@ pipeline {
                     -w "/home/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    pwd \
+                    ls -ll \
                     cd parabank; \
 
                     mvn package jtest:monitor \
