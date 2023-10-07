@@ -124,17 +124,22 @@ pipeline {
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
-                    -u 1000:1000 \
                     -d \
                     -p ${parabank_port}:8080 \
                     -p ${parabank_cov_port}:8050 \
                     -p ${parabank_db_port}:9001 \
                     -p ${parabank_jms_port}:61616 \
-                    --env-file ./parabank-jenkins/jtest/monitor.env \
+                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
                     ${image}
+
+                    # Health Check
+                    sleep 15
+                    docker ps -f name=parabank-baseline
+                    curl -iv --raw http://localhost:8090/parabank
+                    curl -iv --raw http://localhost:8050/status
                     '''
             }
         }
@@ -143,8 +148,6 @@ pipeline {
             steps {
                 // test the project
                 sh  '''
-                    docker ps -f name=parabank-baseline
-
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
