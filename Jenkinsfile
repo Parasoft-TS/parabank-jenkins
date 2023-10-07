@@ -111,7 +111,7 @@ pipeline {
                         tools: [[$class: 'ParasoftType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
-                            pattern: '/parabank/target/jtest/ut/*.xml', 
+                            pattern: '**/target/jtest/ut/report.xml', 
                             skipNoTestFiles: true, 
                             stopProcessingIfError: false
                         ]]
