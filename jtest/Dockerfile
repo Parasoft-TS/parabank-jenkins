@@ -31,10 +31,10 @@ RUN chown -R jenkins:jenkins .
 
 ## Switch user back and configure MVN
 USER jenkins
-ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
+ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
 
 # Define working directory.
-WORKDIR $USER_HOME_DIR
+WORKDIR ${USER_HOME_DIR}
 
 # Define commonly used JAVA_HOME variables
 
