@@ -106,12 +106,18 @@ pipeline {
                     -u 1000:1000 \
                     -e ACCEPT_EULA=true \
                     -v "$PWD/parabank-jenkins/soatest:/mnt/parasoft/soatest" \
+                    --network=demo-net \
                     parasoft/soavirt /bin/bash -c " \
+                    mkdir /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/
+                    cp "/mnt/parasoft/soatest"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
+                    #ls -la /mnt/parasoft/soatest; \
+                    ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
+                    
                     soatestcli \
                     -settings /mnt/parasoft/soatest/soatestcli.properties \
-                    -machineId; \
-                    ls -la /mnt/parasoft/soatest; \
-                    cp "/mnt/parasoft/soatest"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
+                    -data /usr/local/parasoft/parasoft/soavirt_workspace \
+                    -import \
+                    
                     soatestcli \
                     -resource /TestAssets \
                     -config '${soatestConfig}' \
