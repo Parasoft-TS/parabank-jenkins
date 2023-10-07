@@ -114,7 +114,7 @@ pipeline {
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 sh  '''
-                    export MOUNT="/usr/local/parasoft/soavirt"
+                    export MOUNT="/usr/local/parasoft/mount"
                     docker run --rm -i \
                     --name soatest \
                     -u jenkins \
@@ -127,21 +127,21 @@ pipeline {
                     pwd; \
                     ls -la $MOUNT; \
 
-                    mkdir $MOUNT/soavirt_workspace/TestAssets; \
-                    cp -f $MOUNT/soatest/TestAssets "$MOUNT/soavirt_workspace/TestAssets"; \
+                    mkdir ./parasoft/soavirt_workspace/TestAssets; \
+                    cp -f $MOUNT/soatest/TestAssets "./parasoft/soavirt_workspace/TestAssets"; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
                     
                     #soatestcli \
-                    #-data /usr/local/parasoft/parasoft/soavirt_workspace \
-                    #-settings $MOUNT/soatestcli.properties \
-                    #-import /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/.project \
+                    #-data $MOUNT/soavirt_workspace \
+                    #-settings $MOUNT/soatest/soatestcli.properties \
+                    #-import $MOUNT/soavirt_workspace/TestAssets/.project \
                     
                     #soatestcli \
                     #-resource /TestAssets \
                     #-config '${soatestConfig}' \
-                    #-settings $MOUNT/soatestcli.properties \
-                    #-property application.coverage.runtime.dir=/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    #-settings $MOUNT/soatest/soatestcli.properties \
+                    #-property application.coverage.runtime.dir=$MOUNT/soavirt_workspace/TestAssets/coverage_runtime_dir \
                     #-report $MOUNT/report \
                     "
                     '''
