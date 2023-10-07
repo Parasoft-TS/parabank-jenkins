@@ -85,7 +85,7 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u jenkins \
+                    -u 0:0 \
                     --rm -i \
                     -v "$PWD:$PWD" \
                     -w "$PWD" \
@@ -100,6 +100,11 @@ pipeline {
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
+                    # fix parabank/target permissions
+                    ls -la ./parabank/target
+                    chown jenkins:jenkins -R ./parabank/target
+                    ls -la ./parabank/target
+
                     # Unzip monitor.zip
                     mkdir monitor
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .

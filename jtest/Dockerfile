@@ -5,9 +5,6 @@ FROM parasoft/jtest
 ## Permissions to create dirs
 USER root
 
-# Create a Jenkins user
-RUN useradd -u 1001 -g parasoft -m -s /bin/bash jenkins
-
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
 ARG USER_HOME_DIR=/home/parasoft
@@ -24,10 +21,10 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
-RUN chown -R jenkins:parasoft .
+RUN chown -R parasoft:parasoft .
 
 ## Switch user back and configure MVN
-USER jenkins:parasoft
+USER parasoft:parasoft
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
