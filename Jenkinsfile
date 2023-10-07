@@ -72,10 +72,10 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
                     dtp.password=${ls_pass}
-                    dtp.project=${project_name}" >> /parabank-jenkins/jtest/jtestcli.properties
+                    dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
-                    cat parabank-jenkins/jtest/jtestcli.properties
+                    cat ./parabank-jenkins/jtest/jtestcli.properties
 
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
@@ -200,10 +200,10 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
                     dtp.password=${ls_pass}
-                    dtp.project=${project_name}" >> parabank-jenkins/soatest/soatestcli.properties
+                    dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
-                    cat parabank-jenkins/soatest/soatestcli.properties
+                    cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
             }
         }
