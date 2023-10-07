@@ -76,7 +76,8 @@ pipeline {
 
                     # Debug: Print jtestcli.properties file
                     cat ./parabank-jenkins/jtest/jtestcli.properties
-
+                    '''
+                sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u 0:0 \
@@ -98,16 +99,6 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     mvn \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestMAConfig}' \
-                    -Djtest.report=./target/jtest/ma \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-
-                    mvn \
                     -Dmaven.test.failure.ignore=true \
                     test-compile jtest:agent \
                     test jtest:jtest \
@@ -117,40 +108,43 @@ pipeline {
                     -Djtest.report=./target/jtest/ut \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
-
-                    mvn \
-                    -DskipTests=true \
-                    package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     # Unzip monitor.zip
                     #unzip **/target/*/*/monitor.zip -d .
                     #ls -la monitor
-
-                    echo '---> Parsing 10.x unit test reports'
-                        step(\\[$class: 'XUnitPublisher', 
-                            tools: \\[
-                                \\[$class: 'ParasoftType', 
-                                    pattern: './parabank/target/jtest/**/*.xml', 
-                                    failIfNotNew: false, 
-                                    skipNoTestFiles: true, 
-                                    stopProcessingIfError: false
-                            \\]
-                        \\]
-                    \\])
-
                     '''
-                node('any') {
-                    recordIssues enabledForFailure: true, 
-                    aggregatingResults: false, 
-                    tool: parasoftFindings(
+
+                echo '---> Parsing 10.x unit test reports'
+                step(xunit 
+                    checksName: '', 
+                    tools: [[$class: 'ParasoftType', 
+                        deleteOutputFiles: true, 
+                        failIfNotNew: false, 
                         pattern: './parabank/target/jtest/**/*.xml', 
-                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties'
-                    )
-                }
+                        skipNoTestFiles: true, 
+                        stopProcessingIfError: false
+                    ]]
+                )
+
+                echo '---> Parsing 10.x static analysis reports'
+                step(recordIssues 
+                    healthy: 5, 
+                    minimumSeverity: 'HIGH', 
+                    qualityGates: [[
+                        threshold: 5, 
+                        type: 'TOTAL_ERROR', 
+                        unstable: 
+                        false
+                    ]], 
+                    skipPublishingChecks: true, 
+                    tools: [
+                        parasoftFindings(
+                            localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties', 
+                            pattern: './parabank/target/jtest/**/*.xml'
+                        )
+                    ], 
+                    unhealthy: 10
+                )
             }
         }
         stage('Deploy') {
