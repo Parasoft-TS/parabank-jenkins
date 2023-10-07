@@ -143,7 +143,7 @@ pipeline {
                     ])
 
                     '''
-                node {
+                node('any') {
                     recordIssues enabledForFailure: true, 
                     aggregatingResults: false, 
                     tool: parasoftFindings(
