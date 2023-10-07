@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    options {
-        // This is required if you want to clean before build
-        skipDefaultCheckout(true)
-    }
     environment {
         // App Settings
         project_name="Parabank-Jenkins"
@@ -16,30 +12,25 @@ pipeline {
         ls_user="${PARASOFT_LS_USER}"
         ls_pass="${PARASOFT_LS_PASS}"
         
-        // Parasoft DTP Settings
+        // Parasoft Common Settings
         dtp_url="${PARASOFT_DTP_URL}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}"
         buildId="PBJ-${BUILD_TIMESTAMP}-${BUILD_ID}"
-        jtestSessionTag="ParabankJenkins-Jtest"
-        soatestSessionTag="ParabankJenkins-SOAtest"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
         jtestMAConfig="jtest.builtin://Metrics"
+        jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
 
         // Parasoft SOAtest Settings
         soatestConfig="soatest.user://Example Configuration"
+        soatestSessionTag="ParabankJenkins-SOAtest"
         soatestCovImage="Parabank_All;Parabank_SOAtest"
     }
     stages {
         stage('Build') {
             steps {
-                script {
-                    def currentUsername = sh(script: 'whoami', returnStdout: true).trim()
-                    echo "Jenkins job is running as user: ${currentUsername}"
-                }
-                
                 deleteDir()
                                 
                 // build the project
@@ -90,7 +81,7 @@ pipeline {
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
-                    -u jenkins \
+                    -u 1000:1000 \
                     --rm -i \
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
@@ -99,6 +90,28 @@ pipeline {
                     --network=demo-net \
                     $(docker build --no-cache -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
+
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSAConfig}' \
+                    -Djtest.report=./target/jtest/sa \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    mvn test-compile \
+                    jtest:agent \
+                    test \
+                    jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
@@ -117,6 +130,37 @@ pipeline {
                     ls -ll
                     ls -la monitor
                     '''
+
+                echo '---> Parsing 10.x static analysis reports'
+                recordIssues(
+                    tools: [parasoftFindings(
+                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties',
+                        pattern: '**/target/jtest/sa/*.xml'
+                    )],
+                    unhealthy: 100, // Adjust as needed
+                    healthy: 50,   // Adjust as needed
+                    minimumSeverity: 'HIGH', // Adjust as needed
+                    qualityGates: [[
+                        threshold: 10,
+                        type: 'TOTAL_ERROR',
+                        unstable: true
+                    ]],
+                    skipPublishingChecks: true // Adjust as needed
+                )
+
+                echo '---> Parsing 10.x unit test reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
+                        tools: [[$class: 'ParasoftType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/target/jtest/ut/report.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Deploy') {
