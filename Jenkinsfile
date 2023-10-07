@@ -227,6 +227,8 @@ pipeline {
                 fingerprint: true, 
                 onlyIfSuccessful: true
             )
+
+            deleteDir()
         }
     }
 }
