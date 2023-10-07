@@ -6,10 +6,11 @@ FROM parasoft/jtest
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
-# Create a Jenkins user
+## Create a Jenkins user
 RUN groupadd jenkins
 RUN useradd -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
 RUN usermod -aG jenkins parasoft
+RUN mkdir -p ${USER_HOME_DIR}/jenkins
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
