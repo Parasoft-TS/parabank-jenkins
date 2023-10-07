@@ -104,24 +104,21 @@ pipeline {
                     '''
 
                 echo '---> Parsing 10.x static analysis reports'
-                node {
-                    recordIssues 
-                        healthy: 5, 
-                        unhealthy: 10, 
-                        minimumSeverity: 'HIGH', 
-                        qualityGates: [[
-                            threshold: 5, 
-                            type: 'TOTAL_ERROR', 
-                            unstable: false
-                        ]], 
-                        skipPublishingChecks: true, 
-                        tools: [
-                            parasoftFindings(
-                                localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties', 
-                                pattern: '**/target/jtest/**/*.xml'
-                            )
-                        ]
-                }
+                recordIssues(
+                    tools: [parasoftFindings(
+                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties',
+                        pattern: '**/target/jtest/**/*.xml'
+                    )],
+                    unhealthy: 10, // Adjust as needed
+                    healthy: 5,   // Adjust as needed
+                    minimumSeverity: 'HIGH', // Adjust as needed
+                    qualityGates: [[
+                        threshold: 5,
+                        type: 'TOTAL_ERROR',
+                        unstable: false
+                    ]],
+                    skipPublishingChecks: true // Adjust as needed
+                )
             }
         }
         stage('Deploy') {
