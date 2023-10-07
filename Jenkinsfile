@@ -88,14 +88,13 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     cd parabank; \
 
-                    mvn \
-                    compile test-compile jtest:agent \
-                    test jtest:jtest \
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.config='${jtestSAConfig}' \
+                    -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -104,42 +103,25 @@ pipeline {
                     #ls -la monitor
                     '''
 
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        thresholds: [failed(failureNewThreshold: '0', failureThreshold: '0')],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/report.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
+                echo '---> Parsing 10.x static analysis reports'
+                node {
+                    recordIssues 
+                        healthy: 5, 
+                        unhealthy: 10, 
+                        minimumSeverity: 'HIGH', 
+                        qualityGates: [[
+                            threshold: 5, 
+                            type: 'TOTAL_ERROR', 
+                            unstable: false
+                        ]], 
+                        skipPublishingChecks: true, 
+                        tools: [
+                            parasoftFindings(
+                                localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties', 
+                                pattern: '**/target/jtest/**/*.xml'
+                            )
+                        ]
                 }
-
-                // echo '---> Parsing 10.x static analysis reports'
-                // script {
-                //     step()
-                // }
-                // step(recordIssues 
-                //     healthy: 5, 
-                //     minimumSeverity: 'HIGH', 
-                //     qualityGates: [[
-                //         threshold: 5, 
-                //         type: 'TOTAL_ERROR', 
-                //         unstable: 
-                //         false
-                //     ]], 
-                //     skipPublishingChecks: true, 
-                //     tools: [
-                //         parasoftFindings(
-                //             localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties', 
-                //             pattern: './parabank/target/jtest/**/*.xml'
-                //         )
-                //     ], 
-                //     unhealthy: 10
-                // )
             }
         }
         stage('Deploy') {
