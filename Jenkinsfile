@@ -4,8 +4,11 @@ pipeline {
         // App Settings
         project_name="Parabank-Jenkins"
         app_name="parabank-baseline"
+        image="parasoft/parabank:baseline"
         parabank_port=8090
         parabank_cov_port=8050
+        parabank_db_port=9021
+        parabank_jms_port=63616
 
         // Jenkins UID:GID
         jenkins_uid=995
@@ -123,13 +126,13 @@ pipeline {
                     -d \
                     -p ${parabank_port}:8080 \
                     -p ${parabank_cov_port}:8050 \
-                    -p 9021:9001 \
-                    -p 63617:61616 \
+                    -p ${parabank_db_port}:9001 \
+                    -p ${parabank_jms_port}:61616 \
                     --env-file ./parabank-jenkins/jtest/monitor.env \
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    parasoft/parabank:baseline
+                    ${image}
                     '''
             }
         }
@@ -191,25 +194,24 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
                     cd soatest; \
-
                     mkdir report; \
                     pwd; \
                     ls -ll; \
 
                     mkdir -p /usr/local/parasoft/soavirt_workspace/TestAssets; \
-                    ls -la /usr/local/parasoft/soavirt_workspace; \
+                    ls -la /usr/local/parasoft/soavirt_workspace/; \
                     cp -f -R /usr/local/parasoft/soatest/TestAssets "/usr/local/parasoft/soavirt_workspace/TestAssets"; \
-                    ls -la /usr/local/parasoft/soavirt_workspace/TestAssets; \
+                    ls -la /usr/local/parasoft/soavirt_workspace/TestAssets/; \
                     
                     cd ../soavirt; \
                     ls -ll; \
 
-                    soatestcli \
+                    ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -import /usr/local/parasoft/soavirt_workspace/TestAssets/.project \
                     
-                    soatestcli \
+                    ./soatestcli \
                     -resource /TestAssets \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
