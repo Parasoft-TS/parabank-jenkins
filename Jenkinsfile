@@ -90,9 +90,11 @@ pipeline {
                     '''
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    chown -R parasoft:parasoft ./parasoft
+                    pwd
                     ls -ll
-                    
+                    chown -R parasoft:parasoft ./parabank
+                    ls -ll
+
                     docker run \
                     -u parasoft \
                     --rm -i \
