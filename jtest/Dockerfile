@@ -9,10 +9,6 @@ ARG HOST_GID=991
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
-## Create a Jenkins user to match the EC-2 instance's jenkins user
-#RUN groupadd jenkins -g 991
-#RUN useradd -u 995 -g jenkins -d ${USER_HOME_DIR} -m -s /bin/bash jenkins
-
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
 ENV MAVEN_HOME=${USER_HOME_DIR}/apache-maven-${MAVEN_VERSION}
@@ -32,11 +28,9 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
-#RUN chown -R jenkins:jenkins .
 RUN chown -h -R ${HOST_UID}:${HOST_GID} ${USER_HOME_DIR}
 
 ## Switch user back and configure MVN
-#USER jenkins
 USER parasoft
 ENV MAVEN_CONFIG "${USER_HOME_DIR}/.m2"
 
