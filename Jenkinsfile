@@ -41,7 +41,6 @@ pipeline {
                 }
                 
                 deleteDir()
-                cleanWs()
                                 
                 // build the project
                 sh  '''
@@ -212,7 +211,7 @@ pipeline {
                 sh  '''
                         
                 # Clean up
-                # docker stop ${app_name}
+                docker container stop ${app_name}
                     
                 '''
             }
@@ -221,7 +220,7 @@ pipeline {
     post {
         // Clean after build
         always {
-            sh 'docker container rm parabank-baseline'
+            sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
