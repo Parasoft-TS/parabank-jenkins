@@ -92,7 +92,7 @@ pipeline {
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u 0:0 \
-                    -i \
+                    --rm -i \
                     --name jtest \
                     -v "$PWD:/home/parasoft/jenkins" \
                     -w "/home/parasoft/jenkins" \

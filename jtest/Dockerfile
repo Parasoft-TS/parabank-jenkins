@@ -1,14 +1,16 @@
 # baseline image
 FROM parasoft/jtest
 
+ARG USER_HOME_DIR=/home/parasoft
+
 # Install MVN
 ## Permissions to create dirs
 USER root
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
-ARG USER_HOME_DIR=/home/parasoft
 ENV MAVEN_HOME=${USER_HOME_DIR}/apache-maven-${MAVEN_VERSION}
+ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 RUN mkdir -p ${MAVEN_HOME} \
  && curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
