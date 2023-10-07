@@ -62,7 +62,7 @@ pipeline {
                     scope.scontrol=true
                     scope.xmlmap=false
                     
-                    scontrol.git.exec=git.exe
+                    scontrol.git.exec=git
                     scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
@@ -130,26 +130,27 @@ pipeline {
                     #unzip **/target/*/*/monitor.zip -d .
                     #ls -la monitor
 
-                    # TODO: Seems broken
-                    #echo '---> Parsing static analysis reports'
-                    #    step([$class: 'ParasoftPublisher', 
-                    #        useReportPattern: true, 
-                    #        reportPattern: '**/target/jtest/*.xml', 
-                    #        settings: '']) 
-
-                    #echo '---> Parsing 10.x unit test reports'
-                    #    step([$class: 'XUnitPublisher', 
-                    #        tools: [
-                    #            [$class: 'ParasoftType', 
-                    #                pattern: '**/target/jtest/*.xml', 
-                    #                failIfNotNew: false, 
-                    #                skipNoTestFiles: true, 
-                    #                stopProcessingIfError: false
-                    #        ]
-                    #    ]
-                    #])
+                    echo '---> Parsing 10.x unit test reports'
+                        step([$class: 'XUnitPublisher', 
+                            tools: [
+                                [$class: 'ParasoftType', 
+                                    pattern: './parabank/target/jtest/**/*.xml', 
+                                    failIfNotNew: false, 
+                                    skipNoTestFiles: true, 
+                                    stopProcessingIfError: false
+                            ]
+                        ]
+                    ])
 
                     '''
+                node {
+                    recordIssues enabledForFailure: true, 
+                    aggregatingResults: false, 
+                    tool: parasoftFindings(
+                        pattern: './parabank/target/jtest/**/*.xml', 
+                        localSettingsPath: './parabank-jenkins/jtest/jtestcli.properties'
+                    )
+                }
             }
         }
         stage('Deploy') {
@@ -191,7 +192,7 @@ pipeline {
                     application.coverage.runtime.dir=[TODO]\\runtime_coverage_data
                     application.coverage.binaries.include=com/parasoft/**
 
-                    scontrol.git.exec=git.exe
+                    scontrol.git.exec=git
                     scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
@@ -201,7 +202,7 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${ls_user}
                     dtp.password=${ls_pass}
-                    dtp.project=${project_name} > ./parabank-jenkins/soatest/soatestcli.properties
+                    dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
                     cat ./parabank-jenkins/soatest/soatestcli.properties
