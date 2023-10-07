@@ -110,14 +110,15 @@ pipeline {
                     --network=demo-net \
                     parasoft/soavirt /bin/bash -c " \
                     #mkdir /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/ \
-                    cp "$MOUNT"/* "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/"; \
+                    cp -f "$MOUNT"/TestAssets "/usr/local/parasoft/parasoft/soavirt_workspace/TestAssets"; \
                     #ls -la /mnt/parasoft/soatest; \
+                    ls -la /usr/local/parasoft/parasoft/soavirt_workspace/; \
                     ls -la /usr/local/parasoft/parasoft/soavirt_workspace/TestAssets/; \
                     
                     soatestcli \
                     -data /usr/local/parasoft/parasoft/soavirt_workspace \
                     -settings $MOUNT/soatestcli.properties \
-                    -machineId \
+                    -import /TestAssets \
                     
                     soatestcli \
                     -resource /TestAssets \
