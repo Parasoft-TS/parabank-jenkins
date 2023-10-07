@@ -4,6 +4,7 @@ FROM parasoft/soavirt
 ARG HOST_UID=995
 ARG HOST_GID=991
 
+# Setup parasoft user
 USER root
 ARG USER_HOME_DIR=/usr/local/parasoft
 
