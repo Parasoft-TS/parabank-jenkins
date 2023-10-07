@@ -107,6 +107,7 @@ pipeline {
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
+
                     # check parabank/target permissions
                     ls -la ./parabank/target
 
@@ -205,8 +206,8 @@ pipeline {
     post {
         // Clean after build
         always {
-            sh 'docker container rm parabank-baseline'
-            sh 'docker image prune -f'
+            //sh 'docker container rm parabank-baseline'
+            //sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/**, **/soatest/report/**',
                 fingerprint: true, 
