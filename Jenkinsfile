@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'parasoft'
+    }
     options {
         // This is required if you want to clean before build
         skipDefaultCheckout(true)
@@ -90,13 +92,8 @@ pipeline {
                     '''
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    pwd
-                    ls -ll
-                    chown -R parasoft:parasoft ./parabank
-                    ls -ll
-
                     docker run \
-                    -u parasoft \
+                    -u jenkins \
                     --rm -i \
                     --name jtest \
                     -v "$PWD:/home/parasoft/jenkins" \
@@ -107,7 +104,7 @@ pipeline {
                     "
                     
                     docker run \
-                    -u 1000:1000 \
+                    -u jenkins \
                     --rm -i \
                     --name jtest \
                     -v "$PWD:/home/parasoft/jenkins" \

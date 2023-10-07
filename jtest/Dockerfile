@@ -1,6 +1,10 @@
 # baseline image
 FROM parasoft/jtest
 
+# Create a Jenkins user
+RUN groupadd jenkins
+RUN useradd -g jenkins -d /home/parasoft -m -s /bin/bash jenkins
+RUN usermod -aG jenkins parasoft
 ARG USER_HOME_DIR=/home/parasoft
 
 # Install MVN
@@ -24,10 +28,10 @@ COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
 
 ## Fix permissions
-RUN chown -R parasoft:parasoft .
+RUN chown -R jenkins:jenkins .
 
 ## Switch user back and configure MVN
-USER parasoft:parasoft
+USER jenkins:jenkins
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
 # Define working directory.
