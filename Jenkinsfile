@@ -334,7 +334,8 @@ pipeline {
                     **/target/jtest/monitor/**, 
                     **/soatest/report/**''',
                 fingerprint: true, 
-                onlyIfSuccessful: true
+                onlyIfSuccessful: true,
+                excludes: '**/.jtest'
             )
 
             deleteDir()
