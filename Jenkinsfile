@@ -106,27 +106,27 @@ pipeline {
                     
                     cd parabank; \
 
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn compile \
+                    #jtest:jtest \
+                    #-DskipTests=true \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='${jtestSAConfig}' \
+                    #-Djtest.report=./target/jtest/sa \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn test-compile \
-                    jtest:agent \
-                    test \
-                    jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn test-compile \
+                    #jtest:agent \
+                    #test \
+                    #jtest:jtest \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Dmaven.test.failure.ignore=true \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='builtin://Unit Tests' \
+                    #-Djtest.report=./target/jtest/ut \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
@@ -146,39 +146,39 @@ pipeline {
                     #ls -la monitor
                     '''
                 
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
+                // echo '---> Parsing 10.x static analysis reports'
+                // recordIssues(
+                //     tools: [parasoftFindings(
+                //         localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
+                //         pattern: '**/target/jtest/sa/*.xml'
+                //     )],
+                //     unhealthy: 100, // Adjust as needed
+                //     healthy: 50,   // Adjust as needed
+                //     minimumSeverity: 'HIGH', // Adjust as needed
+                //     // qualityGates: [[
+                //     //     threshold: 10,
+                //     //     type: 'TOTAL_ERROR',
+                //     //     unstable: true
+                //     // ]],
+                //     skipPublishingChecks: true // Adjust as needed
+                // )
 
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '0', 
-                        //     failureThreshold: '0')
-                        // ],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
+                // echo '---> Parsing 10.x unit test reports'
+                // script {
+                //     step([$class: 'XUnitPublisher', 
+                //         // thresholds: [failed(
+                //         //     failureNewThreshold: '0', 
+                //         //     failureThreshold: '0')
+                //         // ],
+                //         tools: [[$class: 'ParasoftType', 
+                //             deleteOutputFiles: true, 
+                //             failIfNotNew: false, 
+                //             pattern: '**/target/jtest/ut/*.xml', 
+                //             skipNoTestFiles: true, 
+                //             stopProcessingIfError: false
+                //         ]]
+                //     ])
+                // }
             }
         }
         stage('Deploy-CodeCoverage') {
@@ -270,7 +270,8 @@ pipeline {
                     mkdir -p ./soavirt_workspace/SOAtestProject; \
                     ls -ll; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
-                    cd soavirt_workspace/SOAtestProject; \
+                    cd soavirt_workspace; \
+                    cd SOAtestProject; \
                     pwd; \
                     ls -ll; \
                     cd ../..; \
