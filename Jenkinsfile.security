@@ -78,7 +78,7 @@ pipeline {
                     '''
                 sh '''
                     # Set Up and write .properties file
-                    cd /parabank-jenkins/jtest
+                    cd parabank-jenkins/jtest
                     pwd
                     echo $"
                     parasoft.eula.accepted=true
