@@ -262,9 +262,9 @@ pipeline {
                     pwd; \
                     id parasoft; \
                     ls -ll; \
-                    echo "contents of ./soatest/SOAtestProject\"; \
+                    echo "contents of ./soatest/SOAtestProject"; \
                     ls -la ./soatest/SOAtestProject/; \
-                    mkdir -p ./soavirt_workspace/SOAtestProject; \
+                    mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     ls -ll; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
                     cd soavirt_workspace; \
