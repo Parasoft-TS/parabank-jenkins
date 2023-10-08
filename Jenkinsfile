@@ -265,9 +265,9 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    mkdir -p /usr/local/parasoft/soavirt_workspace/SOAtestProject; \
-                    cp -f -R /usr/local/parasoft/soatest/SOAtestProject /usr/local/parasoft/soavirt_workspace/SOAtestProject; \
-                    #ls -la /usr/local/parasoft/soavirt_workspace/SOAtestProject/; \
+                    mkdir -p ./soavirt_workspace/SOAtestProject; \
+                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
+                    ls -la ./soavirt_workspace/SOAtestProject/; \
                     
                     cd soavirt; \
                     ./soatestcli \
@@ -312,10 +312,8 @@ pipeline {
             steps {
                 // Release the project
                 sh  '''
-                        
                 # Clean up
-                docker container stop ${app_name}
-                    
+                
                 '''
             }
         }
@@ -323,6 +321,7 @@ pipeline {
     post {
         // Clean after build
         always {
+            sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
