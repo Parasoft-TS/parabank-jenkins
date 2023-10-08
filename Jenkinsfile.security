@@ -31,14 +31,16 @@ pipeline {
         buildId="${app_short}-${BUILD_TIMESTAMP}"
         
         // Parasoft Jtest Settings
-        jtestSAConfig="jtest.builtin://Recommended Rules"
-        jtestMAConfig="jtest.builtin://Metrics"
-        jtestSessionTag="ParabankJenkins-Jtest"
-        unitCovImage="Parabank_All;Parabank_UnitTest"
+        jtestCWEConfig="builtin://CWE Top 25 2022"
+        jtestOWASPConfig="builtin://OWASP Top 10-2021"
+        jtestPCIConfig="builtin://PCI DSS 4.0"
+        jtestSTIGConfig="builtin://DISA-ASD-STIG"
+        jtestCERTConfig="builtin://CERT for Java"
+        jtestSessionTag="ParabankJenkins-Jtest-Security"
 
         // Parasoft SOAtest Settings
         soatestConfig="soatest.user://Example Configuration"
-        soatestSessionTag="ParabankJenkins-SOAtest"
+        soatestSessionTag="ParabankJenkins-SOAtest-Security"
         soatestCovImage="Parabank_All;Parabank_SOAtest"
     }
     stages {
@@ -110,20 +112,48 @@ pipeline {
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
+                    -Djtest.config='${jtestCWEConfig}' \
+                    -Djtest.report=./target/jtest/sast/cwe \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    mvn test-compile \
-                    jtest:agent \
-                    test \
+                    mvn \
                     jtest:jtest \
+                    -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.config='${jtestOWASPConfig}' \
+                    -Djtest.report=./target/jtest/sast/owasp \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestPCIConfig}' \
+                    -Djtest.report=./target/jtest/sast/pci \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSTIGConfig}' \
+                    -Djtest.report=./target/jtest/sast/stig \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestCERTConfig}' \
+                    -Djtest.report=./target/jtest/sast/cert \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
@@ -149,7 +179,7 @@ pipeline {
                 recordIssues(
                     tools: [parasoftFindings(
                         localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa/*.xml'
+                        pattern: '**/target/jtest/sast/**/*.xml'
                     )],
                     unhealthy: 100, // Adjust as needed
                     healthy: 50,   // Adjust as needed
@@ -161,23 +191,6 @@ pipeline {
                     // ]],
                     skipPublishingChecks: true // Adjust as needed
                 )
-
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '0', 
-                        //     failureThreshold: '0')
-                        // ],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
             }
         }
         stage('Deploy') {
@@ -267,41 +280,41 @@ pipeline {
                     #ls -la /usr/local/parasoft/soavirt_workspace/SOAtestProject/; \
                     
                     cd soavirt; \
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project \
+                    #./soatestcli \
+                    #-data /usr/local/parasoft/soavirt_workspace \
+                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project \
                     
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject \
-                    -environment "172.17.0.1" \
-                    -config '${soatestConfig}' \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -showsettings \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
-                    -report /usr/local/parasoft/soatest/report \
-                    -${dtp_publish} \
+                    #./soatestcli \
+                    #-data /usr/local/parasoft/soavirt_workspace \
+                    #-resource /SOAtestProject \
+                    #-environment "172.17.0.1" \
+                    #-config '${soatestConfig}' \
+                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    #-showsettings \
+                    #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    #-report /usr/local/parasoft/soatest/report \
+                    #-${dtp_publish} \
                     "
                     '''
-                echo '---> Parsing 9.x soatest reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '10', 
-                        //     failureThreshold: '10',
-                        //     unstableNewThreshold: '20', 
-                        //     unstableThreshold: '20')
-                        // ],
-                        tools: [[$class: 'ParasoftSOAtest9xType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/soatest/report/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
+                // echo '---> Parsing 9.x soatest reports'
+                // script {
+                //     step([$class: 'XUnitPublisher', 
+                //         // thresholds: [failed(
+                //         //     failureNewThreshold: '10', 
+                //         //     failureThreshold: '10',
+                //         //     unstableNewThreshold: '20', 
+                //         //     unstableThreshold: '20')
+                //         // ],
+                //         tools: [[$class: 'ParasoftSOAtest9xType', 
+                //             deleteOutputFiles: true, 
+                //             failIfNotNew: false, 
+                //             pattern: '**/soatest/report/*.xml', 
+                //             skipNoTestFiles: true, 
+                //             stopProcessingIfError: false
+                //         ]]
+                //     ])
+                // }
             }
         }
         stage('Release') {
@@ -322,7 +335,7 @@ pipeline {
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
-            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/sa/**, **/target/jtest/ut/**, **/target/jtest/monitor/**, **/soatest/report/**',
+            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/sast/**, **/target/jtest/monitor/**, **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
             )
