@@ -266,6 +266,7 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     pwd; \
+                    id parasoft; \
                     ls -ll; \
                     mkdir -p ./soavirt_workspace/SOAtestProject; \
                     ls -ll; \
@@ -281,7 +282,7 @@ pipeline {
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project \
+                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
@@ -289,7 +290,6 @@ pipeline {
                     -environment "172.17.0.1" \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -showsettings \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
                     -${dtp_publish} \
