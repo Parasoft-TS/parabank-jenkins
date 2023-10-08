@@ -1,5 +1,10 @@
 # parabank-jenkins
 ## Parabank Jenkins Pipeline (AWS EC2, docker)
+This repository is a working demonstration of Parasoft's Continuous Quality Platform integrated with the Parabank demo application.  The Jenkins Pipelines defined in this repository are fully portable, meaning your Jenkins server only requires:
+- A connection to the Internet
+- Docker installed on the Jenkins machine
+- Access to a Parasoft License Server with valid "Automation Edition" licenses
+- (Optional) Access to a Parasoft DTP Server
 
 ## AWS EC2 Notes:
 - If using Jenkins running on EC2, where a jenkins:jenkins user was created and you're using the default node, review the jtest, soatest, and parabank-docker Dockerfile scripts to make sure the UID and GID settings match the UID:GID of your jenkins user.  Also check the Jenkinsfiles for the UID and GID settings to match.
