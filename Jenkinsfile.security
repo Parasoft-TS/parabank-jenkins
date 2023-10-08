@@ -76,6 +76,7 @@ pipeline {
                     dtp.project=${project_name}
                     analyzer.dependencycheck.enabled=true
                     build.id="${buildId}"
+                    session.tag="${jtestSessionTag}"
                     " > ./dependency-check-pack-2023.1.0/settings.properties
                     '''
 
