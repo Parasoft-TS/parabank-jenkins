@@ -44,7 +44,7 @@ pipeline {
         soatestCovImage="Parabank_All;Parabank_SOAtest"
     }
     stages {
-        stage('Build') {
+        stage('Build-SAST') {
             steps {
                 deleteDir()
                                 
@@ -59,6 +59,25 @@ pipeline {
                     #pwd
                     #ls -ll
 
+                    # Prepare owasp dependency check pack for jtest docker build
+                    cd parabank-jenkins/jtest;
+                    mkdir dependency-check-pack-2023.1.0;
+                    unzip -q ./parabank-jenkins/jtest/dependency-check-pack-2023.1.0-20230523.zip -d ./dependency-check-pack-2023.1.0;
+                    ls -ll;
+                    ls -la /dependench-check-pack-2023.1.0;
+
+                    # Set Up and write .properties file 
+                    echo $"
+                    dtp.url=${dtp_url}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
+                    dtp.project=${project_name}
+                    analyzer.dependencycheck.enabled=true
+                    build.id="${buildId}"
+                    " > ./parabank-jenkins/jtest/owasp-dependency-check-pack-2023.1.0/settings.properties
+
+                    '''
+                sh '''
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
@@ -157,6 +176,15 @@ pipeline {
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
+                    mvn \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -P owasp-dependency-check org.owasp:dependency-check-maven:check \
+                    -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
+                    
+                    ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependency-check.sh \
+                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
+                        -results.file=./target/owasp-dependency-check/dependency-check-report.xml \
+
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
@@ -193,7 +221,7 @@ pipeline {
                 )
             }
         }
-        stage('Deploy') {
+        stage('Deploy-CodeCoverage') {
             steps {
                 // deploy the project
                 sh  '''
@@ -220,7 +248,7 @@ pipeline {
             }
         }
                 
-        stage('Test') {
+        stage('Test-DAST') {
             steps {
                 // test the project
                 sh  '''
