@@ -32,7 +32,6 @@ pipeline {
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
-        jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
 
