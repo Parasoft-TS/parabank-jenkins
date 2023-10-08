@@ -211,7 +211,7 @@ pipeline {
                 
         stage('Test') {
             steps {
-                // test the project
+                // Setup workspace and soatestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
                     echo $"
@@ -253,6 +253,8 @@ pipeline {
                     # Debug: Print soatestcli.properties file
                     cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
+                
+                // Run SOAtestCLI from docker
                 sh  '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -286,6 +288,7 @@ pipeline {
                     -${dtp_publish} \
                     "
                     '''
+                
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
