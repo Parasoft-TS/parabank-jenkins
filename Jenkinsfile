@@ -289,7 +289,7 @@ pipeline {
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -showsettings \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
                     -${dtp_publish} \
                     "
