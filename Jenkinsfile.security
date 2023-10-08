@@ -75,9 +75,6 @@ pipeline {
                     analyzer.dependencycheck.enabled=true
                     build.id="${buildId}"
                     " > ./dependency-check-pack-2023.1.0/settings.properties
-
-                    # Debug: Print settings.properties file
-                    #cat ./dependency-check-pack-2023.1.0/settings.properties
                     '''
 
                 // Prepare the jtestcli.properties file
@@ -114,9 +111,6 @@ pipeline {
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./jtestcli.properties
-
-                    # Debug: Print jtestcli.properties file
-                    #cat ./jtestcli.properties
                     '''
             }
         }
@@ -374,7 +368,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker) \
+                    $(docker build -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
                     sleep 15
@@ -425,9 +419,6 @@ pipeline {
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
-
-                    # Debug: Print soatestcli.properties file
-                    #cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 sh  '''
                     docker run \
@@ -448,7 +439,7 @@ pipeline {
                     #./soatestcli \
                     #-data /usr/local/parasoft/soavirt_workspace \
                     #-settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project \
+                    #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
                     #./soatestcli \
                     #-data /usr/local/parasoft/soavirt_workspace \
@@ -457,7 +448,7 @@ pipeline {
                     #-config '${soatestConfig}' \
                     #-settings /usr/local/parasoft/soatest/soatestcli.properties \
                     #-showsettings \
-                    #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/TestAssets/coverage_runtime_dir \
+                    #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     #-report /usr/local/parasoft/soatest/report \
                     #-${dtp_publish} \
                     "

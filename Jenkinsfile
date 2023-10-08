@@ -86,9 +86,6 @@ pipeline {
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
-
-                    # Debug: Print jtestcli.properties file
-                    #cat ./parabank-jenkins/jtest/jtestcli.properties
                     '''
                 
                 // Execute the build with Jtest Maven plugin in docker
@@ -197,7 +194,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker) \
+                    $(docker build -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
                     sleep 15
@@ -248,9 +245,6 @@ pipeline {
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
-
-                    # Debug: Print soatestcli.properties file
-                    #cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 
                 // Run SOAtestCLI from docker
@@ -268,6 +262,8 @@ pipeline {
                     pwd; \
                     id parasoft; \
                     ls -ll; \
+                    echo "contents of ./soatest/SOAtestProject\"; \
+                    ls -la ./soatest/SOAtestProject/; \
                     mkdir -p ./soavirt_workspace/SOAtestProject; \
                     ls -ll; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
