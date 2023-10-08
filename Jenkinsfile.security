@@ -79,6 +79,7 @@ pipeline {
                 sh '''
                     # Set Up and write .properties file
                     cd ../..
+                    pwd
                     echo $"
                     parasoft.eula.accepted=true
                     jtest.license.use_network=true
