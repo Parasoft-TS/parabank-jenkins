@@ -266,7 +266,7 @@ pipeline {
                     ls -la ./soatest/SOAtestProject/; \
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     ls -ll; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
+                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
                     cd soavirt_workspace; \
                     cd SOAtestProject; \
                     pwd; \
