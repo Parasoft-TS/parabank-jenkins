@@ -64,7 +64,7 @@ pipeline {
                     mkdir dependency-check-pack-2023.1.0;
                     unzip -q ./dependency-check-pack-2023.1.0-20230523.zip -d ./dependency-check-pack-2023.1.0;
                     ls -ll;
-                    ls -la /dependench-check-pack-2023.1.0;
+                    ls -la /dependency-check-pack-2023.1.0;
 
                     # Set Up and write .properties file 
                     echo $"
@@ -74,11 +74,11 @@ pipeline {
                     dtp.project=${project_name}
                     analyzer.dependencycheck.enabled=true
                     build.id="${buildId}"
-                    " > ./parabank-jenkins/jtest/owasp-dependency-check-pack-2023.1.0/settings.properties
-
+                    " > ./owasp-dependency-check-pack-2023.1.0/settings.properties
                     '''
                 sh '''
                     # Set Up and write .properties file
+                    cd ../..
                     echo $"
                     parasoft.eula.accepted=true
                     jtest.license.use_network=true
