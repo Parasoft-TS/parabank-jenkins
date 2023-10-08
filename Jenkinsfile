@@ -268,9 +268,9 @@ pipeline {
                     pwd; \
                     ls -ll; \
                     mkdir -p ./soavirt_workspace/SOAtestProject; \
+                    ls -ll; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
-                    ls -la ./soavirt_workspace/SOAtestProject/; \
-                    cd /soavirt_workspace/SOAtestProject; \
+                    cd soavirt_workspace/SOAtestProject; \
                     pwd; \
                     ls -ll; \
                     cd ../..; \
