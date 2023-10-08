@@ -262,7 +262,7 @@ pipeline {
                     pwd; \
                     id parasoft; \
                     ls -ll; \
-                    echo "contents of ./soatest/SOAtestProject"; \
+                    echo 'contents of ./soatest/SOAtestProject'; \
                     ls -la ./soatest/SOAtestProject/; \
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     ls -ll; \
@@ -283,7 +283,7 @@ pipeline {
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /SOAtestProject \
-                    -environment "172.17.0.1" \
+                    -environment '172.17.0.1' \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
