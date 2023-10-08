@@ -4,8 +4,8 @@ pipeline {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
         app_name="parabank-baseline" //docker container
-        app_short="PB" //parabank
         image="parasoft/parabank:baseline" //docker image
+        app_short="PB" //parabank
         app_port=8090
         app_cov_port=8050
         app_db_port=9021
@@ -25,8 +25,8 @@ pipeline {
         
         // Parasoft Common Settings
         dtp_url="${PARASOFT_DTP_URL}" //https://172.17.0.1:8443
-        dtp_user="${PARASOFT_DTP_USER}" //or create additional Jenkins Pipeline parameters
-        dtp_pass="${PARASOFT_DTP_PASS}" //or create additional Jenkins Pipeline parameters
+        dtp_user="${PARASOFT_DTP_USER}" //admin
+        dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
         buildId="${app_short}-${BUILD_TIMESTAMP}"
         
@@ -46,7 +46,7 @@ pipeline {
             steps {
                 deleteDir()
                                 
-                // build the project
+                // setup the workspace and jtestcli.properties file
                 sh  '''
                     mkdir parabank-jenkins
                     git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
@@ -91,6 +91,8 @@ pipeline {
                     # Debug: Print jtestcli.properties file
                     cat ./parabank-jenkins/jtest/jtestcli.properties
                     '''
+                
+                // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
@@ -180,7 +182,7 @@ pipeline {
                 }
             }
         }
-        stage('Deploy') {
+        stage('Deploy-CodeCoverage') {
             steps {
                 // deploy the project
                 sh  '''
