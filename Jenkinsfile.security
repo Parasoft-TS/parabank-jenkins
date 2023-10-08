@@ -44,11 +44,11 @@ pipeline {
         soatestCovImage="Parabank_All;Parabank_SOAtest"
     }
     stages {
-        stage('Build-SAST') {
+        stage('Setup') {
             steps {
                 deleteDir()
                                 
-                // build the project
+                // setup the workspace and OWASP Dependency Check installation (painful distribution)
                 sh  '''
                     mkdir parabank-jenkins
                     git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
@@ -76,6 +76,8 @@ pipeline {
                     build.id="${buildId}"
                     " > ./dependency-check-pack-2023.1.0/settings.properties
                     '''
+
+                // Prepare the jtestcli.properties file
                 sh '''
                     # Set Up and write .properties file
                     cd parabank-jenkins/jtest
@@ -113,6 +115,11 @@ pipeline {
                     # Debug: Print jtestcli.properties file
                     cat ./jtestcli.properties
                     '''
+            }
+        }
+        stage('Build-SAST') {
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
@@ -182,7 +189,7 @@ pipeline {
                     -P owasp-dependency-check org.owasp:dependency-check-maven:check \
                     -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
                     
-                    ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependency-check.sh \
+                    ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
                         -results.file=./target/owasp-dependency-check/dependency-check-report.xml \
 
@@ -193,7 +200,10 @@ pipeline {
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
-
+                    '''
+                
+                // Unzip the monitor package in preparation for mounting with deployment
+                sh '''
                     # check parabank/target permissions
                     #ls -la ./parabank/target
 
@@ -364,7 +374,12 @@ pipeline {
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
 
-            archiveArtifacts(artifacts: '**/target/**/*.war, **/target/jtest/sast/**, **/target/jtest/monitor/**, **/soatest/report/**',
+            archiveArtifacts(artifacts: 
+                    '**/target/**/*.war, 
+                    **/target/jtest/sast/**, 
+                    **/target/dependency-check-report.*, 
+                    **/target/jtest/monitor/**, 
+                    **/soatest/report/**',
                 fingerprint: true, 
                 onlyIfSuccessful: true
             )
