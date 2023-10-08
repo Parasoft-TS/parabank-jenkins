@@ -265,10 +265,17 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    mkdir -p ./soavirt_workspace/SOAtestProject; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject; \
-                    ls -la ./soavirt_workspace/SOAtestProject/; \
-                    
+                    pwd \
+                    ls -ll \
+                    mkdir -p ./soavirt_workspace/SOAtestProject \
+                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace/SOAtestProject \
+                    ls -la ./soavirt_workspace/SOAtestProject/ \
+                    cd /soavirt_workspace/SOAtestProject \
+                    pwd \
+                    ls -ll \
+                    cd ../.. \
+                    pwd \
+
                     cd soavirt; \
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
