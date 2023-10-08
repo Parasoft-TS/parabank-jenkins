@@ -78,7 +78,7 @@ pipeline {
                     '''
                 sh '''
                     # Set Up and write .properties file
-                    cd ../..
+                    cd /parabank-jenkins/jtest
                     pwd
                     echo $"
                     parasoft.eula.accepted=true
@@ -108,10 +108,10 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
-                    dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
+                    dtp.project=${project_name}" > ./jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
-                    cat ./parabank-jenkins/jtest/jtestcli.properties
+                    cat ./jtestcli.properties
                     '''
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
