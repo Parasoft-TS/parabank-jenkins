@@ -17,3 +17,7 @@
 - PARASOFT_DTP_USER
 - PARASOFT_DTP_PASS
 - PARASOFT_DTP_PUBLISH
+
+## Configure Jenkins Pipeline with the following:
+- Jenkinsfile: Quality Scan, Unit Tests, Deploy with coverage, Functional Test
+- Jenkinsfile.security: SAST, Deploy with coverage, DAST
