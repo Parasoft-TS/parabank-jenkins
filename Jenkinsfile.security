@@ -291,7 +291,7 @@ pipeline {
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
-                        -results.file ./target/owasp-dependency-check/dependency-check-report.xml \
+                        -results.file ./target/dependency-check-report.xml \
                     "
                     '''
             }
