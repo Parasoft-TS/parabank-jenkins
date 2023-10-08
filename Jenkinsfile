@@ -263,6 +263,7 @@ pipeline {
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
                     cd soavirt; \
+                    
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
