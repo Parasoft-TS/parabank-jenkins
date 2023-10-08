@@ -75,6 +75,9 @@ pipeline {
                     analyzer.dependencycheck.enabled=true
                     build.id="${buildId}"
                     " > ./dependency-check-pack-2023.1.0/settings.properties
+
+                    # Debug: Print settings.properties file
+                    #cat ./dependency-check-pack-2023.1.0/settings.properties
                     '''
 
                 // Prepare the jtestcli.properties file
@@ -113,7 +116,7 @@ pipeline {
                     dtp.project=${project_name}" > ./jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
-                    cat ./jtestcli.properties
+                    #cat ./jtestcli.properties
                     '''
             }
         }
@@ -424,7 +427,7 @@ pipeline {
                     dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
-                    cat ./parabank-jenkins/soatest/soatestcli.properties
+                    #cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 sh  '''
                     docker run \

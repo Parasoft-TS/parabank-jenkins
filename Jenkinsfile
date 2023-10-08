@@ -88,7 +88,7 @@ pipeline {
                     dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
 
                     # Debug: Print jtestcli.properties file
-                    cat ./parabank-jenkins/jtest/jtestcli.properties
+                    #cat ./parabank-jenkins/jtest/jtestcli.properties
                     '''
                 
                 // Execute the build with Jtest Maven plugin in docker
@@ -250,7 +250,7 @@ pipeline {
                     dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
 
                     # Debug: Print soatestcli.properties file
-                    cat ./parabank-jenkins/soatest/soatestcli.properties
+                    #cat ./parabank-jenkins/soatest/soatestcli.properties
                     '''
                 
                 // Run SOAtestCLI from docker
