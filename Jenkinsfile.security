@@ -50,12 +50,14 @@ pipeline {
                                 
                 // setup the workspace and OWASP Dependency Check installation (painful distribution)
                 sh  '''
+                    # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
                     git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
                     
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
 
+                    # Debugging
                     #pwd
                     #ls -ll
 
@@ -295,7 +297,7 @@ pipeline {
         }
         stage('Package App') {
             steps {
-                // Execute the build with Jtest Maven plugin in docker
+                // Package the application with the Jtest Monitor
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
@@ -381,7 +383,7 @@ pipeline {
                 
         stage('DAST: UI-API Tests') {
             steps {
-                // test the project
+                // Setup workspace and soatestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
                     echo $"
@@ -420,6 +422,8 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/soatest/soatestcli.properties
                     '''
+                
+                // Run SOAtestCLI from docker
                 sh  '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -431,16 +435,19 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
+                    # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
                     cd soavirt; \
-                    
+
+                    # SOAtest requires a project to be "imported" before you can run it
                     #./soatestcli \
                     #-data /usr/local/parasoft/soavirt_workspace \
                     #-settings /usr/local/parasoft/soatest/soatestcli.properties \
                     #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
+                    # Execute the project with SOAtest CLI
                     #./soatestcli \
                     #-data /usr/local/parasoft/soavirt_workspace \
                     #-resource /SOAtestProject \
