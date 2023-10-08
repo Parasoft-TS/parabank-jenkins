@@ -230,6 +230,7 @@ pipeline {
                     report.developer_reports=false
                     report.associations=true
                     report.scontrol=full
+                    report.dtp.publish=${dtp_publish}
                     scope.local=true
                     scope.scontrol=true
                     scope.xmlmap=false
@@ -285,7 +286,6 @@ pipeline {
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
-                    -${dtp_publish} \
                     "
                     '''
                 
