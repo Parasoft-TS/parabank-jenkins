@@ -382,7 +382,7 @@ pipeline {
             }
         }
                 
-        stage('Test-DAST') {
+        stage('DAST: UI-API Tests') {
             steps {
                 // test the project
                 sh  '''
