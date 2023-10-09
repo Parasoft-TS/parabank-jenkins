@@ -41,11 +41,11 @@ pipeline {
         soatestCovImage="Parabank_All;Parabank_SOAtest"
     }
     stages {
-        stage('Build') {
+        stage('Setup') {
             steps {
                 deleteDir()
                                 
-                // setup the workspace and jtestcli.properties file
+                // setup the workspace
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
@@ -57,7 +57,10 @@ pipeline {
                     # Debugging
                     #pwd
                     #ls -ll
+                    '''
 
+                // Prepare the jtestcli.properties file
+                sh '''
                     # Set Up and write .properties file
                     echo $"
                     parasoft.eula.accepted=true
@@ -89,7 +92,10 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
-                
+            }
+        }
+        stage('Build') {
+            steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
