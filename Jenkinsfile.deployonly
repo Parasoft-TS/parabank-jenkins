@@ -161,7 +161,7 @@ pipeline {
 
             archiveArtifacts(artifacts: '''
                     **/target/**/*.war, 
-                    **/target/jtest/monitor/**, 
+                    **/target/jtest/monitor/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: true,
                 excludes: '**/.jtest/**'
