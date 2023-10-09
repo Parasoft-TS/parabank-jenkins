@@ -82,6 +82,8 @@ pipeline {
                     license.network.user=${ls_user}
                     license.network.password=${ls_pass}
 
+                    configuration.dir.user=./parabank-jenkins/jtest/configs
+
                     report.associations=false
                     report.coverage.images="${unitCovImage}"
                     report.scontrol=full
