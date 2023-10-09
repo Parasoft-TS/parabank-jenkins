@@ -3,13 +3,13 @@ pipeline {
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
-        app_name="parabank-baseline" //docker container
+        app_name="parabank-ephemeral" //docker container
         image="parasoft/parabank:baseline" //docker image
         app_short="PB" //parabank
         app_port=9876
         app_cov_port=8850
         app_db_port=9091
-        app_jms_port=69616
+        app_jms_port=63626
 
         // Docker host ip
         host_ip="172.17.0.1"
