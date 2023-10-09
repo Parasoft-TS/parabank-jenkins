@@ -3,8 +3,8 @@ pipeline {
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
-        app_name="parabank-baseline" //docker container
-        image="parasoft/parabank:baseline" //docker image
+        app_name="parabank-feature" //docker container
+        image="parasoft/parabank:feature" //docker image
         app_short="PB" //parabank
         app_port=8090
         app_cov_port=8050
@@ -14,13 +14,10 @@ pipeline {
         // Docker host ip
         host_ip="172.17.0.1"
 
-<<<<<<< HEAD
-=======
         // Jenkins UID:GID
         jenkins_uid=995
         jenkins_gid=991
 
->>>>>>> main
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}" //https\://172.17.0.1:8443
         ls_user="${PARASOFT_LS_USER}" //admin
@@ -31,7 +28,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}"
+        buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
@@ -81,7 +78,7 @@ pipeline {
                     scope.xmlmap=false
                     
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.branch=selenium-demo
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
 
@@ -141,29 +138,8 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
 
-<<<<<<< HEAD
-                    # TODO: Seems broken
-                    #echo '---> Parsing static analysis reports'
-                    #    step([$class: 'ParasoftPublisher', 
-                    #        useReportPattern: true, 
-                    #        reportPattern: '**/target/jtest/*.xml', 
-                    #        settings: '']) 
-
-                    #echo '---> Parsing 10.x unit test reports'
-                    #    step([$class: 'XUnitPublisher', 
-                    #        tools: [
-                    #            [$class: 'ParasoftType', 
-                    #                pattern: '**/target/jtest/*.xml', 
-                    #                failIfNotNew: false, 
-                    #                skipNoTestFiles: true, 
-                    #                stopProcessingIfError: false
-                    #        ]
-                    #    ]
-                    #])
-=======
                     # check parabank/target permissions
                     #ls -la ./parabank/target
->>>>>>> main
 
                     # Unzip monitor.zip
                     mkdir monitor
@@ -272,7 +248,7 @@ pipeline {
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.branch=selenium-demo
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
