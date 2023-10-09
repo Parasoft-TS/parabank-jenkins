@@ -55,8 +55,8 @@ pipeline {
                     git clone -b selenium-demo  https://github.com/parasoft/parabank parabank
 
                     # Debugging
-                    #pwd
-                    #ls -ll
+                    pwd
+                    ls -ll
                     '''
                 
                 // copy artifacts from baseline pipeline job
@@ -88,14 +88,14 @@ pipeline {
                     scope.local=true
                     scope.xmlmap=false
                     scope.scontrol=true
-                    scope.scontrol.files.filter.mode=branch
-                    scope.scontrol.ref.branch=origin/master
+                    #scope.scontrol.files.filter.mode=branch
+                    #scope.scontrol.ref.branch=origin/master
                     
                     scontrol.git.exec=git
                     scontrol.rep1.type=git
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.git.branch=selenium-demo
-                    scontrol.rep1.git.workspace=$PWD/parabank
+                    #scontrol.rep1.git.workspace=$PWD/parabank
 
                     build.id="${buildId}"
                     session.tag="${jtestSessionTag}"
@@ -135,18 +135,18 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     # Compile the test sources and run unit tests with Jtest
-                    mvn test-compile \
-                    tia:affected-tests \
+                    mvn tia:affected-tests \
+                    test-compile \
                     jtest:agent \
                     test \
                     jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='builtin://Unit Tests' \
-                    -Dparasoft.runModifiedTests=true \
                     -Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
                     -Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Dparasoft.runModifiedTests=true \
                     -Djtest.report=target/jtest/ut-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
