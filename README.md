@@ -27,3 +27,4 @@ This repository is a working demonstration of Parasoft's Continuous Quality Plat
 ## Configure Jenkins Pipeline with the following:
 - Jenkinsfile: Quality Scan, Unit Tests, Deploy with coverage, Functional Test
 - Jenkinsfile.security: SAST, Deploy with coverage, DAST
+- Jenkinsfile.deployonly: Deploy with coverage, ephemeral for 30 minutes, primed for manual testing in the future
