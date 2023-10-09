@@ -61,7 +61,7 @@ pipeline {
                 
                 // copy artifacts from baseline pipeline job
                 copyArtifacts(
-                    projectName: 'Parabank-Jenkins', 
+                    projectName: 'Parabank-Jenkins (main branch)', 
                     target: 'copied/',
                     filter: '**/target/jtest/ut/*.xml',
                     fingerprintArtifacts: true,
