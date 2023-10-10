@@ -300,27 +300,25 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    #docker run \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #--rm -i \
+                    #--name jtest \
+                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    #-w "/home/parasoft/jenkins/parabank" \
+                    #--network=demo-net \
+                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     
-                    cd parabank; \
-
-                    mvn \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -P owasp-dependency-check org.owasp:dependency-check-maven:check \
-                    -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
+                    #mvn \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-P owasp-dependency-check org.owasp:dependency-check-maven:check \
+                    #-Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
                     
-                    ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
-                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
-                        -results.file ./target/dependency-check-report.xml \
-                    "
+                    #../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
+                    #    -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
+                    #    -results.file ./target/dependency-check-report.xml \
+                    #"
                     '''
             }
         }
