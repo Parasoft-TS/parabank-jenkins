@@ -74,7 +74,7 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images="${unitCovImage}"
+                    report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
@@ -85,8 +85,8 @@ pipeline {
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
 
-                    build.id="${buildId}"
-                    session.tag="${jtestSessionTag}"
+                    build.id=${buildId}
+                    session.tag=${jtestSessionTag}
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
@@ -276,8 +276,8 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}
 
-                    build.id="${buildId}"
-                    session.tag="${soatestSessionTag}"
+                    build.id=${buildId}
+                    session.tag=${soatestSessionTag}
 
                     report.dtp.publish=${dtp_publish}
                     report.associations=true
