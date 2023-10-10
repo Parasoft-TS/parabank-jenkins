@@ -123,11 +123,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     # Compile the project and run Jtest Static Analysis
                     mvn compile \
@@ -157,11 +155,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     # Compile the test sources and run unit tests with Jtest
                     mvn tia:affected-tests \
@@ -195,11 +191,10 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     
-                    cd parabank; \
                     # Package the application with the Jtest Monitor
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
