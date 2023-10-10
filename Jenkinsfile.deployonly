@@ -3,8 +3,8 @@ pipeline {
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
-        app_name="parabank-feature-ephemeral" //docker container
-        image="parasoft/parabank:feature" //docker image
+        app_name="parabank-baseline-ephemeral" //docker container
+        image="parasoft/parabank:baseline" //docker image
         app_short="PB" //parabank
         app_port=9876
         app_cov_port=8850

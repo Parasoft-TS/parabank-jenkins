@@ -3,8 +3,8 @@ pipeline {
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
-        app_name="parabank-feature" //docker container
-        image="parasoft/parabank:feature" //docker image
+        app_name="parabank-baseline" //docker container
+        image="parasoft/parabank:baseline" //docker image
         app_short="PB" //parabank
         app_port=8090
         app_cov_port=8050
@@ -291,7 +291,7 @@ pipeline {
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=selenium-demo
+                    scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
