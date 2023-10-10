@@ -175,7 +175,6 @@ pipeline {
                     -Dmaven.test.skip=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
 
                     # check parabank/target permissions
