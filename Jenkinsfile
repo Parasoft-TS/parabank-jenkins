@@ -406,7 +406,7 @@ pipeline {
                     **/target/jtest/monitor/**, 
                     **/soatest/report/**''',
                 fingerprint: true, 
-                onlyIfSuccessful: true,
+                onlyIfSuccessful: false,
                 excludes: '**/.jtest/**'
             )
 
