@@ -49,10 +49,10 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone -b selenium-demo https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
-                    git clone -b selenium-demo  https://github.com/parasoft/parabank parabank
+                    git clone https://github.com/parasoft/parabank parabank
 
                     # Debugging
                     #pwd
@@ -81,7 +81,7 @@ pipeline {
                     scope.xmlmap=false
                     
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=selenium-demo
+                    scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
 
