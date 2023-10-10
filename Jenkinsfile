@@ -90,8 +90,8 @@ pipeline {
                     scope.local=true
                     scope.xmlmap=false
                     scope.scontrol=true
-                    #scope.scontrol.files.filter.mode=branch
-                    #scope.scontrol.ref.branch=origin/master
+                    scope.scontrol.files.filter.mode=branch
+                    scope.scontrol.ref.branch=origin/master
                     
                     scontrol.git.exec=git
                     scontrol.rep1.type=git
