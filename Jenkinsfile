@@ -63,7 +63,7 @@ pipeline {
                 copyArtifacts(
                     projectName: 'Parabank-Jenkins (main branch)', 
                     target: 'copied/',
-                    filter: '**/target/jtest/ut/*.xml',
+                    filter: '**/target/jtest/ut/*.xml, **/target/jtest/sa/*.xml',
                     fingerprintArtifacts: true,
                     selector: lastSuccessful()
                 );
@@ -81,8 +81,6 @@ pipeline {
                     license.network.url=${ls_url}
                     license.network.user=${ls_user}
                     license.network.password=${ls_pass}
-
-                    configuration.dir.user=/home/parasoft/jenkins/parabank-jenkins/jtest/configs
 
                     report.associations=false
                     report.coverage.images="${unitCovImage}"
@@ -130,6 +128,9 @@ pipeline {
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sa/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestSAConfig}' \
                     -Djtest.report=./target/jtest/sa-tia \
