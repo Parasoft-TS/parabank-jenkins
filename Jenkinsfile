@@ -28,7 +28,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
+        buildId="${app_short}-${BUILD_TIMESTAMP}"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
