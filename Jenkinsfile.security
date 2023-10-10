@@ -48,18 +48,18 @@ pipeline {
             steps {
                 deleteDir()
                                 
-                // setup the workspace and OWASP Dependency Check installation (painful distribution)
+                // setup the workspace
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone -b selenium-demo https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b selenium-demo-tia https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone -b selenium-demo  https://github.com/parasoft/parabank parabank
 
                     # Debugging
-                    #pwd
-                    #ls -ll
+                    pwd
+                    ls -ll
 
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
@@ -75,16 +75,31 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}
                     analyzer.dependencycheck.enabled=true
-                    build.id="${buildId}"
-                    session.tag="${jtestSessionTag}"
+                    build.id='${buildId}'
+                    session.tag='${jtestSessionTag}'
                     " > ./dependency-check-pack-2023.1.0/settings.properties
+                    '''
+                
+                // copy artifacts from baseline pipeline job
+                copyArtifacts(
+                    projectName: 'Parabank-Jenkins-DevSecOps (main branch)', 
+                    target: 'copied/',
+                    filter: '**/target/jtest/sast/**/*.xml',
+                    fingerprintArtifacts: true,
+                    selector: lastSuccessful()
+                );
+
+                // debug copied
+                sh '''
+                    pwd;
+                    ls -ll;
+                    cd copied;
+                    tree .;
                     '''
 
                 // Prepare the jtestcli.properties file
-                sh '''
+                sh  '''
                     # Set Up and write .properties file
-                    cd parabank-jenkins/jtest
-                    pwd
                     echo $"
                     parasoft.eula.accepted=true
                     jtest.license.use_network=true
@@ -100,20 +115,23 @@ pipeline {
                     report.coverage.images="${unitCovImage}"
                     report.scontrol=full
                     scope.local=true
-                    scope.scontrol=true
                     scope.xmlmap=false
+                    scope.scontrol=true
+                    scope.scontrol.files.filter.mode=branch
+                    scope.scontrol.ref.branch=origin/master
                     
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                    scontrol.rep1.git.branch=selenium-demo
+                    #scontrol.rep1.git.workspace=$PWD/parabank
 
                     build.id="${buildId}"
                     session.tag="${jtestSessionTag}"
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
-                    dtp.project=${project_name}" > ./jtestcli.properties
+                    dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
             }
         }
@@ -128,19 +146,21 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
+                    # Compile the project and run Jtest Static Analysis
                     mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cwe/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestCWEConfig}' \
-                    -Djtest.report=./target/jtest/sast/cwe \
+                    -Djtest.report=./target/jtest/sast/cwe-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
