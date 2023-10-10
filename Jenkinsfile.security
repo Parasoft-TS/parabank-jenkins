@@ -128,11 +128,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     mvn compile \
                     jtest:jtest \
@@ -158,11 +156,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     mvn \
                     jtest:jtest \
@@ -188,11 +184,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     mvn \
                     jtest:jtest \
@@ -218,11 +212,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     mvn \
                     jtest:jtest \
@@ -248,11 +240,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     mvn \
                     jtest:jtest \
@@ -278,11 +268,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
                     mvn \
                     -s /home/parasoft/.m2/settings.xml \
@@ -307,11 +295,9 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
                     
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
