@@ -73,7 +73,7 @@ pipeline {
                     pwd;
                     ls -ll;
                     cd copied;
-                    ls -ll;
+                    tree .;
                     '''
 
                 // Prepare the jtestcli.properties file
