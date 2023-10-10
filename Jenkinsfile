@@ -354,8 +354,8 @@ pipeline {
 
             archiveArtifacts(artifacts: '''
                     **/target/**/*.war, 
-                    **/target/jtest/sa/**, 
-                    **/target/jtest/ut/**, 
+                    **/target/jtest/sa-tia/**, 
+                    **/target/jtest/ut-tia/**, 
                     **/target/jtest/monitor/**, 
                     **/soatest/report/**''',
                 fingerprint: true, 
