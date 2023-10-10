@@ -125,7 +125,7 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -v "$PWD/copied:/home/parasoft/copied" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
