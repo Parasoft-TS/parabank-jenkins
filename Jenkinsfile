@@ -3,8 +3,8 @@ pipeline {
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
-        app_name="parabank-baseline" //docker container
-        image="parasoft/parabank:baseline" //docker image
+        app_name="parabank-feature" //docker container
+        image="parasoft/parabank:feature" //docker image
         app_short="PB" //parabank
         app_port=8090
         app_cov_port=8050
@@ -28,7 +28,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}"
+        buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
@@ -49,10 +49,10 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
-                    
+                    git clone -b selenium-demo https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+
                     mkdir parabank
-                    git clone https://github.com/parasoft/parabank parabank
+                    git clone -b selenium-demo  https://github.com/parasoft/parabank parabank
 
                     # Debugging
                     #pwd
@@ -74,19 +74,19 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images="${unitCovImage}"
+                    report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
                     scope.xmlmap=false
                     
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.branch=selenium-demo
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
 
-                    build.id="${buildId}"
-                    session.tag="${jtestSessionTag}"
+                    build.id=${buildId}
+                    session.tag=${jtestSessionTag}
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
@@ -276,8 +276,8 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}
 
-                    build.id="${buildId}"
-                    session.tag="${soatestSessionTag}"
+                    build.id=${buildId}
+                    session.tag=${soatestSessionTag}
 
                     report.dtp.publish=${dtp_publish}
                     report.associations=true
@@ -291,7 +291,7 @@ pipeline {
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.branch=selenium-demo
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
