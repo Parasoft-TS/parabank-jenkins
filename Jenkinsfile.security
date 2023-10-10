@@ -31,11 +31,11 @@ pipeline {
         buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
-        jtestCWEConfig="builtin://CWE Top 25 2022"
-        jtestOWASPConfig="builtin://OWASP Top 10-2021"
-        jtestPCIConfig="builtin://PCI DSS 4.0"
-        jtestSTIGConfig="builtin://DISA-ASD-STIG"
-        jtestCERTConfig="builtin://CERT for Java"
+        jtestCWEConfig="user://CWE Top 25 2022 feature-branch"
+        jtestOWASPConfig="user://OWASP Top 10-2021 feature-branch"
+        jtestPCIConfig="user://PCI DSS 4.0 feature-branch"
+        jtestSTIGConfig="user://DISA-ASD-STIG feature-branch"
+        jtestCERTConfig="user://CERT for Java feature-branch"
         jtestSessionTag="ParabankJenkins-Jtest-Security"
 
         // Parasoft SOAtest Settings
@@ -178,19 +178,21 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
-                    mvn \
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/owasp/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestOWASPConfig}' \
-                    -Djtest.report=./target/jtest/sast/owasp \
+                    -Djtest.report=./target/jtest/sast/owasp-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -208,19 +210,21 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
-                    mvn \
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/pci/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestPCIConfig}' \
-                    -Djtest.report=./target/jtest/sast/pci \
+                    -Djtest.report=./target/jtest/sast/pci-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -238,19 +242,21 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
-                    mvn \
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/stig/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestSTIGConfig}' \
-                    -Djtest.report=./target/jtest/sast/stig \
+                    -Djtest.report=./target/jtest/sast/stig-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -268,19 +274,21 @@ pipeline {
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    cd parabank; \
 
-                    mvn \
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cert/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestCERTConfig}' \
-                    -Djtest.report=./target/jtest/sast/cert \
+                    -Djtest.report=./target/jtest/sast/cert-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
