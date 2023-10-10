@@ -103,6 +103,7 @@ pipeline {
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
 
                     # check parabank/target permissions
