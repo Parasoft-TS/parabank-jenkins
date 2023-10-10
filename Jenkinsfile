@@ -31,7 +31,7 @@ pipeline {
         buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
-        jtestSAConfig="jtest.user://Recommended Rules feature-branch"
+        jtestSAConfig="user://Recommended Rules feature-branch"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
 
