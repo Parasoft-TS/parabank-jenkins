@@ -69,10 +69,12 @@ pipeline {
                 );
 
                 // debug copied
-                pwd;
-                ls -ll;
-                cd copied;
-                ls -ll;
+                sh '''
+                    pwd;
+                    ls -ll;
+                    cd copied;
+                    ls -ll;
+                    '''
 
                 // Prepare the jtestcli.properties file
                 sh  '''
