@@ -162,7 +162,9 @@ pipeline {
                     **/target/jtest/monitor/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: true,
-                excludes: '**/.jtest/**'
+                excludes: '''
+                    **/.jtest/**, 
+                    **/metadata.json'''
             )
 
             deleteDir()
