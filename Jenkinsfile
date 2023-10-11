@@ -407,7 +407,9 @@ pipeline {
                     **/soatest/report/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: false,
-                excludes: '**/.jtest/**'
+                excludes: '''
+                    **/.jtest/**, 
+                    **/metadata.json'''
             )
 
             deleteDir()
