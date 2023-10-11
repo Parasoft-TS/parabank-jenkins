@@ -23,3 +23,8 @@ USER parasoft
 
 # Define working directory.
 WORKDIR ${USER_HOME_DIR}
+
+EXPOSE 8080
+EXPOSE 8050
+EXPOSE 9001
+EXPOSE 61616
