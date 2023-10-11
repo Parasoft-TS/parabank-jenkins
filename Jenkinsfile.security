@@ -11,20 +11,17 @@ pipeline {
         app_db_port=9021
         app_jms_port=63616
 
-        // Docker host ip
-        host_ip="172.17.0.1"
-
         // Jenkins UID:GID
         jenkins_uid=995
         jenkins_gid=991
 
         // Parasoft Licenses
-        ls_url="${PARASOFT_LS_URL}" //https\://172.17.0.1:8443
+        ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
         ls_user="${PARASOFT_LS_USER}" //admin
         ls_pass="${PARASOFT_LS_PASS}"
         
         // Parasoft Common Settings
-        dtp_url="${PARASOFT_DTP_URL}" //https://172.17.0.1:8443
+        dtp_url="${PARASOFT_DTP_URL}" //https://dtp:8443
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
@@ -401,7 +398,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${host_ip}\\:${app_cov_port}
+                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
