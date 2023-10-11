@@ -401,7 +401,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${host_ip}\\:${app_cov_port}
+                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
@@ -439,7 +439,7 @@ pipeline {
                     #./soatestcli \
                     #-data /usr/local/parasoft/soavirt_workspace \
                     #-resource /SOAtestProject \
-                    #-environment '172.17.0.1' \
+                    #-environment 'parabank-baseline (docker)' \
                     #-config '${soatestConfig}' \
                     #-settings /usr/local/parasoft/soatest/soatestcli.properties \
                     #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
