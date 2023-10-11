@@ -11,20 +11,17 @@ pipeline {
         app_db_port=9091
         app_jms_port=63626
 
-        // Docker host ip
-        host_ip="172.17.0.1"
-
         // Jenkins UID:GID
         jenkins_uid=995
         jenkins_gid=991
 
         // Parasoft Licenses
-        ls_url="${PARASOFT_LS_URL}" //https\://172.17.0.1:8443
+        ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
         ls_user="${PARASOFT_LS_USER}" //admin
         ls_pass="${PARASOFT_LS_PASS}"
         
         // Parasoft Common Settings
-        dtp_url="${PARASOFT_DTP_URL}" //https://172.17.0.1:8443
+        dtp_url="${PARASOFT_DTP_URL}" //https://dtp:8443
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
