@@ -89,6 +89,48 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
+
+                // Setup soatestcli.properties file
+                sh  '''
+                    # Set Up and write .properties file
+                    echo $"
+                    parasoft.eula.accepted=true
+
+                    license.network.use.specified.server=true
+                    license.network.url=${ls_url}
+                    license.network.auth.enabled=true
+                    license.network.user=${ls_user}
+                    license.network.password=${ls_pass}
+                    soatest.license.use_network=true
+                    soatest.license.network.edition=custom_edition
+                    soatest.license.custom_edition_features=RuleWizard, Command Line, SOA, Web, Server API Enabled, Message Packs, Advanced Test Generation Desktop, Requirements Traceability, API Security Testing
+                    
+                    dtp.enabled=true
+                    dtp.url=${dtp_url}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
+                    dtp.project=${project_name}
+
+                    build.id=${buildId}
+                    session.tag=${soatestSessionTag}
+
+                    report.dtp.publish=${dtp_publish}
+                    report.associations=true
+                    report.scontrol=full
+                    scope.local=true
+                    scope.scontrol=true
+                    scope.xmlmap=false
+
+                    application.coverage.enabled=true
+                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
+                    application.coverage.images=${soatestCovImage}
+
+                    scontrol.git.exec=git
+                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                    scontrol.rep1.type=git
+                    " > ./parabank-jenkins/soatest/soatestcli.properties
+                    '''
             }
         }
         stage('Quality Scan') {
@@ -252,48 +294,6 @@ pipeline {
                 
         stage('Functional Test') {
             steps {
-                // Setup workspace and soatestcli.properties file
-                sh  '''
-                    # Set Up and write .properties file
-                    echo $"
-                    parasoft.eula.accepted=true
-
-                    license.network.use.specified.server=true
-                    license.network.url=${ls_url}
-                    license.network.auth.enabled=true
-                    license.network.user=${ls_user}
-                    license.network.password=${ls_pass}
-                    soatest.license.use_network=true
-                    soatest.license.network.edition=custom_edition
-                    soatest.license.custom_edition_features=RuleWizard, Command Line, SOA, Web, Server API Enabled, Message Packs, Advanced Test Generation Desktop, Requirements Traceability, API Security Testing
-                    
-                    dtp.enabled=true
-                    dtp.url=${dtp_url}
-                    dtp.user=${dtp_user}
-                    dtp.password=${dtp_pass}
-                    dtp.project=${project_name}
-
-                    build.id=${buildId}
-                    session.tag=${soatestSessionTag}
-
-                    report.dtp.publish=${dtp_publish}
-                    report.associations=true
-                    report.scontrol=full
-                    scope.local=true
-                    scope.scontrol=true
-                    scope.xmlmap=false
-
-                    application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
-                    application.coverage.images=${soatestCovImage}
-
-                    scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
-                    scontrol.rep1.type=git
-                    " > ./parabank-jenkins/soatest/soatestcli.properties
-                    '''
-                
                 // Run SOAtestCLI from docker
                 sh  '''
                     docker run \
@@ -321,7 +321,7 @@ pipeline {
                     # Execute the project with SOAtest CLI
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject \
+                    -resource /SOAtestProject/functional \
                     -environment 'parabank-baseline (docker)' \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
@@ -329,7 +329,20 @@ pipeline {
                     -report /usr/local/parasoft/soatest/report \
                     "
                     '''
-                
+            }
+        }
+        
+        stage('Shift-Left Load Test') {
+            steps {
+                // Run Load Test CLI from docker
+                sh  '''
+                    #TODO
+                    '''
+            }
+        }
+
+        stage('Post: Process Reports') {
+            steps {
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
