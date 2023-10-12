@@ -465,40 +465,39 @@ pipeline {
                     cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
-                    #./soatestcli \
-                    #-data /usr/local/parasoft/soavirt_workspace \
-                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
+                    ./soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    #./soatestcli \
-                    #-data /usr/local/parasoft/soavirt_workspace \
-                    #-resource /SOAtestProject \
-                    #-environment 'parabank-updated (docker)' \
-                    #-config '${soatestConfig}' \
-                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    #-report /usr/local/parasoft/soatest/report \
-                    "
+                    ./soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -resource /SOAtestProject/security \
+                    -environment 'parabank-updated (docker)' \
+                    -config '${soatestConfig}' \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    -report /usr/local/parasoft/soatest/report \
                     '''
-                // echo '---> Parsing 9.x soatest reports'
-                // script {
-                //     step([$class: 'XUnitPublisher', 
-                //         // thresholds: [failed(
-                //         //     failureNewThreshold: '10', 
-                //         //     failureThreshold: '10',
-                //         //     unstableNewThreshold: '20', 
-                //         //     unstableThreshold: '20')
-                //         // ],
-                //         tools: [[$class: 'ParasoftSOAtest9xType', 
-                //             deleteOutputFiles: true, 
-                //             failIfNotNew: false, 
-                //             pattern: '**/soatest/report/*.xml', 
-                //             skipNoTestFiles: true, 
-                //             stopProcessingIfError: false
-                //         ]]
-                //     ])
-                // }
+                echo '---> Parsing 9.x soatest reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '10', 
+                        //     failureThreshold: '10',
+                        //     unstableNewThreshold: '20', 
+                        //     unstableThreshold: '20')
+                        // ],
+                        tools: [[$class: 'ParasoftSOAtest9xType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/soatest/report/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Release') {
