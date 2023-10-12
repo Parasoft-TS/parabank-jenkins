@@ -320,7 +320,7 @@ pipeline {
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /SOAtestProject/functional \
-                    -environment 'parabank-updated (docker)' \
+                    -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
