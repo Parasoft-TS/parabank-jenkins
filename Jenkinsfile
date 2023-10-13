@@ -49,7 +49,7 @@ pipeline {
                     git clone -b Ramiro-SOA-WebUI https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
-                    git clone -b Ramiro-SOA-WebUI  https://github.com/parasoft/parabank parabank
+                    git clone -b Ramiro-SOA-WebUI https://github.com/parasoft/parabank parabank
 
                     # Debugging
                     #pwd
