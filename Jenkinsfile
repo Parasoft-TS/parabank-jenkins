@@ -240,6 +240,10 @@ pipeline {
                     pwd; \
                     ls -ll; \
                     
+                    # Workaround, copy jtestcli.properties where tia:affected-tests is checking
+                    cp ../parabank-jenkins/jtest/jtestcli.properties ./jtestcli.properties; \
+                    ls -ll; \
+
                     # Compile the test sources and run unit tests with Jtest
                     mvn process-test-classes \
                     tia:affected-tests \
