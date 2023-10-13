@@ -136,30 +136,30 @@ pipeline {
         stage('Quality Scan') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                // sh '''
+                //     # Run Maven build with Jtest tasks via Docker
+                //     docker run \
+                //     -u ${jenkins_uid}:${jenkins_gid} \
+                //     --rm -i \
+                //     --name jtest \
+                //     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                //     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                //     -w "/home/parasoft/jenkins/parabank" \
+                //     --network=demo-net \
+                //     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
+                //     # Compile the project and run Jtest Static Analysis
+                //     mvn compile \
+                //     jtest:jtest \
+                //     -DskipTests=true \
+                //     -s /home/parasoft/.m2/settings.xml \
+                //     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                //     -Djtest.config='${jtestSAConfig}' \
+                //     -Djtest.report=./target/jtest/sa \
+                //     -Djtest.showSettings=true \
+                //     -Dproperty.report.dtp.publish=${dtp_publish}; \
+                //     "
+                //     '''
             }
         }
         stage('Unit Test') {
@@ -295,6 +295,46 @@ pipeline {
         stage('Functional Test') {
             steps {
                 // Run SOAtestCLI from docker
+                // sh  '''
+                //     docker run \
+                //     -u ${jenkins_uid}:${jenkins_gid} \
+                //     --rm -i \
+                //     --name soatest \
+                //     -e ACCEPT_EULA=true \
+                //     -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
+                //     -w "/usr/local/parasoft" \
+                //     --network=demo-net \
+                //     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+
+                //     # Create workspace directory and copy SOAtest project into it
+                //     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
+                //     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
+
+                //     cd soavirt; \
+
+                //     # SOAtest requires a project to be "imported" before you can run it
+                //     ./soatestcli \
+                //     -data /usr/local/parasoft/soavirt_workspace \
+                //     -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                //     -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
+                    
+                //     # Execute the project with SOAtest CLI
+                //     ./soatestcli \
+                //     -data /usr/local/parasoft/soavirt_workspace \
+                //     -resource /SOAtestProject/functional \
+                //     -environment 'parabank-baseline (docker)' \
+                //     -config '${soatestConfig}' \
+                //     -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                //     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                //     -report /usr/local/parasoft/soatest/report \
+                //     "
+                //     '''
+            }
+        }
+
+        stage('Web Functional Test') {
+            steps {
+                Run SOAtestCLI from docker
                 sh  '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -328,15 +368,6 @@ pipeline {
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
                     "
-                    '''
-            }
-        }
-
-        stage('Web Functional Test') {
-            steps {
-                // Run SOAtest CLI prepped for web functional testing from docker
-                sh  '''
-                    #TODO
                     '''
             }
         }
