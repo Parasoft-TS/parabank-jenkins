@@ -250,6 +250,11 @@ pipeline {
                     -Djtest.referenceCoverageFile='/home/parasoft/jenkins/copied/parabank/target/jtest/ut/coverage.xml' \
                     -Djtest.referenceReportFile='/home/parasoft/jenkins/copied/parabank/target/jtest/ut/report.xml' \
                     -Dparasoft.runModifiedTests=true \
+                    -Djtest.techsupport.enabled=true \
+                    -Djtest.logging.verbose=true \
+                    -Djtest.logging.scontrol.verbose=true \
+                    -Djtest.techsupport.create.on.exit=true \
+                    -Djtest.techsupport.archive.location=/home/parasoft/jenkins/parabank-jenkins/jtest/tsa \
 
                     # Compile the test sources and run unit tests with Jtest
                     #mvn process-test-classes \
