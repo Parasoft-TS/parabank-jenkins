@@ -216,6 +216,8 @@ pipeline {
                     cd parabank; \
                     cd target; \
                     cd jtest; \
+                    pwd; \
+                    ls -ll; \
                     cd sa; \
                     pwd; \
                     ls -ll; \
