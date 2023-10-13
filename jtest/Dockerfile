@@ -10,7 +10,9 @@ USER root
 ARG USER_HOME_DIR=/home/parasoft
 
 # Update the package list and install tree
-RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && dnf install -y tree
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-8 && \
+    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+    dnf install -y tree
 
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
