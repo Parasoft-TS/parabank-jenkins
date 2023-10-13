@@ -210,10 +210,13 @@ pipeline {
                     cd copied; \
                     cd parabank; \
                     cd target; \
+                    cd jtest; \
                     ls -ll; \
                     cd ..; \
                     cd ..; \
                     cd ..; \
+                    cd ..; \
+                    cd parabank; \
 
                     # Compile the test sources and run unit tests with Jtest
                     mvn \
