@@ -211,7 +211,12 @@ pipeline {
                     cd parabank; \
                     cd target; \
                     cd jtest; \
+                    cd sa; \
                     ls -ll; \
+                    cd ..; \
+                    cd ut; \
+                    ls -ll; \
+                    cd ..; \
                     cd ..; \
                     cd ..; \
                     cd ..; \
@@ -219,13 +224,12 @@ pipeline {
                     cd parabank; \
 
                     # Compile the test sources and run unit tests with Jtest
-                    mvn \
-                    process-test-classes \
+                    mvn process-test-classes \
                     tia:affected-tests \
-                    jtest:agent \
                     test \
                     jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
+                    -DjtestHome='/opt/parasoft/jtest' \
                     -Djtest.config='builtin://Unit Tests' \
                     -Dmaven.test.failure.ignore=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
