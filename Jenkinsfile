@@ -334,7 +334,7 @@ pipeline {
 
         stage('Web Functional Test') {
             steps {
-                Run SOAtestCLI from docker
+                // Run SOAtestCLI from docker
                 sh  '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
