@@ -9,6 +9,9 @@ ARG HOST_GID=991
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
+# Update the package list and install tree
+RUN apt-get update && apt-get install -y tree
+
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
 ENV MAVEN_HOME=${USER_HOME_DIR}/apache-maven-${MAVEN_VERSION}
