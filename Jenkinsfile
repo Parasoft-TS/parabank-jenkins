@@ -453,8 +453,7 @@ pipeline {
                     **/target/jtest/sa-tia/**, 
                     **/target/jtest/ut-tia/**, 
                     **/target/jtest/monitor/**, 
-                    **/soatest/report/**,
-                    **/parabank-jenkins/jtest/tsa/*.zip''',
+                    **/soatest/report/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: false,
                 excludes: '''
