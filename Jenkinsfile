@@ -208,11 +208,15 @@ pipeline {
                     ls -ll; \
                     cd ..; \
                     cd ./copied; \
+                    cd ./parabank \
+                    cd ./target; \
                     ls -ll; \
+                    cd ..; \
+                    cd ..; \
                     cd ..; \
 
                     # Compile the test sources and run unit tests with Jtest
-                    mvn 
+                    mvn \
                     process-test-classes \
                     tia:affected-tests \
                     jtest:agent \
