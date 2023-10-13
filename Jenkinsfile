@@ -372,7 +372,7 @@ pipeline {
 
             // Debugging tsa created or not
             sh '''
-                cd parabank-jenkins/jtest/tsa;
+                cd parabank-jenkins/jtest;
                 ls -ll;
                 '''
 
