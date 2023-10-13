@@ -135,7 +135,7 @@ pipeline {
         }
         stage('Quality Scan') {
             steps {
-                Execute the build with Jtest Maven plugin in docker
+                // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     #docker run \
@@ -164,7 +164,7 @@ pipeline {
         }
         stage('Unit Test') {
             steps {
-                Execute the build with Jtest Maven plugin in docker
+                // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
                     #docker run \
