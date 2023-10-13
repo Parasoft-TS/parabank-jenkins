@@ -331,7 +331,16 @@ pipeline {
                     '''
             }
         }
-        
+
+        stage('Web Functional Test') {
+            steps {
+                // Run SOAtest CLI prepped for web functional testing from docker
+                sh  '''
+                    #TODO
+                    '''
+            }
+        }
+
         stage('Shift-Left Load Test') {
             steps {
                 // Run Load Test CLI from docker
