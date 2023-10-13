@@ -361,7 +361,7 @@ pipeline {
                     # Execute the project with SOAtest CLI
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject \
+                    -resource /SOAtestProject/functional/Web.tst \
                     -environment 'parabank-baseline (docker)' \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
