@@ -205,16 +205,23 @@ pipeline {
                     # Debugging
                     cd ..; \
                     cd ./parabank-jenkins; \
+                    pwd; \
                     ls -ll; \
+                    cd ./jtest; \
+                    pwd; \
+                    ls -ll; \
+                    cd ..; \
                     cd ..; \
                     cd copied; \
                     cd parabank; \
                     cd target; \
                     cd jtest; \
                     cd sa; \
+                    pwd; \
                     ls -ll; \
                     cd ..; \
                     cd ut; \
+                    pwd; \
                     ls -ll; \
                     cd ..; \
                     cd ..; \
@@ -222,7 +229,9 @@ pipeline {
                     cd ..; \
                     cd ..; \
                     cd parabank; \
-
+                    pwd; \
+                    ls -ll; \
+                    
                     # Compile the test sources and run unit tests with Jtest
                     mvn process-test-classes \
                     tia:affected-tests \
