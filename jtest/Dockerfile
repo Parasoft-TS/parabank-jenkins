@@ -9,6 +9,9 @@ ARG HOST_GID=991
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
+# Run a command to check the distribution
+RUN cat /etc/os-release
+
 # Update the package list and install tree
 RUN apt-get update && apt-get install -y tree
 
