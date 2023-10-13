@@ -270,11 +270,6 @@ pipeline {
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-                
-                sh '''
-                    cd /home/parasoft/jenkins/parabank-jenkins/jtest/tsa;
-                    ls -ll;
-                    '''
             }
         }
         stage('Package-CodeCoverage') {
@@ -374,6 +369,12 @@ pipeline {
             //sh 'docker container stop ${app_name}'
             //sh 'docker container rm ${app_name}'
             //sh 'docker image prune -f'
+
+            // Debugging tsa created or not
+            sh '''
+                cd /home/parasoft/jenkins/parabank-jenkins/jtest/tsa;
+                ls -ll;
+                '''
 
             archiveArtifacts(artifacts: '''
                     **/target/**/*.war, 
