@@ -203,9 +203,13 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Debugging
-                    tree ../parabank-jenkins; \
-                    tree ../copied; \
-                    tree ./; \
+                    cd ..; \
+                    cd ./parabank-jenkins; \
+                    ls -ll; \
+                    cd ..; \
+                    cd ./copied; \
+                    ls -ll; \
+                    cd ..; \
 
                     # Compile the test sources and run unit tests with Jtest
                     mvn 
