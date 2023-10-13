@@ -113,7 +113,7 @@ pipeline {
                     logging.verbose=true
                     logging.scontrol.verbose=true
                     techsupport.create.on.exit=true
-                    techsupport.archive.location=./parabank-jenkins/jtest/tsa/tsa.zip
+                    techsupport.archive.location=$PWD/parabank-jenkins/jtest/tsa/tsa.zip
                     
                     " > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
