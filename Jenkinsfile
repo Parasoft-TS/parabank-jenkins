@@ -241,22 +241,13 @@ pipeline {
                     ls -ll; \
                     
                     # Workaround, copy jtestcli.properties where tia:affected-tests is checking
-                    cp ../parabank-jenkins/jtest/jtestcli.properties ./jtestcli.properties; \
+                    cp /home/parasoft/jtestcli.properties ./jtestcli.properties; \
                     ls -ll; \
 
                     # Compile the test sources and run unit tests with Jtest
                     mvn process-test-classes \
                     tia:affected-tests \
                     test \
-                    -Djtest.settings='/home/parasoft/jenkins/parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.referenceCoverageFile='/home/parasoft/jenkins/copied/parabank/target/jtest/ut/coverage.xml' \
-                    -Djtest.referenceReportFile='/home/parasoft/jenkins/copied/parabank/target/jtest/ut/report.xml' \
-                    -Dparasoft.runModifiedTests=true \
-                    -Djtest.techsupport.enabled=true \
-                    -Djtest.logging.verbose=true \
-                    -Djtest.logging.scontrol.verbose=true \
-                    -Djtest.techsupport.create.on.exit=true \
-                    -Djtest.techsupport.archive.location=/home/parasoft/jenkins/parabank-jenkins/jtest/tsa \
 
                     # Compile the test sources and run unit tests with Jtest
                     #mvn process-test-classes \
