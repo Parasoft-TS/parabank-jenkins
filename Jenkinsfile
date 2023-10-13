@@ -107,7 +107,15 @@ pipeline {
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
-                    dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
+                    dtp.project=${project_name}
+                    
+                    techsupport.enabled=true
+                    logging.verbose=true
+                    logging.scontrol.verbose=true
+                    techsupport.create.on.exit=true
+                    techsupport.archive.location=./parabank-jenkins/jtest/tsa
+                    
+                    " > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
 
                 // Setup workspace and soatestcli.properties file
@@ -445,7 +453,8 @@ pipeline {
                     **/target/jtest/sa-tia/**, 
                     **/target/jtest/ut-tia/**, 
                     **/target/jtest/monitor/**, 
-                    **/soatest/report/**''',
+                    **/soatest/report/**,
+                    **/parabank-jenkins/jtest/tsa/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: false,
                 excludes: '''
