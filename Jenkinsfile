@@ -375,7 +375,8 @@ pipeline {
                     **/target/jtest/sa-tia/**, 
                     **/target/jtest/ut-tia/**, 
                     **/target/jtest/monitor/**, 
-                    **/soatest/report/**''',
+                    **/soatest/report/**, 
+                    /home/parasoft/jenkins/parabank-jenkins/jtest/tsa/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: false,
                 excludes: '''
