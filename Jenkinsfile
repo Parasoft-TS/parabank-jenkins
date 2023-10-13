@@ -270,6 +270,11 @@ pipeline {
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
+                
+                sh '''
+                    cd /home/parasoft/jenkins/parabank-jenkins/jtest/tsa;
+                    ls -ll;
+                    '''
             }
         }
         stage('Package-CodeCoverage') {
