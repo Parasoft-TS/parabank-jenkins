@@ -113,7 +113,7 @@ pipeline {
                     logging.verbose=true
                     logging.scontrol.verbose=true
                     techsupport.create.on.exit=true
-                    techsupport.archive.location=./parabank-jenkins/jtest/tsa
+                    techsupport.archive.location=/home/parasoft/jenkins/parabank-jenkins/jtest/tsa
                     
                     " > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
@@ -454,7 +454,7 @@ pipeline {
                     **/target/jtest/ut-tia/**, 
                     **/target/jtest/monitor/**, 
                     **/soatest/report/**,
-                    **/parabank-jenkins/jtest/tsa/**''',
+                    **/parabank-jenkins/jtest/tsa/*.zip''',
                 fingerprint: true, 
                 onlyIfSuccessful: false,
                 excludes: '''
