@@ -276,34 +276,7 @@ pipeline {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    # Package the application with the Jtest Monitor
-                    mvn package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-
-                    # check parabank/target permissions
-                    #ls -la ./parabank/target
-
-                    # Unzip monitor.zip
-                    mkdir monitor
-                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
-                    #ls -ll
-                    #ls -la monitor
+                    # TODO
                     '''
             }
         }
@@ -393,9 +366,9 @@ pipeline {
     post {
         // Clean after build
         always {
-            sh 'docker container stop ${app_name}'
-            sh 'docker container rm ${app_name}'
-            sh 'docker image prune -f'
+            //sh 'docker container stop ${app_name}'
+            //sh 'docker container rm ${app_name}'
+            //sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '''
                     **/target/**/*.war, 
