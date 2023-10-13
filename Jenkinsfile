@@ -207,9 +207,9 @@ pipeline {
                     cd ./parabank-jenkins; \
                     ls -ll; \
                     cd ..; \
-                    cd ./copied; \
-                    cd ./parabank \
-                    cd ./target; \
+                    cd copied; \
+                    cd parabank; \
+                    cd target; \
                     ls -ll; \
                     cd ..; \
                     cd ..; \
