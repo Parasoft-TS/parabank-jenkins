@@ -227,18 +227,30 @@ pipeline {
                     mvn process-test-classes \
                     tia:affected-tests \
                     test \
-                    jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
                     -DjtestHome='/opt/parasoft/jtest' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Dmaven.test.failure.ignore=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
                     -Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
                     -Dparasoft.runModifiedTests=true \
-                    -Djtest.report=target/jtest/ut-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    # Compile the test sources and run unit tests with Jtest
+                    #mvn process-test-classes \
+                    #tia:affected-tests \
+                    #jtest:agent \
+                    #test \
+                    #jtest:jtest \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-DjtestHome='/opt/parasoft/jtest' \
+                    #-Djtest.config='builtin://Unit Tests' \
+                    #-Dmaven.test.failure.ignore=true \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
+                    #-Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
+                    #-Dparasoft.runModifiedTests=true \
+                    #-Djtest.report=target/jtest/ut-tia \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
             }
