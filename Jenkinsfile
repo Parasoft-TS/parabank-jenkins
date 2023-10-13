@@ -244,7 +244,6 @@ pipeline {
                     mvn process-test-classes \
                     tia:affected-tests \
                     test \
-                    -s /home/parasoft/jenkins/parabank-jenkins/jtest/.m2/settings.xml \
                     -DjtestHome='/opt/parasoft/jtest' \
                     -Djtest.settings='/home/parasoft/jenkins/parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.referenceCoverageFile='/home/parasoft/jenkins/copied/parabank/target/jtest/ut/coverage.xml' \
