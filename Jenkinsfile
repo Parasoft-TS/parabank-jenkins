@@ -60,7 +60,11 @@ pipeline {
                 copyArtifacts(
                     projectName: 'Parabank-Jenkins (main branch)', 
                     target: 'copied/',
-                    filter: '**/target/jtest/ut/*.xml, **/target/jtest/sa/*.xml',
+                    filter: '''
+                        **/target/jtest/ut/*.xml, 
+                        **/target/jtest/sa/*.xml, 
+                        **/target/**/target/*.war, 
+                        **/parabank-jenkins/soatest/report/*.xml''',
                     fingerprintArtifacts: true,
                     selector: lastSuccessful()
                 );
