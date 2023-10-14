@@ -352,6 +352,8 @@ pipeline {
 
                     cd soavirt; \
 
+                    
+
                     # SOAtest requires a project to be "imported" before you can run it
                     ./soatestcli \
                     -data /usr/local/parasoft/soavirt_workspace \
@@ -368,6 +370,10 @@ pipeline {
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
                     "
+
+                    #Checking if the chromedriver was placed in the folder
+                    cd "/usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_*/root/browsers/webdriver/chrome/linux/x86_64/"
+                    ls -a
                     '''
             }
         }
