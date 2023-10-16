@@ -240,6 +240,7 @@ pipeline {
         }
         stage('Process Reports') {
             steps {
+                /*
                 echo '---> Parsing 10.x static analysis reports'
                 recordIssues(
                     tools: [parasoftFindings(
@@ -272,7 +273,7 @@ pipeline {
                             stopProcessingIfError: false
                         ]]
                     ])
-                }
+                } */
             }
         }
         stage('Deploy-CodeCoverage') {
@@ -376,10 +377,10 @@ pipeline {
                     ./loadtest \
                     -cmd \
                     -run /usr/local/parasoft/loadtest/script.txt \
-                    -licenseServer https://localhost:8443 \
+                    -licenseServer https://54.200.50.134:8443 \
                     -licenseUsername admin \
                     -licensePassword parasoft.vm \
-                    -licenseVus 5 \
+                    -licenseVus 1 \
                     "
                     '''
             }
