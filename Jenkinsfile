@@ -345,7 +345,27 @@ pipeline {
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
-                    #TODO
+                   docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name loadtest \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank-jenkins/loadtest:/usr/local/parasoft/loadtest" \
+                    -w "/usr/local/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+
+                    cd loadtest; \
+               
+                    # Execute the project with SOAtest CLI
+                    ./loadtest \
+                    -cmd \
+                    -run /usr/local/parasoft/loadtest/script.txt \
+                    -licenseServer {ls_url} \
+                    -licenseUsername {ls_user} \
+                    -licensePassword {ls_pass} \ 
+                    -licenseVus 5 \
+                    "
                     '''
             }
         }
