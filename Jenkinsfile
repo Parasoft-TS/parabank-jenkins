@@ -136,7 +136,7 @@ pipeline {
         stage('Quality Scan') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
-              //  sh '''
+                sh '''
                 //  # Run Maven build with Jtest tasks via Docker
                  //   docker run \
                 //    -u ${jenkins_uid}:${jenkins_gid} \
@@ -159,7 +159,7 @@ pipeline {
                  //   -Djtest.showSettings=true \
                  //   -Dproperty.report.dtp.publish=${dtp_publish}; \
                  //   "
-                //    '''
+                   '''
             }
         }
         stage('Unit Test') {
