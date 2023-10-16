@@ -344,11 +344,26 @@ pipeline {
                     -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
+
+                    #Checking if the chromedriver was placed in the folder
+                    cd /usr
+                    cd /local
+                    cd /parasoft
+                    cd /soavirt
+                    cd /plugins
+                    cd /com.parasoft.ptest.libs.web_10.6.2.202306042000
+                    cd /root
+                    cd /browsers
+                    cd /webdriver
+                    cd /chrome
+                    cd /linux
+                    cd /x86_64
+                    ls -a
 
                     cd soavirt; \
 
@@ -361,7 +376,7 @@ pipeline {
                     -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    ./soatestcli \
+                    ./soatestcli -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /SOAtestProject/Web.tst \
                     -environment 'parabank-baseline (docker)' \
@@ -372,8 +387,8 @@ pipeline {
                     "
 
                     #Checking if the chromedriver was placed in the folder
-                    cd "/usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/"
-                    ls -a
+                    #cd /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/
+                    #ls -a
                     '''
             }
         }
