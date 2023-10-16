@@ -252,7 +252,8 @@ pipeline {
                     mvn process-test-classes \
                     tia:affected-tests \
                     test -X \
-                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties' \
 
                     # Compile the test sources and run unit tests with Jtest
                     #mvn process-test-classes \
