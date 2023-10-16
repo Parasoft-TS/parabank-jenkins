@@ -351,6 +351,7 @@ pipeline {
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
                     #Checking if the chromedriver was placed in the folder
+                    : '
                     cd /usr
                     cd ./local
                     cd ./parasoft
@@ -364,7 +365,7 @@ pipeline {
                     cd ./linux
                     cd ./x86_64
                     ls -a
-
+                    '
                     cd soavirt; \
 
                     
