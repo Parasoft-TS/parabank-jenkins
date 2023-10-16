@@ -137,7 +137,7 @@ pipeline {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
+                  # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -166,7 +166,7 @@ pipeline {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
+                   # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -296,7 +296,7 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                    docker run \
+                  docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name soatest \
@@ -327,7 +327,7 @@ pipeline {
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
-                    "
+                    " 
                     '''
             }
         }
@@ -361,9 +361,9 @@ pipeline {
                     ./loadtest \
                     -cmd \
                     -run /usr/local/parasoft/loadtest/script.txt \
-                    -licenseServer {ls_url} \
-                    -licenseUsername {ls_user} \
-                    -licensePassword {ls_pass} \ 
+                    -licenseServer https://localhost:8443 \
+                    -licenseUsername admin \
+                    -licensePassword parasoft.vm \
                     -licenseVus 5 \
                     "
                     '''
