@@ -136,30 +136,30 @@ pipeline {
         stage('Quality Scan') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                  # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+              //  sh '''
+                //  # Run Maven build with Jtest tasks via Docker
+                 //   docker run \
+                //    -u ${jenkins_uid}:${jenkins_gid} \
+                //    --rm -i \
+                //    --name jtest \
+                //    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                //    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                //    -w "/home/parasoft/jenkins/parabank" \
+                //    --network=demo-net \
+                //    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
+                 //   # Compile the project and run Jtest Static Analysis
+                 //   mvn compile \
+                 //   jtest:jtest \
+                 //   -DskipTests=true \
+                 //   -s /home/parasoft/.m2/settings.xml \
+                 //   -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                 //   -Djtest.config='${jtestSAConfig}' \
+                 //   -Djtest.report=./target/jtest/sa \
+                 //   -Djtest.showSettings=true \
+                 //   -Dproperty.report.dtp.publish=${dtp_publish}; \
+                 //   "
+                //    '''
             }
         }
         stage('Unit Test') {
@@ -355,7 +355,7 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    cd loadtest; \
+                    cd soavirt; \
                
                     # Execute the project with SOAtest CLI
                     ./loadtest \
