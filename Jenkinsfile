@@ -135,6 +135,9 @@ pipeline {
         }
         stage('Quality Scan') {
             steps {
+                sh  '''
+                    #TODO
+                    '''
                 /*
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -166,6 +169,9 @@ pipeline {
         }
         stage('Unit Test') {
             steps {
+                sh  '''
+                    #TODO
+                    '''
                 /*
                  Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -298,6 +304,9 @@ pipeline {
                 
         stage('Functional Test') {
             steps {
+                sh  '''
+                    #TODO
+                    '''
                /*
                 // Run SOAtestCLI from docker
                 sh  '''
