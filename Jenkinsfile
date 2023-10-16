@@ -372,7 +372,7 @@ pipeline {
                     "
 
                     #Checking if the chromedriver was placed in the folder
-                    cd "/usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_*/root/browsers/webdriver/chrome/linux/x86_64/"
+                    cd "/usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/"
                     ls -a
                     '''
             }
