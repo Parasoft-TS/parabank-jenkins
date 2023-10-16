@@ -46,7 +46,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -138,26 +138,26 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    #docker run \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #--rm -i \
+                    #--name jtest \
+                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    #-w "/home/parasoft/jenkins/parabank" \
+                    #--network=demo-net \
+                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn compile \
+                    #jtest:jtest \
+                    #-DskipTests=true \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='${jtestSAConfig}' \
+                    #-Djtest.report=./target/jtest/sa \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
             }
@@ -167,28 +167,28 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    #docker run \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #--rm -i \
+                    #--name jtest \
+                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    #-w "/home/parasoft/jenkins/parabank" \
+                    #--network=demo-net \
+                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
-                    mvn test-compile \
-                    jtest:agent \
-                    test \
-                    jtest:jtest \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #mvn test-compile \
+                    #jtest:agent \
+                    #test \
+                    #jtest:jtest \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Dmaven.test.failure.ignore=true \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.config='builtin://Unit Tests' \
+                    #-Djtest.report=./target/jtest/ut \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
             }
@@ -228,42 +228,42 @@ pipeline {
                     '''
             }
         }
-        stage('Process Reports') {
-            steps {
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
+        // stage('Process Reports') {
+        //     steps {
+        //         echo '---> Parsing 10.x static analysis reports'
+        //         recordIssues(
+        //             tools: [parasoftFindings(
+        //                 localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
+        //                 pattern: '**/target/jtest/sa/*.xml'
+        //             )],
+        //             unhealthy: 100, // Adjust as needed
+        //             healthy: 50,   // Adjust as needed
+        //             minimumSeverity: 'HIGH', // Adjust as needed
+        //             // qualityGates: [[
+        //             //     threshold: 10,
+        //             //     type: 'TOTAL_ERROR',
+        //             //     unstable: true
+        //             // ]],
+        //             skipPublishingChecks: true // Adjust as needed
+        //         )
 
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '0', 
-                        //     failureThreshold: '0')
-                        // ],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
-            }
+        //         echo '---> Parsing 10.x unit test reports'
+        //         script {
+        //             step([$class: 'XUnitPublisher', 
+        //                 // thresholds: [failed(
+        //                 //     failureNewThreshold: '0', 
+        //                 //     failureThreshold: '0')
+        //                 // ],
+        //                 tools: [[$class: 'ParasoftType', 
+        //                     deleteOutputFiles: true, 
+        //                     failIfNotNew: false, 
+        //                     pattern: '**/target/jtest/ut/*.xml', 
+        //                     skipNoTestFiles: true, 
+        //                     stopProcessingIfError: false
+        //                 ]]
+        //             ])
+        //         }
+        //     }
         }
         stage('Deploy-CodeCoverage') {
             steps {
@@ -296,37 +296,37 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name soatest \
-                    -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
-                    -w "/usr/local/parasoft" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    #docker run \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #--rm -i \
+                    #--name soatest \
+                    #-e ACCEPT_EULA=true \
+                    #-v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
+                    #-w "/usr/local/parasoft" \
+                    #--network=demo-net \
+                    #$(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
-                    mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
+                    #mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
+                    #cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
-                    cd soavirt; \
+                    #cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
+                    #./soatestcli \
+                    #-data /usr/local/parasoft/soavirt_workspace \
+                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject/functional \
-                    -environment 'parabank-baseline (docker)' \
-                    -config '${soatestConfig}' \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -report /usr/local/parasoft/soatest/report \
+                    #./soatestcli \
+                    #-data /usr/local/parasoft/soavirt_workspace \
+                    #-resource /SOAtestProject/functional \
+                    #-environment 'parabank-baseline (docker)' \
+                    #-config '${soatestConfig}' \
+                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    #-report /usr/local/parasoft/soatest/report \
                     "
                     '''
             }
@@ -335,6 +335,15 @@ pipeline {
         stage('Web Functional Test') {
             steps {
                 // Run SOAtest CLI prepped for web functional testing from docker
+                sh  '''
+                    #TODO
+                    '''
+            }
+        }
+
+        stage('Selenic Web Functional Test') {
+            steps {
+                // Run Selenic prepped for web functional testing from docker
                 sh  '''
                     #TODO
                     '''
