@@ -264,7 +264,7 @@ pipeline {
         //             ])
         //         }
         //     }
-        }
+        //}
         stage('Deploy-CodeCoverage') {
             steps {
                 // deploy the project
