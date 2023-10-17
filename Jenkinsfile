@@ -371,6 +371,7 @@ pipeline {
                     --name loadtest \
                     -e ACCEPT_EULA=true \
                     -v "$PWD/parabank-jenkins/loadtest:/usr/local/parasoft/soatest" \
+                    -v "$PWD/parabank-jenkins/loadtest/script.txt:/usr/local/parasoft/soatest/script.txt" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
