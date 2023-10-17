@@ -377,7 +377,7 @@ pipeline {
                     cd soavirt; \
                
                     # Execute the project with SOAtest CLI
-                    ./loadtest \
+                    loadtest \
                     -cmd \
                     -run /usr/local/parasoft/soatest/script.txt \
                     -licenseServer https://54.200.50.134:8443 \
