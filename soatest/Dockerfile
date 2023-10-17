@@ -34,7 +34,7 @@ RUN rpm -ivh \
         centos-gpg-keys && \
     rpm --import https://dl.google.com/linux/linux_signing_key.pub && \
     dnf install -y --nodocs \
-        https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm \
+        https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-118.0.5993.88-1.x86_64.rpm \
         unzip && \
     dnf clean all && \
     rm -rf /var/cache/dnf && \
