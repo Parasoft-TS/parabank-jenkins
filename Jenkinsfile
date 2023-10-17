@@ -375,15 +375,12 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    mkdir -p ./soavirt_workspace/; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-
                     cd soavirt; \
                
                     # Execute the project with SOAtest CLI
                     ./loadtest \
                     -cmd \
-                    -run /usr/local/parasoft/soatest/soavirt_workspace/script.txt \
+                    -run /usr/local/parasoft/soatest/script.txt \
                     -licenseServer https://54.200.50.134:8443 \
                     -licenseUsername admin \
                     -licensePassword parasoft.vm \
