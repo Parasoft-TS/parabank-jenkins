@@ -345,7 +345,12 @@ pipeline {
             steps {
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
-                    #TODO
+                    docker run -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i --name selenic -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    pteodor/selenic:1.0 /bin/bash -c "ls"
                     '''
             }
         }
