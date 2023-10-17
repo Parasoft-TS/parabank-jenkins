@@ -375,7 +375,7 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    cp -f -R ./loadtest /usr/local/parasoft/loadtest; \
+                    cp -f -R ./script.txt /usr/local/parasoft/loadtest; \
 
                     cd soavirt; \
                
