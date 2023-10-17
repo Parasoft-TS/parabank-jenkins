@@ -350,22 +350,7 @@ pipeline {
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
-                    #Checking if the chromedriver was placed in the folder
-                    : '
-                    cd /usr
-                    cd ./local
-                    cd ./parasoft
-                    cd ./soavirt
-                    cd ./plugins
-                    cd ./com.parasoft.ptest.libs.web_10.6.2.202306042000
-                    cd ./root
-                    cd ./browsers
-                    cd ./webdriver
-                    cd ./chrome
-                    cd ./linux
-                    cd ./x86_64
-                    ls -a
-                    '
+                    
                     cd soavirt; \
 
                     
@@ -388,8 +373,22 @@ pipeline {
                     "
 
                     #Checking if the chromedriver was placed in the folder
-                    #cd /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/
-                    #ls -a
+                    
+                    cd /usr
+                    cd ./local
+                    cd ./parasoft
+                    cd ./soavirt
+                    cd ./plugins
+                    cd ./com.parasoft.ptest.libs.web_10.6.2.202306042000
+                    cd ./root
+                    cd ./browsers
+                    cd ./webdriver
+                    cd ./chrome
+                    cd ./linux
+                    cd ./x86_64
+                    ls -al
+                    
+                    
                     '''
             }
         }

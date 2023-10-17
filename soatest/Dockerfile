@@ -42,7 +42,19 @@ RUN rpm -ivh \
         https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/linux64/chromedriver-linux64.zip && \
     unzip -o -d /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/ \
         /tmp/chromedriver_linux64.zip && \
-    cd /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/chromedriver-linux64/ \
+    cd /usr \
+    cd ./local \
+    cd ./parasoft \
+    cd ./soavirt \
+    cd ./plugins \
+    cd ./com.parasoft.ptest.libs.web_10.6.2.202306042000 \
+    cd ./root \
+    cd ./browsers \
+    cd ./webdriver \
+    cd ./chrome \
+    cd ./linux \
+    cd ./x86_64 \
+    cd ./chromedriver-linux64/ \
     mv * ../ \
     rm -f /tmp/chromedriver_linux64.zip
 
