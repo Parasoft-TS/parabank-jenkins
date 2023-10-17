@@ -55,7 +55,10 @@ RUN rpm -ivh \
     cd ./linux \
     cd ./x86_64 \
     cd ./chromedriver-linux64/ \
+    ls -a \
     mv * ../ \
+    cd ../ \
+    ls -al \
     rm -f /tmp/chromedriver_linux64.zip
 
 USER parasoft
