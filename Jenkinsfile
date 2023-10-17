@@ -346,24 +346,6 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
                     
-                    #Checking if the chromedriver was placed in the folder
-                    
-                    cd /usr
-                    cd ./local
-                    cd ./parasoft
-                    cd ./soavirt
-                    cd ./plugins
-                    cd ./com.parasoft.ptest.libs.web_10.6.2.202306042000
-                    cd ./root
-                    cd ./browsers
-                    cd ./webdriver
-                    cd ./chrome
-                    cd ./linux
-                    cd ./x86_64
-                    ls -al
-                    cd ./chromedriver-linux64
-                    ls -al
-                    
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
