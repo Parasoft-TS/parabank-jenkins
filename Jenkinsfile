@@ -375,6 +375,8 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
+                    cp -f -R ./loadtest /usr/local/parasoft/loadtest; \
+
                     cd soavirt; \
                
                     # Execute the project with SOAtest CLI
@@ -384,7 +386,7 @@ pipeline {
                     -licenseServer https://54.200.50.134:8443 \
                     -licenseUsername admin \
                     -licensePassword parasoft.vm \
-                    -licenseVus 1 \
+                    -licenseVus 3 \
                     "
                     '''
             }
