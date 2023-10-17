@@ -361,6 +361,8 @@ pipeline {
                     cd ./linux
                     cd ./x86_64
                     ls -al
+                    cd ./chromedriver-linux64
+                    ls -al
                     
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
