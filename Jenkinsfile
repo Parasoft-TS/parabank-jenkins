@@ -169,31 +169,31 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name jtest \
-                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    #-v "$PWD/copied:/home/parasoft/jenkins/copied" \
-                    #-w "/home/parasoft/jenkins/parabank" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
-                    #mvn compile \
-                    #jtest:jtest \
-                    #-DskipTests=true \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
-                    #-Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sa/report.xml' \
-                    #-Dproperty.goal.ref.report.findings.exclude=true \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='${jtestSAConfig}' \
-                    #-Djtest.report=./target/jtest/sa-tia \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
-                    #"
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sa/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSAConfig}' \
+                    -Djtest.report=./target/jtest/sa-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
                     '''
             }
         }
@@ -213,43 +213,12 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
-                    # Debugging
-                    cd ..; \
-                    cd ./parabank-jenkins; \
-                    pwd; \
-                    ls -ll; \
-                    cd ./jtest; \
-                    pwd; \
-                    ls -ll; \
-                    cd ..; \
-                    cd ..; \
-                    cd copied; \
-                    cd parabank; \
-                    cd target; \
-                    cd jtest; \
-                    cd sa; \
-                    pwd; \
-                    ls -ll; \
-                    cd ..; \
-                    cd ut; \
-                    pwd; \
-                    ls -ll; \
-                    cd ..; \
-                    cd ..; \
-                    cd ..; \
-                    cd ..; \
-                    cd ..; \
-                    cd parabank; \
-                    pwd; \
-                    ls -ll; \
-
                     # Compile the test sources and run unit tests with Jtest
                     mvn process-test-classes \
                     tia:affected-tests \
                     jtest:agent \
                     test \
                     jtest:jtest \
-                    -X \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.config='builtin://Unit Tests' \
@@ -259,24 +228,7 @@ pipeline {
                     -Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
                     -Dparasoft.runModifiedTests=true \
                     -Djtest.report=target/jtest/ut-tia \
-
-                    # Compile the test sources and run unit tests with Jtest
-                    #mvn process-test-classes \
-                    #tia:affected-tests \
-                    #jtest:agent \
-                    #test \
-                    #jtest:jtest \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-DjtestHome='/opt/parasoft/jtest' \
-                    #-Djtest.config='builtin://Unit Tests' \
-                    #-Dmaven.test.failure.ignore=true \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
-                    #-Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
-                    #-Dparasoft.runModifiedTests=true \
-                    #-Djtest.report=target/jtest/ut-tia \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
             }
