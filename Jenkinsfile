@@ -366,8 +366,6 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh '''
-                    #/parabank-jenkins/soatest/report/coverage.xml
-                    
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -387,10 +385,10 @@ pipeline {
                     ./soavirt/soatestcli \
                     -data /soavirt_workspace \
                     -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                    -import /soavirt_workspace/parabank-jenkins; \
+                    -import /soavirt_workspace/parabank-jenkins/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    ./soatestcli \
+                    ./soavirt/soatestcli \
                     -data /soavirt_workspace \
                     -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
@@ -435,14 +433,6 @@ pipeline {
         stage('Selenic: Java-Selenium Test') {
             steps {
                 // Run Selenic from docker
-                sh  '''
-                    #TODO
-                    '''
-            }
-        }
-        stage('Load Test: Shift-Left') {
-            steps {
-                // Run Load Test CLI from docker
                 sh  '''
                     #TODO
                     '''
