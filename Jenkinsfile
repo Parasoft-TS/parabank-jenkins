@@ -383,7 +383,7 @@ pipeline {
                     -licenseServer https://54.200.50.134:8443 \
                     -licenseUsername admin \
                     -licensePassword parasoft.vm \
-                    -licenseVus 3 \
+                    -licenseVus 5 \
                     "
                     '''
             }
