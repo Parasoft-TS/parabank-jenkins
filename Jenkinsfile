@@ -49,7 +49,7 @@ pipeline {
                     git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
-                    git clone https://github.com/parasoft/parabank parabank
+                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank
 
                     # Debugging
                     #pwd
@@ -198,31 +198,31 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    #docker run \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #--rm -i \
+                    #--name jtest \
+                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    #-w "/home/parasoft/jenkins/parabank" \
+                    #--network=demo-net \
+                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Package the application with the Jtest Monitor
-                    mvn package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
+                    #mvn package jtest:monitor \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-Dmaven.test.skip=true \
+                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    #-Djtest.showSettings=true \
+                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    #"
 
                     # check parabank/target permissions
                     #ls -la ./parabank/target
 
                     # Unzip monitor.zip
-                    mkdir monitor
-                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    #mkdir monitor
+                    #unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     #ls -ll
                     #ls -la monitor
                     '''
@@ -270,24 +270,24 @@ pipeline {
                 // deploy the project
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
-                    docker run \
-                    -d \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    -p ${app_port}:8080 \
-                    -p ${app_cov_port}:8050 \
-                    -p ${app_db_port}:9001 \
-                    -p ${app_jms_port}:61616 \
-                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
-                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
-                    --network=demo-net \
-                    --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker)
+                    # docker run \
+                    #-d \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #-p ${app_port}:8080 \
+                    #-p ${app_cov_port}:8050 \
+                    #-p ${app_db_port}:9001 \
+                    #-p ${app_jms_port}:61616 \
+                    #--env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
+                    #-v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    #--network=demo-net \
+                    #--name ${app_name} \
+                    #$(docker build -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
-                    sleep 15
-                    docker ps -f name=${app_name}
-                    curl -iv --raw http://localhost:${app_port}/parabank
-                    curl -iv --raw http://localhost:${app_cov_port}/status
+                    #sleep 15
+                    #docker ps -f name=${app_name}
+                    #curl -iv --raw http://localhost:${app_port}/parabank
+                    #curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
             }
         }
@@ -350,7 +350,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    pteodor/selenic:1.0 /bin/bash -c "ls"
+                    pteodor/selenic:3.0 /bin/bash -c "mvn test"
                     '''
             }
         }
