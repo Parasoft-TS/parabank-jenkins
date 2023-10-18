@@ -350,7 +350,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
                     -w "/home/parasoft/jenkins/parabank-selenic" \
                     --network=demo-net \
-                    pteodor/selenic:3.0 /bin/bash -c "mvn clean compile test-compile test"
+                    pteodor/selenic:3.0 /bin/bash -c "'sh /opt/bin/entry_point.sh &' && mvn clean compile test-compile test"
                     '''
             }
         }
