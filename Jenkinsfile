@@ -80,7 +80,7 @@ pipeline {
                 // retrieve parabank war absolute path
                 script {
                     artifactPath = sh(
-                        script: 'find copied/parabank/target -name "*.war"',
+                        script: 'find ./copied/parabank/target -name "*.war"',
                         returnStdout: true
                     ).trim()
                 }
