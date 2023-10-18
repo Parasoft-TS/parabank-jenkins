@@ -64,7 +64,7 @@ pipeline {
                         **/target/jtest/ut/*.xml, 
                         **/target/jtest/sa/*.xml, 
                         **/target/*.war, 
-                        **/parabank-jenkins/soatest/report/*.xml''',
+                        **/soatest/report/*.xml''',
                     fingerprintArtifacts: true,
                     selector: lastSuccessful()
                 );
@@ -153,6 +153,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
+                    #application.coverage.binaries=$PWD/
                     application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
 
@@ -237,7 +238,34 @@ pipeline {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # TODO
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    # Package the application with the Jtest Monitor
+                    mvn package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.skip=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+
+                    # check parabank/target permissions
+                    #ls -la ./parabank/target
+
+                    # Unzip monitor.zip
+                    mkdir monitor
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    #ls -ll
+                    #ls -la monitor
                     '''
             }
         }
@@ -282,7 +310,25 @@ pipeline {
             steps {
                 // deploy the project
                 sh  '''
-                    # TODO
+                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                    docker run \
+                    -d \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    -p ${app_port}:8080 \
+                    -p ${app_cov_port}:8050 \
+                    -p ${app_db_port}:9001 \
+                    -p ${app_jms_port}:61616 \
+                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
+                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    --network=demo-net \
+                    --name ${app_name} \
+                    $(docker build -q ./parabank-jenkins/parabank-docker)
+
+                    # Health Check
+                    sleep 15
+                    docker ps -f name=${app_name}
+                    curl -iv --raw http://localhost:${app_port}/parabank
+                    curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
             }
         }
@@ -291,7 +337,10 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh '''
-                    #TODO
+                    #/parabank-jenkins/soatest/report/coverage.xml
+
+
+
                     '''
                 
                 // echo '---> Parsing 9.x soatest reports'
