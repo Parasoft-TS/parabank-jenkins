@@ -347,7 +347,7 @@ pipeline {
                 sh  '''
                     docker run -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i --name selenic -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     pteodor/selenic:3.0 /bin/bash -c "mvn test"
