@@ -85,6 +85,8 @@ pipeline {
                     ).trim()
                 }
 
+                sh 'echo artifact.path=${artifactPath}'
+
                 // Prepare the jtestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
