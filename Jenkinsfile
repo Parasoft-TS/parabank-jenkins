@@ -369,18 +369,18 @@ pipeline {
                     --rm -i \
                     --name loadtest \
                     -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/soatest" \
+                    -v "$PWD/parabank-jenkins/loadtest:/usr/local/parasoft/loadtest" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build -q ./parabank-jenkins/loadtest) /bin/bash -c " \
 
                     cd soavirt; \
                
                     # Execute the project with SOAtest CLI
                     ./loadtest \
                     -cmd \
-                    -run /usr/local/parasoft/soatest/script.txt \
-                    -licenseServer https://54.200.50.134:8443 \
+                    -run /usr/local/parasoft/loadtest/script.txt \
+                    -licenseServer https://dtp:8443 \
                     -licenseUsername ${ls_user} \
                     -licensePassword parasoft.vm \
                     -licenseVus 5 \
@@ -433,7 +433,8 @@ pipeline {
                     **/target/jtest/sa/**, 
                     **/target/jtest/ut/**, 
                     **/target/jtest/monitor/**, 
-                    **/soatest/report/**''',
+                    **/soatest/report/**, 
+                    **/loadtest/report/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: true,
                 excludes: '''
