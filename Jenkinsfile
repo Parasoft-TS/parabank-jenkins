@@ -48,8 +48,8 @@ pipeline {
                     mkdir parabank-jenkins
                     git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
-                    mkdir parabank
-                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank
+                    mkdir parabank-selenic
+                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank-selenic
 
                     # Debugging
                     #pwd
@@ -346,9 +346,9 @@ pipeline {
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
                     docker run -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i --name selenic -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    --rm -i --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
-                    -w "/home/parasoft/jenkins/parabank" \
+                    -w "/home/parasoft/jenkins/parabank-selenic" \
                     --network=demo-net \
                     pteodor/selenic:3.0 /bin/bash -c "mvn test"
                     '''
