@@ -364,28 +364,28 @@ pipeline {
             }
         }
 
-        stage('Post: Process Reports') {
-            steps {
-                echo '---> Parsing 9.x soatest reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '10', 
-                        //     failureThreshold: '10',
-                        //     unstableNewThreshold: '20', 
-                        //     unstableThreshold: '20')
-                        // ],
-                        tools: [[$class: 'ParasoftSOAtest9xType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/soatest/report/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
-            }
-        }
+        // stage('Post: Process Reports') {
+        //     steps {
+        //         echo '---> Parsing 9.x soatest reports'
+        //         script {
+        //             step([$class: 'XUnitPublisher', 
+        //                 // thresholds: [failed(
+        //                 //     failureNewThreshold: '10', 
+        //                 //     failureThreshold: '10',
+        //                 //     unstableNewThreshold: '20', 
+        //                 //     unstableThreshold: '20')
+        //                 // ],
+        //                 tools: [[$class: 'ParasoftSOAtest9xType', 
+        //                     deleteOutputFiles: true, 
+        //                     failIfNotNew: false, 
+        //                     pattern: '**/soatest/report/*.xml', 
+        //                     skipNoTestFiles: true, 
+        //                     stopProcessingIfError: false
+        //                 ]]
+        //             ])
+        //         }
+        //     }
+        // }
         stage('Release') {
             steps {
                 // Release the project
