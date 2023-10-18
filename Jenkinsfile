@@ -351,7 +351,7 @@ pipeline {
                     -w "/home/parasoft/jenkins/parabank-selenic" \
                     --network=demo-net \
                     pteodor/selenic:3.0 /bin/bash -c " \
-                    sh /opt/bin/entry_point.sh &;
+                    sh /opt/bin/entry_point.sh;
                     mvn clean compile test-compile test;                    
                     "
                     '''
