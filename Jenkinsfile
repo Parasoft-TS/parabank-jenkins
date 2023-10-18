@@ -341,36 +341,19 @@ pipeline {
             }
         }
 
-        // stage('Selenic Web Functional Test') {
-        //     steps {
-        //         // Run Selenic prepped for web functional testing from docker
-        //         sh  '''
-        //             docker run -u ${jenkins_uid}:${jenkins_gid} \
-        //             --rm -i --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
-        //             -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
-        //             -w "/home/parasoft/jenkins/parabank-selenic" \
-        //             --network=demo-net \
-        //             pteodor/selenic:3.0 /bin/bash -c " \
-        //             sh /opt/bin/entry_point.sh &;
-        //             mvn clean compile test-compile test;                    
-        //             "
-        //             '''
-        //     }
-        // }
         stage('Selenic Web Functional Test') {
             steps {
-                // Run Selenic prepped for web functional testing from Docker
-                script {
-                    def command = '''
-                        docker run -u ${jenkins_uid}:${jenkins_gid} \
-                        --rm -i --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
-                        -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
-                        -w "/home/parasoft/jenkins/parabank-selenic" \
-                        --network=demo-net \
-                        pteodor/selenic:3.0 /bin/bash -c "sh /opt/bin/entry_point.sh & wait; mvn clean compile test-compile test"
+                // Run Selenic prepped for web functional testing from docker
+                sh  '''
+                    docker run -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
+                    -w "/home/parasoft/jenkins/parabank-selenic" \
+                    --network=demo-net \
+                    pteodor/selenic:4.0 /bin/bash -c " \
+                    mvn clean compile test-compile test;                    
+                    "
                     '''
-                    sh "($command) &"
-                }
             }
         }
 
