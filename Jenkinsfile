@@ -350,8 +350,10 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
                     -w "/home/parasoft/jenkins/parabank-selenic" \
                     --network=demo-net \
-                    pteodor/selenic:4.0 /bin/bash -c " \
-                    mvn clean compile test-compile test;                    
+                    pteodor/selenic:3.0 
+                    docker exec -it selenic /bin/bash
+                    mvn clean compile test-compile test
+                    exit                    
                     "
                     '''
             }
