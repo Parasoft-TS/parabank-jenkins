@@ -246,6 +246,7 @@ pipeline {
                     # Compile the test sources and run unit tests with Jtest
                     mvn process-test-classes \
                     tia:affected-tests \
+                    jtest:agent \
                     test \
                     jtest:jtest \
                     -X \
