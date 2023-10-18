@@ -77,16 +77,6 @@ pipeline {
                     tree .;
                     '''
 
-                // retrieve parabank war absolute path
-                script {
-                    artifactPath = sh(
-                        script: 'find ./copied/parabank/target -name "*.war"',
-                        returnStdout: true
-                    ).trim()
-                }
-
-                sh 'echo artifact.path=${artifactPath}'
-
                 // Prepare the jtestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
@@ -163,7 +153,8 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.binaries=${artifactPath}
+                    application.coverage.binaries=$PWD/copied/parabank/target/parabank-3.0.0-SNAPSHOT.war
+                    application.coverage.binaries.include=com/parasoft/**
                     application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
 
@@ -257,7 +248,7 @@ pipeline {
         stage('Package-CodeCoverage') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -339,7 +330,7 @@ pipeline {
         stage('Deploy-CodeCoverage') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -371,36 +362,67 @@ pipeline {
         stage('Functional Test') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
                 // Run SOAtestCLI from docker
                 sh '''
                     #/parabank-jenkins/soatest/report/coverage.xml
+                    
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name soatest \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -v "$PWD/copied:/usr/local/parasoft/copied" \
+                    -w "/usr/local/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
+                    # Create workspace directory and copy SOAtest project into it
+                    mkdir -p ./soavirt_workspace; \
+                    cp -f -R ./parabank-jenkins ./soavirt_workspace; \
 
+                    cd soavirt; \
 
+                    # SOAtest requires a project to be "imported" before you can run it
+                    ./soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -settings /usr/local/parasoft/parabank-jenkins/soatest/soatestcli.properties \
+                    -import /usr/local/parasoft/soavirt_workspace/parabank-jenkins; \
+                    
+                    # Execute the project with SOAtest CLI
+                    ./soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -resource /parabank-jenkins/soatest/SOAtestProject/functional \
+                    -impactedTests ../copied/parabank-jenkins/soatest/report/coverage.xml \
+                    -environment 'parabank-updated (docker)' \
+                    -config '${soatestConfig}' \
+                    -settings /usr/local/parasoft/parabank-jenkins/soatest/soatestcli.properties \\
+                    -report /usr/local/parasoft/soatest/report \
+                    "
                     '''
                 
-                // echo '---> Parsing 9.x soatest reports'
-                // script {
-                //     step([$class: 'XUnitPublisher', 
-                //         // thresholds: [failed(
-                //         //     failureNewThreshold: '10', 
-                //         //     failureThreshold: '10',
-                //         //     unstableNewThreshold: '20', 
-                //         //     unstableThreshold: '20')
-                //         // ],
-                //         tools: [[$class: 'ParasoftSOAtest9xType', 
-                //             deleteOutputFiles: true, 
-                //             failIfNotNew: false, 
-                //             pattern: '**/soatest/report/*.xml', 
-                //             skipNoTestFiles: true, 
-                //             stopProcessingIfError: false
-                //         ]]
-                //     ])
-                // }
+                echo '---> Parsing 9.x soatest reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '10', 
+                        //     failureThreshold: '10',
+                        //     unstableNewThreshold: '20', 
+                        //     unstableThreshold: '20')
+                        // ],
+                        tools: [[$class: 'ParasoftSOAtest9xType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/soatest/report/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Release') {
