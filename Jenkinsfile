@@ -153,7 +153,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.binaries=$PWD/copied/parabank/target/parabank-3.0.0-SNAPSHOT.war
+                    application.coverage.binaries=/usr/local/parasoft/copied/parabank/target/parabank-3.0.0-SNAPSHOT.war
                     application.coverage.binaries.include=com/parasoft/**
                     application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
