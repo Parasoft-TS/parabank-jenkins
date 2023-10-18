@@ -336,7 +336,7 @@ pipeline {
             steps {
                 // deploy the project
                 sh  '''
-                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                    # Run Parabank-feature docker image with Jtest coverage agent configured
                     docker run \
                     -d \
                     -u ${jenkins_uid}:${jenkins_gid} \
