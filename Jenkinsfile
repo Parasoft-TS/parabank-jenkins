@@ -63,7 +63,7 @@ pipeline {
                     filter: '''
                         **/target/jtest/ut/*.xml, 
                         **/target/jtest/sa/*.xml, 
-                        **/target/**/target/*.war, 
+                        **/target/*.war, 
                         **/parabank-jenkins/soatest/report/*.xml''',
                     fingerprintArtifacts: true,
                     selector: lastSuccessful()
@@ -104,7 +104,6 @@ pipeline {
                     scontrol.rep1.type=git
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.git.branch=selenium-demo
-                    #scontrol.rep1.git.workspace=$PWD/parabank
 
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
@@ -194,7 +193,7 @@ pipeline {
                     #-Djtest.report=./target/jtest/sa-tia \
                     #-Djtest.showSettings=true \
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
+                    #"
                     '''
             }
         }
@@ -242,10 +241,6 @@ pipeline {
                     cd ..; \
                     cd parabank; \
                     pwd; \
-                    ls -ll; \
-                    
-                    # Workaround, copy jtestcli.properties where tia:affected-tests is checking
-                    cp /home/parasoft/jtestcli.properties ./jtestcli.properties; \
                     ls -ll; \
 
                     # Compile the test sources and run unit tests with Jtest
