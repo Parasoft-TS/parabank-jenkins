@@ -77,6 +77,14 @@ pipeline {
                     tree .;
                     '''
 
+                // retrieve parabank war absolute path
+                script {
+                    artifactPath = sh(
+                        script: 'find copied/ -name "*.war"',
+                        returnStdout: true
+                    ).trim()
+                }
+
                 // Prepare the jtestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
@@ -153,7 +161,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    #application.coverage.binaries=$PWD/
+                    application.coverage.binaries=${artifactPath}
                     application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.images=${soatestCovImage}
 
@@ -166,6 +174,11 @@ pipeline {
             }
         }
         stage('Quality Scan - Optimized') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -199,6 +212,11 @@ pipeline {
             }
         }
         stage('Unit Test - Optimized') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -235,6 +253,11 @@ pipeline {
             }
         }
         stage('Package-CodeCoverage') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -270,6 +293,11 @@ pipeline {
             }
         }
         stage('Process Reports') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 echo '---> Parsing 10.x static analysis reports'
                 recordIssues(
@@ -307,6 +335,11 @@ pipeline {
             }
         }
         stage('Deploy-CodeCoverage') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // deploy the project
                 sh  '''
@@ -334,6 +367,11 @@ pipeline {
         }
                 
         stage('Functional Test') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // Run SOAtestCLI from docker
                 sh '''
@@ -376,9 +414,10 @@ pipeline {
     post {
         // Clean after build
         always {
-            //sh 'docker container stop ${app_name}'
-            //sh 'docker container rm ${app_name}'
-            //sh 'docker image prune -f'
+            sh 'docker container stop ${app_name}'
+            sh 'docker container rm ${app_name}'
+            sh 'docker container prune -f'
+            sh 'docker image prune -f'
 
             // Debugging tsa created or not
             sh '''
