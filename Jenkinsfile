@@ -381,7 +381,7 @@ pipeline {
                     -cmd \
                     -run /usr/local/parasoft/soatest/script.txt \
                     -licenseServer https://54.200.50.134:8443 \
-                    -licenseUsername admin \
+                    -licenseUsername ${ls_user} \
                     -licensePassword parasoft.vm \
                     -licenseVus 5 \
                     "
