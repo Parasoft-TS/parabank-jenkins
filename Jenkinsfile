@@ -246,9 +246,18 @@ pipeline {
                     # Compile the test sources and run unit tests with Jtest
                     mvn process-test-classes \
                     tia:affected-tests \
-                    test -X \
+                    test \
+                    jtest:jtest \
+                    -X \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
+                    -Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
+                    -Dparasoft.runModifiedTests=true \
+                    -Djtest.report=target/jtest/ut-tia \
 
                     # Compile the test sources and run unit tests with Jtest
                     #mvn process-test-classes \
