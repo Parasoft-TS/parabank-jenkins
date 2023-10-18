@@ -357,7 +357,7 @@ pipeline {
             }
         }
                 
-        stage('Functional Test') {
+        stage('SOAtest: API Test') {
             when {
                 expression {
                     return true;
@@ -373,20 +373,18 @@ pipeline {
                     --rm -i \
                     --name soatest \
                     -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/soavirt_workspace/parabank-jenkins" \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -v "$PWD/copied:/usr/local/parasoft/copied" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
-                    #mkdir -p ./soavirt_workspace; \
-                    #cp -f -R ./parabank-jenkins ./soavirt_workspace; \
-
-                    cd soavirt; \
+                    mkdir -p ./soavirt_workspace; \
+                    cp -f -R ./parabank-jenkins ./soavirt_workspace; \
 
                     # SOAtest requires a project to be "imported" before you can run it
-                    ./soatestcli \
+                    ./soavirt/soatestcli \
                     -data /soavirt_workspace \
                     -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import /soavirt_workspace/parabank-jenkins; \
@@ -394,11 +392,11 @@ pipeline {
                     # Execute the project with SOAtest CLI
                     ./soatestcli \
                     -data /soavirt_workspace \
+                    -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -impactedTests ../copied/parabank-jenkins/soatest/report/coverage.xml \
                     -environment 'parabank-updated (docker)' \
                     -config '${soatestConfig}' \
-                    -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -report /soatest/report \
                     -property application.coverage.binaries=/copied/parabank/target/parabank-3.0.0-SNAPSHOT.war \
                     -property application.coverage.binaries.include=com/parasoft/** \
@@ -423,6 +421,31 @@ pipeline {
                         ]]
                     ])
                 }
+            }
+        }
+        stage('SOAtest: Web Functional Test') {
+            steps {
+                // Run SOAtest CLI prepped for web functional testing from docker
+                sh  '''
+                    #TODO
+                    # Combine all SOAtest test executions into one stage
+                    '''
+            }
+        }
+        stage('Selenic: Java-Selenium Test') {
+            steps {
+                // Run Selenic from docker
+                sh  '''
+                    #TODO
+                    '''
+            }
+        }
+        stage('Load Test: Shift-Left') {
+            steps {
+                // Run Load Test CLI from docker
+                sh  '''
+                    #TODO
+                    '''
             }
         }
         stage('Release') {
