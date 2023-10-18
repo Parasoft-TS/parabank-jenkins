@@ -351,9 +351,7 @@ pipeline {
                     -w "/home/parasoft/jenkins/parabank-selenic" \
                     --network=demo-net \
                     pteodor/selenic:3.0 
-                    docker exec -it selenic /bin/bash
-                    mvn clean compile test-compile test
-                    exit                    
+                    docker exec selenic mvn clean compile test-compile test                  
                     "
                     '''
             }
