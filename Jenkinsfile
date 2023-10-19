@@ -167,7 +167,7 @@ pipeline {
         stage('Quality Scan - Optimized') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -205,7 +205,7 @@ pipeline {
         stage('Unit Test - Optimized') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -286,7 +286,7 @@ pipeline {
         stage('Process Reports') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
