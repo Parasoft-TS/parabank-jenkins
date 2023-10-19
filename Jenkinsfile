@@ -379,23 +379,23 @@ pipeline {
 
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace; \
-                    cp -f -R ./parabank-jenkins ./soavirt_workspace; \
+                    cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
                     # SOAtest requires a project to be "imported" before you can run it
                     ./soavirt/soatestcli \
-                    -data /soavirt_workspace \
-                    -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                    -import /soavirt_workspace/parabank-jenkins/.project; \
+                    -data ./soavirt_workspace \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
                     # Execute the project with SOAtest CLI
                     ./soavirt/soatestcli \
-                    -data /soavirt_workspace \
-                    -settings /soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -data ./soavirt_workspace \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -impactedTests ../copied/parabank-jenkins/soatest/report/coverage.xml \
                     -environment 'parabank-updated (docker)' \
                     -config '${soatestConfig}' \
-                    -report /soatest/report \
+                    -report ./parabank-jenkins/soatest/report \
                     -property application.coverage.binaries=/copied/parabank/target/parabank-3.0.0-SNAPSHOT.war \
                     -property application.coverage.binaries.include=com/parasoft/** \
                     "
