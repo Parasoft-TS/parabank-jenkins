@@ -356,7 +356,6 @@ pipeline {
                     '''
             }
         }
-                
         stage('SOAtest: API Test') {
             when {
                 expression {
@@ -396,7 +395,7 @@ pipeline {
                     -environment 'parabank-updated (docker)' \
                     -config '${soatestConfig}' \
                     -report ./parabank-jenkins/soatest/report \
-                    -property application.coverage.binaries=/copied/parabank/target/parabank-3.0.0-SNAPSHOT.war \
+                    -property application.coverage.binaries=./copied/parabank/target/parabank-3.0.0-SNAPSHOT.war \
                     -property application.coverage.binaries.include=com/parasoft/** \
                     "
                     '''
