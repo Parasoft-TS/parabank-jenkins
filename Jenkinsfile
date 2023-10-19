@@ -370,6 +370,7 @@ pipeline {
                     --rm -i \
                     --name soatest \
                     -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank:/usr/local/parasoft/parabank" \
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -v "$PWD/copied:/usr/local/parasoft/copied" \
                     -w "/usr/local/parasoft" \
@@ -395,7 +396,7 @@ pipeline {
                     -environment 'parabank-updated (docker)' \
                     -config '${soatestConfig}' \
                     -report ./parabank-jenkins/soatest/report \
-                    -property application.coverage.binaries=./copied/parabank/target/parabank-3.0.0-SNAPSHOT.war \
+                    -property application.coverage.binaries=./parabank/target/parabank-3.0.0-selenium-demo-SNAPSHOT.war \
                     -property application.coverage.binaries.include=com/parasoft/** \
                     "
                     '''
