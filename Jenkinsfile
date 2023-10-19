@@ -353,8 +353,8 @@ pipeline {
                     # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
                     # docker exec selenic mvn clean compile test-compile test 
                      cd parabank-selenic         
-                     docker-compose up -d
-                     docker-compose logs
+                     docker-compose up
+                    #docker-compose logs
                     # docker ps -la    
         
                     '''
