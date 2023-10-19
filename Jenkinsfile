@@ -346,6 +346,9 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
                     
+                    ps aux | grep chrome
+                    google-chrome-stable --version
+
                     nohup Xvfb :99 > /dev/null 2>&1 &
                     export DISPLAY=:99
 
