@@ -345,13 +345,13 @@ pipeline {
             steps {
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
-                    // docker run -u ${jenkins_uid}:${jenkins_gid} \
-                    // --rm -i -d --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
-                    // -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
-                    // -w "/home/parasoft/jenkins/parabank-selenic" \
-                    // --network=demo-net \
-                    // pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
-                    // docker exec selenic mvn clean compile test-compile test            
+                    # docker run -u ${jenkins_uid}:${jenkins_gid} \
+                    # --rm -i -d --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
+                    # -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
+                    # -w "/home/parasoft/jenkins/parabank-selenic" \
+                    # --network=demo-net \
+                    # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
+                    # docker exec selenic mvn clean compile test-compile test            
                     docker compose up      
         
                     '''
