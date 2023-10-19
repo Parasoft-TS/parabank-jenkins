@@ -392,7 +392,7 @@ pipeline {
                     -data ./soavirt_workspace \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
-                    -impactedTests ../copied/parabank-jenkins/soatest/report/coverage.xml \
+                    -impactedTests ./copied/parabank-jenkins/soatest/report/coverage.xml \
                     -environment 'parabank-updated (docker)' \
                     -config '${soatestConfig}' \
                     -report ./parabank-jenkins/soatest/report \
