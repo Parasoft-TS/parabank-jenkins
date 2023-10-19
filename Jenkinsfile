@@ -352,7 +352,8 @@ pipeline {
                     # --network=demo-net \
                     # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
                     # docker exec selenic mvn clean compile test-compile test 
-                     cd parabank-selenic         
+                     cd parabank-selenic  
+                     pwd       
                      docker-compose up --verbose
                     # docker ps -la    
         
