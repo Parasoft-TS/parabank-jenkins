@@ -296,7 +296,7 @@ pipeline {
             steps {
                 //Run SOAtestCLI from docker
                 sh  '''
-                    #docker run -p 19978:19978 \
+                    #docker run \
                     #-u ${jenkins_uid}:${jenkins_gid} \
                     #--rm -i \
                     #--name soatest \
@@ -336,7 +336,7 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                    docker run \
+                    docker run -p 19978:19978 \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name soatest \
