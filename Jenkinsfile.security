@@ -156,6 +156,11 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) CWE Top 25') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -200,6 +205,11 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) OWASP Top 10') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -244,6 +254,11 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) PCI-DSS') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -288,6 +303,11 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) DISA ASD-STIG') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -332,6 +352,11 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) CERT for Java') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -376,6 +401,11 @@ pipeline {
             }
         }
         stage('Parasoft: (SCA) OWASP Dependency Check') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -403,6 +433,11 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Package the application with the Jtest Monitor
                 sh '''
@@ -439,6 +474,11 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // deploy the project
                 sh  '''
@@ -464,8 +504,12 @@ pipeline {
                     '''
             }
         }
-                
         stage('SOAtest: (DAST) UI-API Tests') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
