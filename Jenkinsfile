@@ -49,7 +49,7 @@ pipeline {
                     git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank-selenic
-                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank-selenic
+                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank
 
                     # Debugging
                     #pwd
@@ -352,7 +352,7 @@ pipeline {
                     # --network=demo-net \
                     # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
                     # docker exec selenic mvn clean compile test-compile test 
-                     cd parabank-selenic         
+                     cd parabank         
                      docker-compose up
                     #docker-compose logs
                     # docker ps -la    
