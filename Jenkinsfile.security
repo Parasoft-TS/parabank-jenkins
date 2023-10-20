@@ -155,7 +155,7 @@ pipeline {
                     '''
             }
         }
-        stage('SAST: CWE Top 25') {
+        stage('Jtest: (SAST) CWE Top 25') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -199,7 +199,7 @@ pipeline {
                 )
             }
         }
-        stage('SAST: OWASP Top 10') {
+        stage('Jtest: (SAST) OWASP Top 10') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -243,7 +243,7 @@ pipeline {
                 )
             }
         }
-        stage('SAST: PCI-DSS') {
+        stage('Jtest: (SAST) PCI-DSS') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -287,7 +287,7 @@ pipeline {
                 )
             }
         }
-        stage('SAST: DISA ASD-STIG') {
+        stage('Jtest: (SAST) DISA ASD-STIG') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -331,7 +331,7 @@ pipeline {
                 )
             }
         }
-        stage('SAST: CERT for Java') {
+        stage('Jtest: (SAST) CERT for Java') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -375,7 +375,7 @@ pipeline {
                 )
             }
         }
-        stage('SCA: OWASP Dependency Check') {
+        stage('Parasoft: (SCA) OWASP Dependency Check') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -402,7 +402,7 @@ pipeline {
                     '''
             }
         }
-        stage('Package-CodeCoverage') {
+        stage('Jtest: Package-CodeCoverage') {
             steps {
                 // Package the application with the Jtest Monitor
                 sh '''
@@ -438,7 +438,7 @@ pipeline {
                     '''
             }
         }
-        stage('Deploy-CodeCoverage') {
+        stage('Jtest: Deploy-CodeCoverage') {
             steps {
                 // deploy the project
                 sh  '''
@@ -465,7 +465,7 @@ pipeline {
             }
         }
                 
-        stage('DAST: UI-API Tests') {
+        stage('SOAtest: (DAST) UI-API Tests') {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''

@@ -178,7 +178,7 @@ pipeline {
                 )
             }
         }
-        stage('Unit Test') {
+        stage('Jtest: Unit Test') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -225,7 +225,7 @@ pipeline {
                 }
             }
         }
-        stage('Package-CodeCoverage') {
+        stage('Jtest: Package-CodeCoverage') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -260,7 +260,7 @@ pipeline {
                     '''
             }
         }
-        stage('Deploy-CodeCoverage') {
+        stage('Jtest: Deploy-CodeCoverage') {
             steps {
                 // deploy the project
                 sh  '''
