@@ -363,6 +363,8 @@ pipeline {
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
+                    JAVA_OPTS='-Dwebdriver.chrome.whitelistedIps='
+
                     cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
