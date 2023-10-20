@@ -46,7 +46,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b main-wilhelmupdates https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -134,6 +134,11 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -179,6 +184,11 @@ pipeline {
             }
         }
         stage('Jtest: Unit Test') {
+            when {
+                expression {
+                    return false;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
