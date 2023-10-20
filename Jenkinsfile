@@ -284,7 +284,7 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
-                    sleep 15
+                    sleep 30
                     docker ps -f name=${app_name}
                     curl -iv --raw http://localhost:${app_port}/parabank
                     curl -iv --raw http://localhost:${app_cov_port}/status
