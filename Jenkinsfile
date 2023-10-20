@@ -46,7 +46,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone -b main-wilhelmupdates https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -136,7 +136,7 @@ pipeline {
         stage('Jtest: Quality Scan') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -186,7 +186,7 @@ pipeline {
         stage('Jtest: Unit Test') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -236,6 +236,11 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -271,6 +276,11 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // deploy the project
                 sh  '''
@@ -297,6 +307,11 @@ pipeline {
             }
         }       
         stage('SOAtest: Functional Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -351,6 +366,11 @@ pipeline {
             }
         }
         stage('Selenic: Java Selenium Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Run Selenic from docker
                 sh  '''
@@ -359,6 +379,11 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
