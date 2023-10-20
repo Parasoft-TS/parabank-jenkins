@@ -336,7 +336,7 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                    docker run -p 4444:4444 \
+                    docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name soatest \
@@ -353,8 +353,8 @@ pipeline {
                     google-chrome-stable --version > chrome_version.txt
 
                     # Display the contents of the files
-                    cat chrome_processes.txt
-                    cat chrome_version.txt
+                    #cat chrome_processes.txt
+                    #cat chrome_version.txt
 
                     nohup Xvfb :99 > /dev/null 2>&1 &
                     export DISPLAY=:99
@@ -363,7 +363,7 @@ pipeline {
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
 
-                    JAVA_OPTS='-Dwebdriver.chrome.whitelistedIps='
+                    #JAVA_OPTS='-Dwebdriver.chrome.whitelistedIps='
 
                     cd soavirt; \
 
@@ -383,22 +383,6 @@ pipeline {
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
                     "
-
-                    #Checking if the chromedriver was placed in the folder
-                    
-                    cd /usr
-                    cd ./local
-                    cd ./parasoft
-                    cd ./soavirt
-                    cd ./plugins
-                    cd ./com.parasoft.ptest.libs.web_10.6.2.202306042000
-                    cd ./root
-                    cd ./browsers
-                    cd ./webdriver
-                    cd ./chrome
-                    cd ./linux
-                    cd ./x86_64
-                    ls -al
                     
                     
                     '''
