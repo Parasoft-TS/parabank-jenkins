@@ -167,28 +167,28 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name jtest \
-                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    #-w "/home/parasoft/jenkins/parabank" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
-                    #mvn test-compile \
-                    #jtest:agent \
-                    #test \
-                    #jtest:jtest \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Dmaven.test.failure.ignore=true \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='builtin://Unit Tests' \
-                    #-Djtest.report=./target/jtest/ut \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
+                    mvn test-compile \
+                    jtest:agent \
+                    test \
+                    jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
             }
@@ -198,33 +198,33 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name jtest \
-                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    #-w "/home/parasoft/jenkins/parabank" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Package the application with the Jtest Monitor
-                    #mvn package jtest:monitor \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Dmaven.test.skip=true \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
-                    #"
+                    mvn package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.skip=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
 
                     # check parabank/target permissions
-                    #ls -la ./parabank/target
+                    ls -la ./parabank/target
 
                     # Unzip monitor.zip
-                    #mkdir monitor
-                    #unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
-                    #ls -ll
-                    #ls -la monitor
+                    mkdir monitor
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    ls -ll
+                    ls -la monitor
                     '''
             }
         }
@@ -284,7 +284,7 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
-                    sleep 30
+                    sleep 15
                     docker ps -f name=${app_name}
                     curl -iv --raw http://localhost:${app_port}/parabank
                     curl -iv --raw http://localhost:${app_cov_port}/status
