@@ -186,22 +186,6 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sast/cwe/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
             }
         }
         stage('Jtest: (SAST) OWASP Top 10') {
@@ -235,22 +219,6 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sast/owasp/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
             }
         }
         stage('Jtest: (SAST) PCI-DSS') {
@@ -284,22 +252,6 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sast/pci/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
             }
         }
         stage('Jtest: (SAST) DISA ASD-STIG') {
@@ -333,22 +285,6 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sast/stig/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
             }
         }
         stage('Jtest: (SAST) CERT for Java') {
@@ -386,7 +322,7 @@ pipeline {
                 recordIssues(
                     tools: [parasoftFindings(
                         localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sast/cert/*.xml'
+                        pattern: '**/target/jtest/sast/*/*.xml'
                     )],
                     unhealthy: 100, // Adjust as needed
                     healthy: 50,   // Adjust as needed
