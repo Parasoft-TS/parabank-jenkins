@@ -345,16 +345,6 @@ pipeline {
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
-                    
-                     # Redirect the output to a file
-                       ps aux | grep chrome > chrome_processes.txt
-            
-                     # Redirect the output of Chrome version to a file
-                    google-chrome-stable --version > chrome_version.txt
-
-                    # Display the contents of the files
-                    #cat chrome_processes.txt
-                    #cat chrome_version.txt
 
                     nohup Xvfb :99 > /dev/null 2>&1 &
                     export DISPLAY=:99
@@ -362,8 +352,6 @@ pipeline {
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-
-                    #JAVA_OPTS='-Dwebdriver.chrome.whitelistedIps='
 
                     cd soavirt; \
 
@@ -383,8 +371,7 @@ pipeline {
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report /usr/local/parasoft/soatest/report \
                     "
-                    
-                    
+
                     '''
             }
         }

@@ -41,13 +41,10 @@ RUN rpm -ivh \
     #wget -q -O /tmp/chromedriver_linux64.zip \
     #    https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/linux64/chromedriver-linux64.zip && \
     #unzip -j -o -d /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/ /tmp/chromedriver_linux64.zip
-
     #unzip -o -d /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/ \
     #    /tmp/chromedriver_linux64.zip && \
-    
     #cd /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/chromedriver-linux64/ && mv * ../
     #rm -f /tmp/chromedriver_linux64.zip
-
 USER parasoft
 
 # Define working directory.
