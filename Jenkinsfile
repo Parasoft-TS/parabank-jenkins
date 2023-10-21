@@ -164,7 +164,7 @@ pipeline {
                     '''
             }
         }
-        stage('Quality Scan - Optimized') {
+        stage('Jtest: Quality Scan - Optimized') {
             when {
                 expression {
                     return true;
@@ -200,9 +200,25 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
+                echo '---> Parsing 10.x static analysis reports'
+                recordIssues(
+                    tools: [parasoftFindings(
+                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
+                        pattern: '**/target/jtest/sa-tia/*.xml'
+                    )],
+                    unhealthy: 100, // Adjust as needed
+                    healthy: 50,   // Adjust as needed
+                    minimumSeverity: 'HIGH', // Adjust as needed
+                    // qualityGates: [[
+                    //     threshold: 10,
+                    //     type: 'TOTAL_ERROR',
+                    //     unstable: true
+                    // ]],
+                    skipPublishingChecks: true // Adjust as needed
+                )
             }
         }
-        stage('Unit Test - Optimized') {
+        stage('Jtest: Unit Test - Optimized') {
             when {
                 expression {
                     return true;
@@ -241,9 +257,25 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
+                echo '---> Parsing 10.x unit test reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '0', 
+                        //     failureThreshold: '0')
+                        // ],
+                        tools: [[$class: 'ParasoftType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/target/jtest/ut-tia/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
-        stage('Package-CodeCoverage') {
+        stage('Jtest: Package-CodeCoverage') {
             when {
                 expression {
                     return true;
@@ -283,49 +315,7 @@ pipeline {
                     '''
             }
         }
-        stage('Process Reports') {
-            when {
-                expression {
-                    return true;
-                }
-            }
-            steps {
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa-tia/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
-
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '0', 
-                        //     failureThreshold: '0')
-                        // ],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut-tia/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
-                }
-            }
-        }
-        stage('Deploy-CodeCoverage') {
+        stage('Jtest: Deploy-CodeCoverage') {
             when {
                 expression {
                     return true;
@@ -356,7 +346,7 @@ pipeline {
                     '''
             }
         }
-        stage('SOAtest: API Test') {
+        stage('SOAtest: Functional Test - Optimized') {
             when {
                 expression {
                     return true;
@@ -400,7 +390,6 @@ pipeline {
                     -property application.coverage.binaries.include=com/parasoft/** \
                     "
                     '''
-                
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
@@ -421,16 +410,12 @@ pipeline {
                 }
             }
         }
-        stage('SOAtest: Web Functional Test') {
-            steps {
-                // Run SOAtest CLI prepped for web functional testing from docker
-                sh  '''
-                    #TODO
-                    # Combine all SOAtest test executions into one stage
-                    '''
+        stage('Selenic: Java Selenium Test - Optimized') {
+            when {
+                expression {
+                    return true;
+                }
             }
-        }
-        stage('Selenic: Java-Selenium Test') {
             steps {
                 // Run Selenic from docker
                 sh  '''
