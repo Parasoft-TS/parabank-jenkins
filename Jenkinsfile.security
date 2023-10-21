@@ -81,7 +81,10 @@ pipeline {
                 copyArtifacts(
                     projectName: 'Demo Jobs/Parabank-Jenkins-DevSecOps (main branch)', 
                     target: 'copied/',
-                    filter: '**/target/jtest/sast/**/*.xml',
+                    filter: '''
+                        **/target/jtest/sast/**/*.xml,
+                        **/target/*.war, 
+                        **/soatest/report/*.xml''',
                     fingerprintArtifacts: true,
                     selector: lastSuccessful()
                 );
@@ -130,280 +133,6 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
-            }
-        }
-        stage('SAST: CWE Top 25') {
-            steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
-                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cwe/report.xml' \
-                    -Dproperty.goal.ref.report.findings.exclude=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestCWEConfig}' \
-                    -Djtest.report=./target/jtest/sast/cwe-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
-            }
-        }
-        stage('SAST: OWASP Top 10') {
-            steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
-                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/owasp/report.xml' \
-                    -Dproperty.goal.ref.report.findings.exclude=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestOWASPConfig}' \
-                    -Djtest.report=./target/jtest/sast/owasp-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
-            }
-        }
-        stage('SAST: PCI-DSS') {
-            steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
-                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/pci/report.xml' \
-                    -Dproperty.goal.ref.report.findings.exclude=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestPCIConfig}' \
-                    -Djtest.report=./target/jtest/sast/pci-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
-            }
-        }
-        stage('SAST: DISA ASD-STIG') {
-            steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
-                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/stig/report.xml' \
-                    -Dproperty.goal.ref.report.findings.exclude=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestSTIGConfig}' \
-                    -Djtest.report=./target/jtest/sast/stig-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
-            }
-        }
-        stage('SAST: CERT for Java') {
-            steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-
-                    # Compile the project and run Jtest Static Analysis
-                    mvn compile \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
-                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cert/report.xml' \
-                    -Dproperty.goal.ref.report.findings.exclude=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestCERTConfig}' \
-                    -Djtest.report=./target/jtest/sast/cert-tia \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
-                    "
-                    '''
-            }
-        }
-        stage('SCA: OWASP Dependency Check') {
-            steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name jtest \
-                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    #-w "/home/parasoft/jenkins/parabank" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    #mvn \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-P owasp-dependency-check org.owasp:dependency-check-maven:check \
-                    #-Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
-                    
-                    #../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
-                    #    -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
-                    #    -results.file ./target/dependency-check-report.xml \
-                    #"
-                    '''
-            }
-        }
-        stage('Package App') {
-            steps {
-                // Package the application with the Jtest Monitor
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
-                    mvn package jtest:monitor \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.showSettings=true \
-                    "
-                    '''
-                
-                // Unzip the monitor package in preparation for mounting with deployment
-                sh '''
-                    # check parabank/target permissions
-                    #ls -la ./parabank/target
-
-                    # Unzip monitor.zip
-                    mkdir monitor
-                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
-                    #ls -ll
-                    #ls -la monitor
-                    '''
-            }
-        }
-        stage('Post: Process Reports') {
-            steps {
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sast/**/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
-            }
-        }
-        stage('Deploy-CodeCoverage') {
-            steps {
-                // deploy the project
-                sh  '''
-                    # Run Parabank-baseline docker image with Jtest coverage agent configured
-                    docker run \
-                    -d \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    -p ${app_port}:8080 \
-                    -p ${app_cov_port}:8050 \
-                    -p ${app_db_port}:9001 \
-                    -p ${app_jms_port}:61616 \
-                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
-                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
-                    --network=demo-net \
-                    --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker)
-
-                    # Health Check
-                    sleep 15
-                    docker ps -f name=${app_name}
-                    curl -iv --raw http://localhost:${app_port}/parabank
-                    curl -iv --raw http://localhost:${app_cov_port}/status
-                    '''
-            }
-        }
-                
-        stage('DAST: UI-API Tests') {
-            steps {
                 // Setup workspace and soatestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
@@ -445,40 +174,355 @@ pipeline {
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
                     '''
+            }
+        }
+        stage('Jtest: (SAST) CWE Top 25') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cwe/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestCWEConfig}' \
+                    -Djtest.report=./target/jtest/sast/cwe-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+            }
+        }
+        stage('Jtest: (SAST) OWASP Top 10') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/owasp/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestOWASPConfig}' \
+                    -Djtest.report=./target/jtest/sast/owasp-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+            }
+        }
+        stage('Jtest: (SAST) PCI-DSS') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/pci/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestPCIConfig}' \
+                    -Djtest.report=./target/jtest/sast/pci-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+            }
+        }
+        stage('Jtest: (SAST) DISA ASD-STIG') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/stig/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSTIGConfig}' \
+                    -Djtest.report=./target/jtest/sast/stig-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+            }
+        }
+        stage('Jtest: (SAST) CERT for Java') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    # Compile the project and run Jtest Static Analysis
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cert/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestCERTConfig}' \
+                    -Djtest.report=./target/jtest/sast/cert-tia \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+                echo '---> Parsing 10.x static analysis reports'
+                recordIssues(
+                    tools: [parasoftFindings(
+                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
+                        pattern: '**/target/jtest/sast/*/*.xml'
+                    )],
+                    unhealthy: 100, // Adjust as needed
+                    healthy: 50,   // Adjust as needed
+                    minimumSeverity: 'HIGH', // Adjust as needed
+                    // qualityGates: [[
+                    //     threshold: 10,
+                    //     type: 'TOTAL_ERROR',
+                    //     unstable: true
+                    // ]],
+                    skipPublishingChecks: true // Adjust as needed
+                )
+            }
+        }
+        stage('Parasoft: (SCA) OWASP Dependency Check') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    #docker run \
+                    #-u ${jenkins_uid}:${jenkins_gid} \
+                    #--rm -i \
+                    #--name jtest \
+                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    #-w "/home/parasoft/jenkins/parabank" \
+                    #--network=demo-net \
+                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    
+                    #mvn \
+                    #-s /home/parasoft/.m2/settings.xml \
+                    #-P owasp-dependency-check org.owasp:dependency-check-maven:check \
+                    #-Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
+                    
+                    #../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
+                    #    -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
+                    #    -results.file ./target/dependency-check-report.xml \
+                    #"
+                    '''
+            }
+        }
+        stage('Jtest: Package-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Package the application with the Jtest Monitor
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    
+                    mvn package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.skip=true \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.showSettings=true \
+                    "
+                    '''
                 
-                // Run SOAtestCLI from docker
+                // Unzip the monitor package in preparation for mounting with deployment
+                sh '''
+                    # check parabank/target permissions
+                    #ls -la ./parabank/target
+
+                    # Unzip monitor.zip
+                    mkdir monitor
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                    #ls -ll
+                    #ls -la monitor
+                    '''
+            }
+        }
+        stage('Jtest: Deploy-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // deploy the project
                 sh  '''
+                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                    docker run \
+                    -d \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    -p ${app_port}:8080 \
+                    -p ${app_cov_port}:8050 \
+                    -p ${app_db_port}:9001 \
+                    -p ${app_jms_port}:61616 \
+                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
+                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    --network=demo-net \
+                    --name ${app_name} \
+                    $(docker build -q ./parabank-jenkins/parabank-docker)
+
+                    # Health Check
+                    sleep 15
+                    docker ps -f name=${app_name}
+                    curl -iv --raw http://localhost:${app_port}/parabank
+                    curl -iv --raw http://localhost:${app_cov_port}/status
+                    '''
+            }
+        }
+        stage('SOAtest: (DAST) UI-API Tests - Optimized') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Run SOAtestCLI from docker
+                sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name soatest \
                     -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
+                    -v "$PWD/parabank:/usr/local/parasoft/parabank" \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -v "$PWD/copied:/usr/local/parasoft/copied" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
-                    mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-
-                    cd soavirt; \
+                    mkdir -p ./soavirt_workspace; \
+                    cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
                     # SOAtest requires a project to be "imported" before you can run it
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
+                    ./soavirt/soatestcli \
+                    -data ./soavirt_workspace \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject/security \
+                    ./soavirt/soatestcli \
+                    -data ./soavirt_workspace \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -resource /parabank-jenkins/soatest/SOAtestProject/security \
+                    -impactedTests ./copied/parabank-jenkins/soatest/report/coverage.xml \
                     -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -report /usr/local/parasoft/soatest/report \
+                    -report ./parabank-jenkins/soatest/report \
+                    -property application.coverage.binaries=./parabank/target/parabank-3.0.0-selenium-demo-SNAPSHOT.war \
+                    -property application.coverage.binaries.include=com/parasoft/** \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
