@@ -349,6 +349,15 @@ pipeline {
                     nohup Xvfb :99 > /dev/null 2>&1 &
                     export DISPLAY=:99
 
+                    # Redirect the output to a file
+                    ps aux | grep chrome > chrome_processes.txt
+            
+                    # Redirect the output of Chrome version to a file
+                    google-chrome-stable --version > chrome_version.txt
+                    # Display the contents of the files
+                    #cat chrome_processes.txt
+                    #cat chrome_version.txt
+
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
