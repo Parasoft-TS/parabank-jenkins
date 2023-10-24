@@ -373,7 +373,7 @@ pipeline {
                     # Execute the project with SOAtest CLI
                     ./soatestcli -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject/Web.tst \
+                    -resource /SOAtestProject/Web2.tst \
                     -environment 'parabank-baseline (docker)' \
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
