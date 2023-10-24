@@ -361,6 +361,8 @@ pipeline {
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
+                    mkdir -p ./soavirt_workspace/TestAssets/system_jars; \
+                    cp -f -R ./soatest/seleniumscreenshot.jar ./soavirt_workspace/TestAssets/system_jars; \
 
                     cd soavirt; \
 
