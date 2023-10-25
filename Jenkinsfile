@@ -171,7 +171,7 @@ pipeline {
                     scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
-                    " > ./parabank-jenkins/selenic/selenic.properties
+                    " > ./parabank-jenkins/selenic.properties
                     '''
             }
         }
