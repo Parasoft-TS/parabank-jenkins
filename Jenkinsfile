@@ -348,22 +348,13 @@ pipeline {
 
                     nohup Xvfb :99 > /dev/null 2>&1 &
                     export DISPLAY=:99
-
-                    # Redirect the output to a file
-                    pwd > chrome_processes.txt
-                    pwd
             
                     # Redirect the output of Chrome version to a file
                     google-chrome-stable --version > chrome_version.txt
-                    # Display the contents of the files
-                    cat chrome_processes.txt
-                    #cat chrome_version.txt
 
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-                    mkdir -p ./soavirt_workspace/TestAssets/system_jars; \
-                    cp -f -R ./soatest/SOAtestProject/seleniumscreenshot.jar ./soavirt_workspace/TestAssets/system_jars; \
                     cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
@@ -381,6 +372,11 @@ pipeline {
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
+                    -property techsupport.auto_creation=true \
+                    -property techsupport.archive_location=/usr/local/parasoft/soatest/report \
+                    -property techsupport.verbose.scontrol=true \
+                    -property techsupport.item.general=true \
+                    -property techsupport.item.environment=true \
                     -report /usr/local/parasoft/soatest/report \
                     "
 
