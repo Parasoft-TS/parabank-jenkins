@@ -131,6 +131,48 @@ pipeline {
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
                     '''
+
+                                    // Setup selenic.properties file
+                sh  '''
+                    # Set Up and write .properties file
+                    echo $"
+                    parasoft.eula.accepted=true
+
+                    license.network.use.specified.server=true
+                    license.network.url=${ls_url}
+                    license.network.auth.enabled=true
+                    license.network.user=${ls_user}
+                    license.network.password=${ls_pass}
+                    selenic.license.use_network=true
+                    selenic.license.network.edition=custom_edition
+                    selenic.license.custom_edition_features=Selenic,API Test Creation with SOAtest,Automation,Generate Recommendations,Performance Benchmarking,Publish to DTP,Quick Fix,Selenium Test Creation,Self-Healing,Test Impact Analysis
+                    
+                    dtp.enabled=true
+                    dtp.url=${dtp_url}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
+                    dtp.project=${project_name}
+
+                    build.id=${buildId}
+                    #session.tag=${soatestSessionTag}
+
+                    report.dtp.publish=${dtp_publish}
+                    report.associations=true
+                    report.scontrol=full
+                    scope.local=true
+                    scope.scontrol=true
+                    scope.xmlmap=false
+
+                    #application.coverage.enabled=true
+                    #application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
+                    #application.coverage.images=${soatestCovImage}
+
+                    scontrol.git.exec=git
+                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                    scontrol.rep1.type=git
+                    " > ./parabank-jenkins/selenic/selenic.properties
+                    '''
             }
         }
         stage('Quality Scan') {
