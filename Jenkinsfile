@@ -381,7 +381,7 @@ pipeline {
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -property system.properties.classpath=./soavirt_workspace/TestAssets/system_jars \
+                    -property system.properties.classpath=/soavirt/seleniumscreenshot.jar \
                     -report /usr/local/parasoft/soatest/report \
                     "
 
