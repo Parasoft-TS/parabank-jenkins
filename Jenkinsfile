@@ -364,7 +364,6 @@ pipeline {
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
                     mkdir -p ./soavirt_workspace/TestAssets/system_jars; \
                     cp -f -R ./soatest/SOAtestProject/seleniumscreenshot.jar ./soavirt_workspace/TestAssets/system_jars; \
-                    cp -f -R ./soatest/SOAtestProject/seleniumscreenshot.jar soavirt; \
                     cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
@@ -381,7 +380,7 @@ pipeline {
                     -config '${soatestConfig}' \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -property system.properties.classpath=/soavirt/seleniumscreenshot.jar \
+                    -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
                     -report /usr/local/parasoft/soatest/report \
                     "
 
