@@ -364,7 +364,7 @@ pipeline {
                     cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
                     mkdir -p ./soavirt_workspace/TestAssets/system_jars; \
                     cp -f -R ./soatest/SOAtestProject/seleniumscreenshot.jar ./soavirt_workspace/TestAssets/system_jars; \
-                    cp -f -R ./soatest/SOAtestProject/seleniumscreenshot.jar soavirt; \ 
+                    cp -f -R ./soatest/SOAtestProject/seleniumscreenshot.jar soavirt; \
                     cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
