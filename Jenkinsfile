@@ -385,6 +385,21 @@ pipeline {
 
         stage('Selenic Web Functional Test') {
             steps {
+                script {
+                    // Start the selenic container
+                    sh '''
+                    cd parabank
+                    docker-compose up -d
+                    '''
+                    
+                    // Check if the selenic container is stopped
+                    def containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
+                    
+                    if (containerStatus == 'exited') {
+                        // If the selenic container is stopped, run docker-compose down
+                        sh 'docker-compose down --volumes'
+                    }
+                }
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
                     # docker run -u ${jenkins_uid}:${jenkins_gid} \
@@ -394,8 +409,8 @@ pipeline {
                     # --network=demo-net \
                     # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
                     # docker exec selenic mvn clean compile test-compile test 
-                     cd parabank        
-                     docker-compose up -d
+                    #cd parabank        
+                    # docker-compose up -d
                     #docker-compose down
                     #docker-compose logs
                     # docker ps -la    
@@ -448,9 +463,6 @@ pipeline {
     post {
         // Clean after build
         always {
-            waitForSelenicToStop()
-            sh 'docker-compose down --volumes'
-
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
@@ -471,11 +483,5 @@ pipeline {
             deleteDir()
         }
     }
-    def waitForSelenicToStop() {
-    def containerStatus = ''
-    while (containerStatus != 'exited') {
-        containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
-        sleep(5)
-    }
-}
+
 }
