@@ -446,14 +446,12 @@ pipeline {
         }
     }
     post {
-        script {
-            // Wait for the selenic container to be stopped
-            waitForCondition("container_selenic_not_running") {
-                def containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
-                return containerStatus != 0
-            }
-            sh 'docker-compose down --volumes'
+        // Wait for the selenic container to be stopped
+        waitForCondition("container_selenic_not_running") {
+            def containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
+            return containerStatus != 0
         }
+        sh 'docker-compose down --volumes'
         // Clean after build
         always {
             sh 'docker container stop ${app_name}'
