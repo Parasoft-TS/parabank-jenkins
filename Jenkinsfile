@@ -401,7 +401,7 @@ pipeline {
             steps {
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
-                docker run -u ${jenkins_uid}:${jenkins_gid} \                                
+                docker run -u ${jenkins_uid}:${jenkins_gid} \                               
                 --rm -i --name selenic \
                 --network demo-net \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
