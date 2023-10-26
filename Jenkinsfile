@@ -447,14 +447,16 @@ pipeline {
     }
     post {
         // Wait for the selenic container to be stopped
-
-        // Clean after build
-        always {
             waitForCondition("container_selenic_not_running") {
                 def containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
                 return containerStatus != 0
             }
-            sh 'docker-compose down --volumes'
+            script {
+                sh 'docker-compose down --volumes'
+            }
+        // Clean after build
+        always {
+
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
