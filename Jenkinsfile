@@ -402,13 +402,14 @@ pipeline {
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
                 docker run -d \
-                --user 995:991 \
+                --user ${jenkins_uid}:${jenkins_gid} \
                 --name selenic \
                 --network demo-net \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                 -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                 -w "/home/parasoft/jenkins/parabank" \
                 pteodor/selenic:7.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true && java -jar /selenic/selenic_analyzer.jar -report report"
+                sleep 120    
                     # docker run -u ${jenkins_uid}:${jenkins_gid} \
                     # --rm -i -d --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
                     # -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
