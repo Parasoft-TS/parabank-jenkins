@@ -446,16 +446,10 @@ pipeline {
         }
     }
     post {
-        // Wait for the selenic container to be stopped
-            waitForCondition("container_selenic_not_running") {
-                def containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
-                return containerStatus != 0
-            }
-            script {
-                sh 'docker-compose down --volumes'
-            }
         // Clean after build
         always {
+            waitForSelenicToStop()
+            sh 'docker-compose down --volumes'
 
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
@@ -477,4 +471,11 @@ pipeline {
             deleteDir()
         }
     }
+    def waitForSelenicToStop() {
+    def containerStatus = ''
+    while (containerStatus != 'exited') {
+        containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
+        sleep(5)
+    }
+}
 }
