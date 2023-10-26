@@ -402,14 +402,14 @@ pipeline {
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
                 docker run -d \
-                --user ${jenkins_uid}:${jenkins_gid} \
-                --name selenic \
+                --user ${jenkins_uid}:${jenkins_gid} \                
+                --rm -i --name selenic \
                 --network demo-net \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                 -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                 -w "/home/parasoft/jenkins/parabank" \
                 pteodor/selenic:7.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true && java -jar /selenic/selenic_analyzer.jar -report report"
-                sleep 120    
+                #sleep 120    
                     # docker run -u ${jenkins_uid}:${jenkins_gid} \
                     # --rm -i -d --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
                     # -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
@@ -471,6 +471,8 @@ pipeline {
     post {
         // Clean after build
         always {
+            sh 'docker container stop selenium-chrome'
+            sh 'docker container rm selenium-chrome'
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
             sh 'docker image prune -f'
