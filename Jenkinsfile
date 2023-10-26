@@ -395,7 +395,8 @@ pipeline {
                     # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
                     # docker exec selenic mvn clean compile test-compile test 
                      cd parabank        
-                     docker-compose up
+                     docker-compose up -d
+                     docker-compose down
                     #docker-compose logs
                     # docker ps -la    
         
