@@ -383,25 +383,32 @@ pipeline {
             }
         }
 
+        
+        stage('Initialize Selenium Grid') {
+            steps {
+                // Initialize Selenium Grid to execute Selenic tests
+                sh  '''
+                    docker run -d \
+                    --user 995:991 \
+                    --name selenium-chrome \
+                    --network demo-net \
+                    selenium/standalone-chrome:latest
+                    '''
+            }
+        }
+
         stage('Selenic Web Functional Test') {
             steps {
-                script {
-                    // Start the selenic container
-                    sh '''
-                    cd parabank
-                    docker-compose up -d
-                    '''
-                    
-                    // Check if the selenic container is stopped
-                    def containerStatus = sh(script: 'docker inspect -f {{.State.Status}} selenic', returnStatus: true).trim()
-                    
-                    if (containerStatus == 'exited') {
-                        // If the selenic container is stopped, run docker-compose down
-                        sh 'docker-compose down --volumes'
-                    }
-                }
                 // Run Selenic prepped for web functional testing from docker
                 sh  '''
+                docker run -d \
+                --user 995:991 \
+                --name selenic \
+                --network demo-net \
+                -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                -w "/home/parasoft/jenkins/parabank" \
+                pteodor/selenic:7.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true && java -jar /selenic/selenic_analyzer.jar -report report"
                     # docker run -u ${jenkins_uid}:${jenkins_gid} \
                     # --rm -i -d --name selenic -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank-selenic" \
                     # -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" -p 4444:4444 \
@@ -410,7 +417,7 @@ pipeline {
                     # pteodor/selenic:3.0 /bin/bash -c "/opt/bin/entry_point.sh"
                     # docker exec selenic mvn clean compile test-compile test 
                     #cd parabank        
-                    # docker-compose up -d
+                    #docker-compose up -d
                     #docker-compose down
                     #docker-compose logs
                     # docker ps -la    
