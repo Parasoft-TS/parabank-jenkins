@@ -367,8 +367,8 @@ pipeline {
                     ./soatestcli -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /SOAtestProject/Web2.tst \
-                    -environment 'parabank-baseline (docker)' \
                     -config '${soatestConfig}' \
+                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
