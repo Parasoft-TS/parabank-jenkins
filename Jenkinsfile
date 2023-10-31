@@ -294,40 +294,53 @@ pipeline {
                 
         stage('Functional Test') {
             steps {
-                //Run SOAtestCLI from docker
+                // Run SOAtestCLI from docker
                 sh  '''
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name soatest \
-                    #-e ACCEPT_EULA=true \
-                    #-v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
-                    #-w "/usr/local/parasoft" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name soatest \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
+                    -w "/usr/local/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+
+                    nohup Xvfb :99 > /dev/null 2>&1 &
+                    export DISPLAY=:99
+            
+                    # Redirect the output of Chrome version to a file
+                    google-chrome-stable --version > chrome_version.txt
 
                     # Create workspace directory and copy SOAtest project into it
-                    #mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
-                    #cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-
-                    #cd soavirt; \
+                    mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
+                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
+                    cd soavirt; \
 
                     # SOAtest requires a project to be "imported" before you can run it
-                    #./soatestcli \
-                    #-data /usr/local/parasoft/soavirt_workspace \
-                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    #-import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
+                    ./soatestcli \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    #./soatestcli \
-                    #-data /usr/local/parasoft/soavirt_workspace \
-                    #-resource /SOAtestProject/functional \
-                    #-environment 'parabank-baseline (docker)' \
-                    #-config '${soatestConfig}' \
-                    #-settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    #-property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    #-report /usr/local/parasoft/soatest/report \
-                    #"
+                    ./soatestcli \
+                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
+                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
+                    -data /usr/local/parasoft/soavirt_workspace \
+                    -resource /SOAtestProject/ParabankWeb.tst \
+                    -config '${soatestConfig}' \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -environment 'parabank-baseline (docker)' \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
+                    -property techsupport.auto_creation=true \
+                    -property techsupport.archive_location=/usr/local/parasoft/soatest/report \
+                    -property techsupport.verbose.scontrol=true \
+                    -property techsupport.item.general=true \
+                    -property techsupport.item.environment=true \
+                    -report /usr/local/parasoft/soatest/report \
+                    "
                     '''
             }
         }
@@ -381,7 +394,6 @@ pipeline {
                     -property techsupport.item.environment=true \
                     -report /usr/local/parasoft/soatest/report \
                     "
-
                     '''
             }
         }
