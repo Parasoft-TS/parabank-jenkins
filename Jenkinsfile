@@ -365,7 +365,7 @@ pipeline {
                     
                     # Execute the project with SOAtest CLI
                     ./soatestcli \
-                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=no-sandbox,disable-dev-shm-usage \
+                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
                     -data /usr/local/parasoft/soavirt_workspace \
                     -resource /SOAtestProject/Web2.tst \
