@@ -349,7 +349,6 @@ pipeline {
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                    -report /usr/local/parasoft/soatest/report \
                     -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
@@ -358,7 +357,7 @@ pipeline {
                     -property techsupport.verbose.scontrol=true \
                     -property techsupport.item.general=true \
                     -property techsupport.item.environment=true \
-                    -report /usr/local/parasoft/soatest/report \
+                    -report ./parabank-jenkins/soatest/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
