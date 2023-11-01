@@ -339,7 +339,6 @@ pipeline {
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                    -installcertificate \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
 
                     
@@ -358,6 +357,7 @@ pipeline {
                     -property techsupport.verbose.scontrol=true \
                     -property techsupport.item.general=true \
                     -property techsupport.item.environment=true \
+                    -installcertificate \
                     -report ./parabank-jenkins/soatest/report \
                     "
                     '''
