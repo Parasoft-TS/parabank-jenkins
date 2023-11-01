@@ -338,7 +338,7 @@ pipeline {
                     # SOAtest requires a project to be "imported" before you can run it
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
                     # Execute the project with SOAtest CLI
@@ -350,7 +350,6 @@ pipeline {
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -report /usr/local/parasoft/soatest/report \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
