@@ -133,7 +133,12 @@ pipeline {
                     '''
             }
         }
-        stage('Quality Scan') {
+        stage('Jtest: Quality Scan') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -160,9 +165,30 @@ pipeline {
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     #"
                     '''
+                echo '---> Parsing 10.x static analysis reports'
+                recordIssues(
+                    tools: [parasoftFindings(
+                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
+                        pattern: '**/target/jtest/sa/*.xml'
+                    )],
+                    unhealthy: 100, // Adjust as needed
+                    healthy: 50,   // Adjust as needed
+                    minimumSeverity: 'HIGH', // Adjust as needed
+                    // qualityGates: [[
+                    //     threshold: 10,
+                    //     type: 'TOTAL_ERROR',
+                    //     unstable: true
+                    // ]],
+                    skipPublishingChecks: true // Adjust as needed
+                )
             }
         }
-        stage('Unit Test') {
+        stage('Jtest: Unit Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -191,9 +217,30 @@ pipeline {
                     #-Dproperty.report.dtp.publish=${dtp_publish}; \
                     #"
                     '''
+                echo '---> Parsing 10.x unit test reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '0', 
+                        //     failureThreshold: '0')
+                        // ],
+                        tools: [[$class: 'ParasoftType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/target/jtest/ut/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
-        stage('Package-CodeCoverage') {
+        stage('Jtest: Package-CodeCoverage') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -228,44 +275,12 @@ pipeline {
                     '''
             }
         }
-        stage('Process Reports') {
-            steps {
-                echo '---> Parsing 10.x static analysis reports'
-                recordIssues(
-                    tools: [parasoftFindings(
-                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa/*.xml'
-                    )],
-                    unhealthy: 100, // Adjust as needed
-                    healthy: 50,   // Adjust as needed
-                    minimumSeverity: 'HIGH', // Adjust as needed
-                    // qualityGates: [[
-                    //     threshold: 10,
-                    //     type: 'TOTAL_ERROR',
-                    //     unstable: true
-                    // ]],
-                    skipPublishingChecks: true // Adjust as needed
-                )
-
-                echo '---> Parsing 10.x unit test reports'
-                script {
-                    step([$class: 'XUnitPublisher', 
-                        // thresholds: [failed(
-                        //     failureNewThreshold: '0', 
-                        //     failureThreshold: '0')
-                        // ],
-                        tools: [[$class: 'ParasoftType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/target/jtest/ut/*.xml', 
-                            skipNoTestFiles: true, 
-                            stopProcessingIfError: false
-                        ]]
-                    ])
+        stage('Jtest: Deploy-CodeCoverage') {
+            when {
+                expression {
+                    return true;
                 }
             }
-        }
-        stage('Deploy-CodeCoverage') {
             steps {
                 // deploy the project
                 sh  '''
@@ -290,9 +305,13 @@ pipeline {
                     curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
             }
-        }
-                
-        stage('Functional Test') {
+        }       
+        stage('SOAtest: Functional Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -301,7 +320,7 @@ pipeline {
                     --rm -i \
                     --name soatest \
                     -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
@@ -313,102 +332,36 @@ pipeline {
                     google-chrome-stable --version > chrome_version.txt
 
                     # Create workspace directory and copy SOAtest project into it
-                    mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-                    cd soavirt; \
+                    mkdir -p ./soavirt_workspace; \
+                    cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
                     # SOAtest requires a project to be "imported" before you can run it
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
+                    ./soavirt/soatestcli \
+                    -data ./soavirt_workspace \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
                     # Execute the project with SOAtest CLI
-                    ./soatestcli \
+                    ./soavirt/soatestcli \
                     -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject/ParabankWeb.tst \
+                    -data ./soavirt_workspace \
+                    -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -config '${soatestConfig}' \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -report ./parabank-jenkins/soatest/report \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
                     -property techsupport.auto_creation=true \
-                    -property techsupport.archive_location=/usr/local/parasoft/soatest/report \
+                    -property techsupport.archive_location=./parabank-jenkins/soatest/report \
                     -property techsupport.verbose.scontrol=true \
                     -property techsupport.item.general=true \
                     -property techsupport.item.environment=true \
-                    -report /usr/local/parasoft/soatest/report \
+                    -report ./parabank-jenkins/soatest/report \
                     "
                     '''
-            }
-        }
-
-        stage('Web Functional Test') {
-            steps {
-                // Run SOAtestCLI from docker
-                sh  '''
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name soatest \
-                    -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins/soatest:/usr/local/parasoft/soatest" \
-                    -w "/usr/local/parasoft" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
-
-                    nohup Xvfb :99 > /dev/null 2>&1 &
-                    export DISPLAY=:99
-            
-                    # Redirect the output of Chrome version to a file
-                    google-chrome-stable --version > chrome_version.txt
-
-                    # Create workspace directory and copy SOAtest project into it
-                    mkdir -p ./soavirt_workspace/SOAtestProject/coverage_runtime_dir; \
-                    cp -f -R ./soatest/SOAtestProject ./soavirt_workspace; \
-                    cd soavirt; \
-
-                    # SOAtest requires a project to be "imported" before you can run it
-                    ./soatestcli \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -import /usr/local/parasoft/soavirt_workspace/SOAtestProject/.project; \
-                    
-                    # Execute the project with SOAtest CLI
-                    ./soatestcli \
-                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
-                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
-                    -data /usr/local/parasoft/soavirt_workspace \
-                    -resource /SOAtestProject/ParabankWeb.tst \
-                    -config '${soatestConfig}' \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
-                    -environment 'parabank-baseline (docker)' \
-                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
-                    -property techsupport.auto_creation=true \
-                    -property techsupport.archive_location=/usr/local/parasoft/soatest/report \
-                    -property techsupport.verbose.scontrol=true \
-                    -property techsupport.item.general=true \
-                    -property techsupport.item.environment=true \
-                    -report /usr/local/parasoft/soatest/report \
-                    "
-                    '''
-            }
-        }
-
-        stage('Shift-Left Load Test') {
-            steps {
-                // Run Load Test CLI from docker
-                sh  '''
-                    #TODO
-                    '''
-            }
-        }
-
-        stage('Post: Process Reports') {
-            steps {
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
@@ -429,6 +382,32 @@ pipeline {
                 }
             }
         }
+        stage('Selenic: Java Selenium Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Run Selenic from docker
+                sh  '''
+                    #TODO
+                    '''
+            }
+        }
+        stage('SOAtest: Shift-Left Load Test') {
+            when {
+                expression {
+                    return true;
+                }
+            }
+            steps {
+                // Run Load Test CLI from docker
+                sh  '''
+                    #TODO
+                    '''
+            }
+        }
         stage('Release') {
             steps {
                 // Release the project
@@ -444,6 +423,7 @@ pipeline {
         always {
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
+            sh 'docker container prune -f'
             sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '''
