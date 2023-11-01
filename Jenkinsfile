@@ -338,7 +338,7 @@ pipeline {
                     # SOAtest requires a project to be "imported" before you can run it
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
-                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
                     # Execute the project with SOAtest CLI
@@ -349,7 +349,7 @@ pipeline {
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                    -report ./parabank-jenkins/soatest/report \
+                    -report /usr/local/parasoft/soatest/report \
                     -settings /usr/local/parasoft/soatest/soatestcli.properties \
                     -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
@@ -359,7 +359,7 @@ pipeline {
                     -property techsupport.verbose.scontrol=true \
                     -property techsupport.item.general=true \
                     -property techsupport.item.environment=true \
-                    -report ./parabank-jenkins/soatest/report \
+                    -report /usr/local/parasoft/soatest/report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
