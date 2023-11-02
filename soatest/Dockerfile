@@ -37,7 +37,8 @@ RUN rpm -ivh \
         https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-118.0.5993.88-1.x86_64.rpm \
         unzip && \
     dnf clean all && \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf \
+    dnf install nss-tools \
     #wget -q -O /tmp/chromedriver_linux64.zip \
     #    https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/linux64/chromedriver-linux64.zip && \
     #unzip -j -o -d /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/ /tmp/chromedriver_linux64.zip

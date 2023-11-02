@@ -335,6 +335,10 @@ pipeline {
                     mkdir -p ./soavirt_workspace; \
                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
+                    certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ParasoftCert \
+                    -i ./soavirt/plugins/com.parasoft.ptest.libs.web_*/root/lib/parasoft.cer
+
+
                     # SOAtest requires a project to be "imported" before you can run it
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
