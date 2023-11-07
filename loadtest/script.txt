@@ -9,6 +9,6 @@ var scenario = "Linear Increase"
 var base = /usr/local/parasoft/loadtest
 var category = Accuracy
   
-var test-name = ParabankServicesLoadTests
+var test-name = BillPayTest
 open ${base}/${test-name}.lt
 loadtest -minutes ${minutes} -allReports ${report-home}/%d/${category}/${test-name} ${scenario}
