@@ -366,7 +366,7 @@ pipeline {
                     '''
             }
         }
-
+*/
         stage('Shift-Left Load Test') {
             steps {
                 // Run Load Test CLI from docker
