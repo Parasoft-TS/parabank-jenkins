@@ -168,6 +168,7 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
+          */
             }
         }
         stage('Jtest: Unit Test') {
@@ -208,9 +209,10 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
+                    */
             }
         }
-        */
+        
         stage('Jtest: Package-CodeCoverage') {
             when {
                 expression {
@@ -356,6 +358,7 @@ pipeline {
                     -report /usr/local/parasoft/soatest/report \
                     "
                     '''
+                    */
             }
         }
 
@@ -367,7 +370,7 @@ pipeline {
                     '''
             }
         }
-*/
+
         stage('Shift-Left Load Test') {
             steps {
                 // Run Load Test CLI from docker
