@@ -220,6 +220,9 @@ pipeline {
                 }
             }
             steps {
+                sh  '''
+                    #TODO
+                    '''
                 // Execute the build with Jtest Maven plugin in docker
               /*
                 sh '''
