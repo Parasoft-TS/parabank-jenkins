@@ -46,7 +46,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone -b LoadTest-Lavanya https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b Loadtest-Lavanya https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -224,7 +224,7 @@ pipeline {
                     #TODO
                     '''
                 // Execute the build with Jtest Maven plugin in docker
-              /*
+              
                 sh '''
                 
                     # Run Maven build with Jtest tasks via Docker
@@ -257,7 +257,7 @@ pipeline {
                     #ls -la monitor
                     
                     '''
-                    */
+                    
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
