@@ -224,7 +224,7 @@ pipeline {
                     #TODO
                     '''
                 // Execute the build with Jtest Maven plugin in docker
-              
+              /*
                 sh '''
                 
                     # Run Maven build with Jtest tasks via Docker
@@ -257,6 +257,7 @@ pipeline {
                     #ls -la monitor
                     
                     '''
+                    */
                     
             }
         }
@@ -269,6 +270,9 @@ pipeline {
             
             steps {
                 // deploy the project
+                sh '''
+                '''
+                /*
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
@@ -290,6 +294,7 @@ pipeline {
                     curl -iv --raw http://localhost:${app_port}/parabank
                     curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
+                    */
             }
         }       
         stage('SOAtest: Functional Test') {
