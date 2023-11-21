@@ -362,9 +362,9 @@ pipeline {
                     ./loadtest \
                     -cmd \
                     -run /usr/local/parasoft/loadtest/script.txt \
-                    -licenseServer https://dtp:8443 \
-                    -licenseUsername ${ls_user} \
-                    -licensePassword ${ls_pass} \
+                    -licenseServer https://35.92.154.15:8443/ \
+                    -licenseUsername demo \
+                    -licensePassword demo-user \
                     -licenseVus 5 \
                     "
                     '''
