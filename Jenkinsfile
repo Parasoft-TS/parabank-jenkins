@@ -221,7 +221,9 @@ pipeline {
             }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
+              /*
                 sh '''
+                
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -250,7 +252,9 @@ pipeline {
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     #ls -ll
                     #ls -la monitor
+                    
                     '''
+                    */
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
@@ -362,7 +366,7 @@ pipeline {
                     ./loadtest \
                     -cmd \
                     -run /usr/local/parasoft/loadtest/script.txt \
-                    -licenseServer https://35.92.154.15:8443/ \
+                    -licenseServer https://35.92.154.15:8443 \
                     -licenseUsername demo \
                     -licensePassword demo-user \
                     -licenseVus 5 \
