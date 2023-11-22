@@ -2,11 +2,11 @@
 # Using script commands
 #
   
-var report-home = /usr/local/parasoft/loadtest/report
+var report-home = /usr/local/parasoft/soatest/loadtest/report
 var minutes = 3
   
 var scenario = "Linear Increase"
-var base = /usr/local/parasoft/loadtest
+var base = /usr/local/parasoft/soatest/loadtest
 var category = Accuracy
   
 var test-name = BillPayTest
