@@ -366,7 +366,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins/loadtest:/usr/local/parasoft/loadtest " \                
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/parabank-docker) /bin/bash -c " \
+                    $(docker build -q ./parabank-jenkins/loadtest) /bin/bash -c " \
                                    
                     # Execute the project with loadtest
                     ./soavirt/loadtest \
