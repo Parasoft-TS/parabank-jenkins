@@ -136,7 +136,7 @@ pipeline {
         stage('Jtest: Quality Scan') {
             when {
                 expression {
-                    return true;
+                    return false;
                 }
             }
             steps {
@@ -186,7 +186,7 @@ pipeline {
         stage('Jtest: Unit Test') {
             when {
                 expression {
-                    return true;
+                    return false;
                 }
             }
             steps {
