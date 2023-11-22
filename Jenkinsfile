@@ -369,7 +369,7 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/parabank-docker/) /bin/bash -c " \
 
                                    
-                    # Execute the project with SOAtest CLI
+                    # Execute the project with loadtest
                     ./soavirt/loadtest \
                     -cmd \
                     -run /usr/local/parasoft/loadtest/script.txt \
