@@ -351,7 +351,7 @@ pipeline {
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
-                    -environment 'parabank-baseline (docker)' \
+                    -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -report ./parabank-jenkins/soatest/report \
