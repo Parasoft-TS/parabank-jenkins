@@ -325,18 +325,11 @@ pipeline {
                     --network=demo-net \
                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    nohup Xvfb :99 > /dev/null 2>&1 &
-                    export DISPLAY=:99
-            
-                    # Redirect the output of Chrome version to a file
-                    google-chrome-stable --version > chrome_version.txt
-
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace; \
                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
-                    certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ParasoftCert \
-                    -i ./soavirt/plugins/com.parasoft.ptest.libs.web_*/root/lib/parasoft.cer
+                    certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ParasoftCert -i /usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar
 
 
                     # SOAtest requires a project to be "imported" before you can run it
@@ -349,7 +342,6 @@ pipeline {
                     # Execute the project with SOAtest CLI
                     ./soavirt/soatestcli \
                     -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
-                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -config '${soatestConfig}' \
