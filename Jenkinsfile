@@ -71,7 +71,6 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
@@ -214,6 +213,7 @@ pipeline {
                     -Djtest.config='builtin://Unit Tests' \
                     -Djtest.report=./target/jtest/ut \
                     -Djtest.showSettings=true \
+                    -Dproperty.report.coverage.images=${unitCovImage} \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
@@ -261,6 +261,7 @@ pipeline {
                     -Dmaven.test.skip=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.showSettings=true \
+                    -Dproperty.report.coverage.images=${soatestCovImage} \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
 
