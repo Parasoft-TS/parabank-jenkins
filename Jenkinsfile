@@ -331,7 +331,7 @@ pipeline {
 
                     mkdir -p ./parabank-jenkins/soatest/report/ \
                     certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ParasoftCert -i ./parabank-jenkins/soatest/SOAtestProject/parasoft.cer > ./parabank-jenkins/soatest/report/AddingCert.txt \
-                    #openssl pkcs12 -export -in /usr/local/parasoft/soavirt_workspace/SOAtestProject/parasoft.cer -out parasoft.p12 -name "ParasoftCert" \
+                    openssl pkcs12 -export -in ./parabank-jenkins/soatest/SOAtestProject/parasoft.cer -out parasoft.p12 -name "ParasoftCert" \
                     #google-chrome --user-data-dir=/path/to/your/chrome/profile --auto-ssl-client-auth --auto-ssl-client-auth-server-whitelist=* --auto-ssl-client-auth-key-file=/path/to/parasoft.p12 \
 
 
