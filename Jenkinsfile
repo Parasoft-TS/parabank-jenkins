@@ -330,6 +330,8 @@ pipeline {
                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
                     certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ParasoftCert -i /usr/local/parasoft/soavirt_workspace/SOAtestProject/parasoft.cer > ./parabank-jenkins/soatest/report/AddingCert.txt
+                    openssl pkcs12 -export -in /usr/local/parasoft/soavirt_workspace/SOAtestProject/parasoft.cer -out parasoft.p12 -name "ParasoftCert"
+                    google-chrome --user-data-dir=/path/to/your/chrome/profile --auto-ssl-client-auth --auto-ssl-client-auth-server-whitelist=* --auto-ssl-client-auth-key-file=/path/to/parasoft.p12
 
 
                     # SOAtest requires a project to be "imported" before you can run it
