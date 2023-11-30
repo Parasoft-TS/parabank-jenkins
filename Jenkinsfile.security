@@ -94,7 +94,6 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
@@ -375,6 +374,13 @@ pipeline {
                 }
             }
             steps {
+                // Setup stage-specific additional settings
+                sh '''
+                    # Set Up and write .properties file
+                    echo $"
+                    report.coverage.images=${soatestCovImage}
+                    " > ./parabank-jenkins/jtest/jtestcli-ft.properties
+                '''
                 // Package the application with the Jtest Monitor
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
@@ -391,7 +397,7 @@ pipeline {
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
                     -Djtest.showSettings=true \
                     "
                     '''

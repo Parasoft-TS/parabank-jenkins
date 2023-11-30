@@ -71,7 +71,6 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
@@ -190,6 +189,13 @@ pipeline {
                 }
             }
             steps {
+                // Setup stage-specific additional settings
+                sh '''
+                    # Set Up and write .properties file
+                    echo $"
+                    report.coverage.images=${unitCovImage}
+                    " > ./parabank-jenkins/jtest/jtestcli-ut.properties
+                '''
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
@@ -204,18 +210,18 @@ pipeline {
                     #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
-                    #mvn test-compile \
-                    #jtest:agent \
-                    #test \
-                    #jtest:jtest \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Dmaven.test.failure.ignore=true \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='builtin://Unit Tests' \
-                    #-Djtest.report=./target/jtest/ut \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
-                    #"
+                    mvn test-compile \
+                    jtest:agent \
+                    test \
+                    jtest:jtest \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.failure.ignore=true \
+                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ut.properties' \
+                    -Djtest.config='builtin://Unit Tests' \
+                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
                     '''
                 echo '---> Parsing 10.x unit test reports'
                 script {
@@ -242,6 +248,13 @@ pipeline {
                 }
             }
             steps {
+                // Setup stage-specific additional settings
+                sh '''
+                    # Set Up and write .properties file
+                    echo $"
+                    report.coverage.images=${soatestCovImage}
+                    " > ./parabank-jenkins/jtest/jtestcli-ft.properties
+                '''
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
@@ -259,7 +272,7 @@ pipeline {
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
