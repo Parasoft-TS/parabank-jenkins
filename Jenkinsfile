@@ -342,34 +342,22 @@ pipeline {
                     mkdir -p ./soavirt_workspace; \
                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
-                    mkdir -p ./parabank-jenkins/soatest/report/ \
-                    certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ParasoftCert -i ./parabank-jenkins/soatest/SOAtestProject/parasoft.cer > ./parabank-jenkins/soatest/report/AddingCert.txt \
-                    openssl pkcs12 -export -in ./parabank-jenkins/soatest/SOAtestProject/parasoft.cer -out parasoft.p12 -name "ParasoftCert" \
-                    #google-chrome --user-data-dir=/path/to/your/chrome/profile --auto-ssl-client-auth --auto-ssl-client-auth-server-whitelist=* --auto-ssl-client-auth-key-file=/path/to/parasoft.p12 \
-
-
                     # SOAtest requires a project to be "imported" before you can run it
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
-
                     
                     # Execute the project with SOAtest CLI
                     ./soavirt/soatestcli \
                     -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
+                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -property system.properties.classpath=/usr/local/parasoft/soavirt_workspace/SOAtestProject/seleniumscreenshot.jar \
-                    -property techsupport.auto_creation=true \
-                    -property techsupport.archive_location=./parabank-jenkins/soatest/report \
-                    -property techsupport.verbose.scontrol=true \
-                    -property techsupport.item.general=true \
-                    -property techsupport.item.environment=true \
                     -installcertificate \
                     -report ./parabank-jenkins/soatest/report \
                     "
