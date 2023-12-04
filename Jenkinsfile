@@ -372,7 +372,7 @@ pipeline {
             }
             steps {
                 // Run SOAtestCLI from docker
-                // sh  '''
+                sh  '''
                 //     docker run \
                 //     -u ${jenkins_uid}:${jenkins_gid} \
                 //     --rm -i \
@@ -402,7 +402,7 @@ pipeline {
                 //     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                 //     -report ./parabank-jenkins/soatest/report \
                 //     "
-                //     '''
+                     '''
                 // echo '---> Parsing 9.x soatest reports'
                 // script {
                 //     step([$class: 'XUnitPublisher', 
