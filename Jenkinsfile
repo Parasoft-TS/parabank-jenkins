@@ -424,6 +424,11 @@ pipeline {
             }
         }
         stage('Selenic: Initialize Selenium Grid') {
+            when {
+                expression {
+                    return true;
+                }
+            }
             steps {
                 // Initialize Selenium Grid to execute Selenic tests
                 sh  '''
