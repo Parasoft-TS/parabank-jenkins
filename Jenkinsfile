@@ -49,7 +49,10 @@ pipeline {
                     git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
-                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank
+                    git clone https://github.com/parasoft/parabank parabank
+
+                    mkdir parabank-selenic
+                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank-selenic
 
                     # Debugging
                     #pwd
@@ -71,7 +74,7 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images=${unitCovImage}
+                    #report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
@@ -175,7 +178,7 @@ pipeline {
                     '''
             }
         }
-        stage('Quality Scan') {
+        stage('Jtest: Quality Scan') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -204,7 +207,7 @@ pipeline {
                     '''
             }
         }
-        stage('Unit Test') {
+        stage('Jtest: Unit Test') {
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -405,7 +408,7 @@ pipeline {
                 --rm -i --name selenic \
                 --network demo-net \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank" \
                 -w "/home/parasoft/jenkins/parabank" \
                 pteodor/selenic:7.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true && java -jar /selenic/selenic_analyzer.jar -report report"
                 #sleep 120    
