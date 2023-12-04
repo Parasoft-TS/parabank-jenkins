@@ -373,35 +373,35 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                //     docker run \
-                //     -u ${jenkins_uid}:${jenkins_gid} \
-                //     --rm -i \
-                //     --name soatest \
-                //     -e ACCEPT_EULA=true \
-                //     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
-                //     -w "/usr/local/parasoft" \
-                //     --network=demo-net \
-                //     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                #     docker run \
+                #     -u ${jenkins_uid}:${jenkins_gid} \
+                #     --rm -i \
+                #     --name soatest \
+                #     -e ACCEPT_EULA=true \
+                #     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                #     -w "/usr/local/parasoft" \
+                #     --network=demo-net \
+                #     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                //     # Create workspace directory and copy SOAtest project into it
-                //     mkdir -p ./soavirt_workspace; \
-                //     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
+                     # Create workspace directory and copy SOAtest project into it
+                #     mkdir -p ./soavirt_workspace; \
+                #     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
-                //     # SOAtest requires a project to be "imported" before you can run it
-                //     ./soavirt/soatestcli \
-                //     -data ./soavirt_workspace \
-                //     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                //     -import ./soavirt_workspace/parabank-jenkins/.project; \
+                     # SOAtest requires a project to be "imported" before you can run it
+                #     ./soavirt/soatestcli \
+                #     -data ./soavirt_workspace \
+                #     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                #     -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
-                //     # Execute the project with SOAtest CLI
-                //     ./soavirt/soatestcli \
-                //     -data ./soavirt_workspace \
-                //     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
-                //     -environment 'parabank-baseline (docker)' \
-                //     -config '${soatestConfig}' \
-                //     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                //     -report ./parabank-jenkins/soatest/report \
-                //     "
+                     # Execute the project with SOAtest CLI
+                #     ./soavirt/soatestcli \
+                #     -data ./soavirt_workspace \
+                #     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
+                #     -environment 'parabank-baseline (docker)' \
+                #     -config '${soatestConfig}' \
+                #     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                #     -report ./parabank-jenkins/soatest/report \
+                #     "
                      '''
                 // echo '---> Parsing 9.x soatest reports'
                 // script {
