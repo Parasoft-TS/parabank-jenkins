@@ -60,10 +60,10 @@ pipeline {
 
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
-                    mkdir dependency-check-pack-2023.1.0;
-                    unzip -q ./dependency-check-pack-2023.1.0-20230523.zip -d ./dependency-check-pack-2023.1.0;
+                    mkdir dependency-check-pack-2023.2.0;
+                    unzip -q ./dependency-check-pack-2023.2.0.zip -d ./dependency-check-pack-2023.2.0;
                     ls -ll;
-                    ls -la ./dependency-check-pack-2023.1.0;
+                    ls -la ./dependency-check-pack-2023.2.0;
 
                     # Set Up and write .properties file 
                     echo $"
@@ -74,7 +74,7 @@ pipeline {
                     analyzer.dependencycheck.enabled=true
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
-                    " > ./dependency-check-pack-2023.1.0/settings.properties
+                    " > ./dependency-check-pack-2023.2.0/settings.properties
                     '''
 
                 // Prepare the jtestcli.properties file
@@ -361,8 +361,8 @@ pipeline {
                     -P owasp-dependency-check org.owasp:dependency-check-maven:check \
                     -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
                     
-                    ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/dependencycheck.sh \
-                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.1.0/settings.properties \
+                    ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/dependencycheck.sh \
+                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/settings.properties \
                         -results.file ./target/dependency-check-report.xml \
                     "
                     '''
