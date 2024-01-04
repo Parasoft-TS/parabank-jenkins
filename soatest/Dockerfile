@@ -3,7 +3,6 @@ FROM parasoft/soavirt
 
 ARG HOST_UID=995
 ARG HOST_GID=991
-ARG CHROME_VERSION=112.0.5615.49
 
 # Setup parasoft user
 USER root
@@ -34,18 +33,11 @@ RUN rpm -ivh \
         centos-gpg-keys && \
     rpm --import https://dl.google.com/linux/linux_signing_key.pub && \
     dnf install -y --nodocs \
-        https://dl.google.com/linux/chrome/rpm/stable/x86_64/google-chrome-stable-118.0.5993.88-1.x86_64.rpm \
+        https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm \
         unzip && \
     dnf clean all && \
     rm -rf /var/cache/dnf \
-    dnf install nss-tools \
-    #wget -q -O /tmp/chromedriver_linux64.zip \
-    #    https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/118.0.5993.70/linux64/chromedriver-linux64.zip && \
-    #unzip -j -o -d /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/ /tmp/chromedriver_linux64.zip
-    #unzip -o -d /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/ \
-    #    /tmp/chromedriver_linux64.zip && \
-    #cd /usr/local/parasoft/soavirt/plugins/com.parasoft.ptest.libs.web_10.6.2.202306042000/root/browsers/webdriver/chrome/linux/x86_64/chromedriver-linux64/ && mv * ../
-    #rm -f /tmp/chromedriver_linux64.zip
+    dnf install nss-tools
 USER parasoft
 
 # Define working directory.
