@@ -135,34 +135,34 @@ pipeline {
         stage('Jtest: Quality Scan') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name jtest \
-                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    #-w "/home/parasoft/jenkins/parabank" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
-                    #mvn compile \
-                    #jtest:jtest \
-                    #-DskipTests=true \
-                    #-s /home/parasoft/.m2/settings.xml \
-                    #-Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    #-Djtest.config='${jtestSAConfig}' \
-                    #-Djtest.report=./target/jtest/sa \
-                    #-Djtest.showSettings=true \
-                    #-Dproperty.report.dtp.publish=${dtp_publish}; \
-                    #"
+                    mvn compile \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestSAConfig}' \
+                    -Djtest.report=./target/jtest/sa \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
                     '''
                 echo '---> Parsing 10.x static analysis reports'
                 recordIssues(
@@ -185,7 +185,7 @@ pipeline {
         stage('Jtest: Unit Test') {
             when {
                 expression {
-                    return false;
+                    return true;
                 }
             }
             steps {
@@ -199,15 +199,15 @@ pipeline {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
-                    #docker run \
-                    #-u ${jenkins_uid}:${jenkins_gid} \
-                    #--rm -i \
-                    #--name jtest \
-                    #-v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    #-v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    #-w "/home/parasoft/jenkins/parabank" \
-                    #--network=demo-net \
-                    #$(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
                     mvn test-compile \
