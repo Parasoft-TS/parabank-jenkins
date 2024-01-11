@@ -46,13 +46,10 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
-
-                    mkdir parabank-selenic
-                    git clone -b jenkins-selenic-tests https://github.com/pteodor/parabank parabank-selenic
 
                     # Debugging
                     #pwd
@@ -164,10 +161,6 @@ pipeline {
                     scope.local=true
                     scope.scontrol=true
                     scope.xmlmap=false
-
-                    #application.coverage.enabled=true
-                    #application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
-                    #application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
                     scontrol.rep1.git.branch=master
@@ -373,35 +366,35 @@ pipeline {
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                #     docker run \
-                #     -u ${jenkins_uid}:${jenkins_gid} \
-                #     --rm -i \
-                #     --name soatest \
-                #     -e ACCEPT_EULA=true \
-                #     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
-                #     -w "/usr/local/parasoft" \
-                #     --network=demo-net \
-                #     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                     docker run \
+                     -u ${jenkins_uid}:${jenkins_gid} \
+                     --rm -i \
+                     --name soatest \
+                     -e ACCEPT_EULA=true \
+                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                     -w "/usr/local/parasoft" \
+                     --network=demo-net \
+                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                      # Create workspace directory and copy SOAtest project into it
-                #     mkdir -p ./soavirt_workspace; \
-                #     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
+                     mkdir -p ./soavirt_workspace; \
+                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
                      # SOAtest requires a project to be "imported" before you can run it
-                #     ./soavirt/soatestcli \
-                #     -data ./soavirt_workspace \
-                #     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                #     -import ./soavirt_workspace/parabank-jenkins/.project; \
+                     ./soavirt/soatestcli \
+                     -data ./soavirt_workspace \
+                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                     -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
                      # Execute the project with SOAtest CLI
-                #     ./soavirt/soatestcli \
-                #     -data ./soavirt_workspace \
-                #     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
-                #     -environment 'parabank-baseline (docker)' \
-                #     -config '${soatestConfig}' \
-                #     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                #     -report ./parabank-jenkins/soatest/report \
-                #     "
+                     ./soavirt/soatestcli \
+                     -data ./soavirt_workspace \
+                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
+                     -environment 'parabank-baseline (docker)' \
+                     -config '${soatestConfig}' \
+                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                     -report ./parabank-jenkins/soatest/report \
+                     "
                      '''
                 // echo '---> Parsing 9.x soatest reports'
                 // script {
@@ -454,8 +447,7 @@ pipeline {
                 --rm -i --name selenic \
                 --network demo-net \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                -v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank" \
-                -w "/home/parasoft/jenkins/parabank" \
+                -w "/home/parasoft/jenkins/parabank-jenkins/selenic" \
                 pteodor/selenic:7.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true && java -jar /selenic/selenic_analyzer.jar -report report"   
                     '''
             }
