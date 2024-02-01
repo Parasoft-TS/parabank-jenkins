@@ -28,7 +28,7 @@ pipeline {
         buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
-        jtestCWEConfig="builtin://CWE Top 25 2022"
+        jtestCWEConfig="builtin://CWE Top 25 2023"
         jtestOWASPConfig="builtin://OWASP Top 10-2021"
         jtestPCIConfig="builtin://PCI DSS 4.0"
         jtestSTIGConfig="builtin://DISA-ASD-STIG"
