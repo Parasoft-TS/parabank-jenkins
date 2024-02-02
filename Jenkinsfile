@@ -164,7 +164,7 @@ pipeline {
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
-                    # Compile the project and run Jtest Static Analysis
+                    # Compile the project and run Jtest Metrics Analysis
                     mvn \
                     jtest:jtest \
                     -DskipTests=true \
