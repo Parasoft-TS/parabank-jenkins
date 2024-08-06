@@ -12,7 +12,7 @@ ARG USER_HOME_DIR=/home/parasoft
 ENV JAVA_VERSION=17
 
 # Download Java 17
-RUN wget wget https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz \
+RUN wget https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz \
     && tar xvzf jdk-17_linux-x64_bin.tar.gz -C /opt
 
 # Update alternatives to use Java 17
