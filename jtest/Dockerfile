@@ -13,15 +13,15 @@ ARG JAVA_VERSION=17
 ARG JDK_VERSION=jdk-17.0.11
 
 # Download Java 17
-RUN wget https://download.oracle.com/java/${JAVA_VERSION}/archive/${JDK_VERSION}_linux-x64_bin.tar.gz \
+RUN wget https://download.oracle.com/java/$JAVA_VERSION/archive/$JDK_VERSION_linux-x64_bin.tar.gz \
     && tar xvzf jdk-17_linux-x64_bin.tar.gz -C /opt
 
 # Update alternatives to use Java 17
-RUN update-alternatives --install /usr/bin/java java /opt/${JDK_VERSION}/bin/java 1 \
-    && update-alternatives --install /usr/bin/javac javac /opt/${JDK_VERSION}/bin/javac 1
+RUN update-alternatives --install /usr/bin/java java /opt/$JDK_VERSION/bin/java 1 \
+    && update-alternatives --install /usr/bin/javac javac /opt/$JDK_VERSION/bin/javac 1
 
-ENV JAVA_HOME=/opt/${JDK_VERSION}
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
+ENV JAVA_HOME=/opt/$JDK_VERSION
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Install MVN
 ## Set MVN args
