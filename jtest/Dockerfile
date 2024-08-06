@@ -8,11 +8,6 @@ ARG HOST_GID=991
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
-# Install necessary tools to update Java
-RUN apt-get update && \
-    apt-get install -y wget && \
-    apt-get clean
-
 # Install JDK 17
 ENV JAVA_VERSION=17
 
