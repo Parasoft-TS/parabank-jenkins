@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven'
+        jdk 'JDK 17'
+    }
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
@@ -133,11 +137,7 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -194,11 +194,7 @@ pipeline {
             }
         }
         stage('Jtest: Unit Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -253,11 +249,7 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -265,7 +257,7 @@ pipeline {
                     echo $"
                     report.coverage.images=${soatestCovImage}
                     " > ./parabank-jenkins/jtest/jtestcli-ft.properties
-                '''                
+                '''
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
                     # Run Maven build with Jtest tasks via Docker
@@ -300,11 +292,7 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // deploy the project
                 sh  '''
@@ -329,13 +317,9 @@ pipeline {
                     curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
             }
-        }
+        }       
         stage('SOAtest: Functional Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -361,11 +345,14 @@ pipeline {
                     
                     # Execute the project with SOAtest CLI
                     ./soavirt/soatestcli \
+                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
+                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report ./parabank-jenkins/soatest/report \
                     "
                     '''
@@ -390,11 +377,7 @@ pipeline {
             }
         }
         stage('Selenic: Java Selenium Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Selenic from docker
                 sh  '''
@@ -403,11 +386,7 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''

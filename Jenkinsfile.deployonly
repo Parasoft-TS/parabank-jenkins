@@ -75,10 +75,7 @@ pipeline {
 
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
-                    dtp.url=${dtp_url}
-                    dtp.user=${dtp_user}
-                    dtp.password=${dtp_pass}
-                    dtp.project=${project_name}" > ./parabank-jenkins/jtest/jtestcli.properties
+                    " > ./parabank-jenkins/jtest/jtestcli.properties
                     '''
                 
                 // Execute the build with Jtest Maven plugin in docker
