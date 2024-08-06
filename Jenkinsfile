@@ -50,7 +50,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone -b Ramiro-SOA-WebUI https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
