@@ -22,8 +22,8 @@ RUN touch /var/log/lastlog && \
 
 # Setup Chrome web driver for Web UI tests
 RUN rpm -ivh \
-        http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-8-6.el8.noarch.rpm \
-        http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-8-6.el8.noarch.rpm && \
+        https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-gpg-keys-9.0-24.el9.noarch.rpm \
+        https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/Packages/centos-stream-repos-9.0-24.el9.noarch.rpm && \
     dnf install -y --nodocs --repo baseos --repo appstream \
         liberation-fonts \
         vulkan-loader \
