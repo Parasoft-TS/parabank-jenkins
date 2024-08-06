@@ -1,5 +1,5 @@
 # baseline image
-FROM parasoft/parabank:baseline
+FROM parasoft/parabank:feature
 
 ARG HOST_UID=995
 ARG HOST_GID=991
