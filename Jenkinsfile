@@ -137,11 +137,7 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -187,11 +183,7 @@ pipeline {
             }
         }
         stage('Jtest: Unit Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -246,11 +238,7 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -293,11 +281,7 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // deploy the project
                 sh  '''
@@ -324,11 +308,7 @@ pipeline {
             }
         }       
         stage('SOAtest: Functional Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -386,11 +366,7 @@ pipeline {
             }
         }
         stage('Selenic: Java Selenium Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Selenic from docker
                 sh  '''
@@ -399,11 +375,7 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
