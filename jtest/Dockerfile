@@ -4,11 +4,31 @@ FROM parasoft/jtest
 ARG HOST_UID=995
 ARG HOST_GID=991
 
-# Install MVN
 ## Permissions to create dirs
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
+# Install necessary tools to update Java
+RUN apt-get update && \
+    apt-get install -y wget && \
+    apt-get clean
+
+# Install JDK 17
+ENV JAVA_VERSION=17
+
+# Download and install Java 17
+RUN wget https://download.java.net/java/GA/jdk17/0d1f0a1f1b3c4e0f9f8a1d1e9b0e2a7b/1e1c5e4f9d204f2f8c2c001de3c3f4b7/jdk-17_linux-x64_bin.deb && \
+    apt-get install -y ./jdk-17_linux-x64_bin.deb && \
+    rm jdk-17_linux-x64_bin.deb
+
+# Update alternatives to use Java 17
+RUN update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk-17/bin/java 1 && \
+    update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/jdk-17/bin/javac 1
+
+# Verify the installed Java version
+RUN java -version
+
+# Install MVN
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
 ENV MAVEN_HOME=${USER_HOME_DIR}/apache-maven-${MAVEN_VERSION}
