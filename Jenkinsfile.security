@@ -45,11 +45,11 @@ pipeline {
             steps {
                 deleteDir()
                                 
-                // setup the workspace and OWASP Dependency Check installation (painful distribution)
+                // setup the workspace
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b Ramiro-SOA-WebUI https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -57,7 +57,10 @@ pipeline {
                     # Debugging
                     #pwd
                     #ls -ll
-
+                    '''
+                
+                // setup OWASP Dependency Check installation (painful distribution)
+                sh '''
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
                     mkdir dependency-check-pack-2023.2.0;
@@ -111,6 +114,7 @@ pipeline {
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}" > ./jtestcli.properties
                     '''
+                
                 // Setup soatestcli.properties file
                 sh  '''
                     # Set Up and write .properties file
@@ -155,11 +159,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) CWE Top 25') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -188,11 +188,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) OWASP Top 10') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -221,11 +217,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) PCI-DSS') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -254,11 +246,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) DISA ASD-STIG') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -287,11 +275,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) CERT for Java') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -336,11 +320,7 @@ pipeline {
             }
         }
         stage('Parasoft: (SCA) OWASP Dependency Check') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -368,11 +348,7 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -416,11 +392,7 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // deploy the project
                 sh  '''
@@ -447,11 +419,7 @@ pipeline {
             }
         }
         stage('SOAtest: (DAST) UI-API Tests') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
