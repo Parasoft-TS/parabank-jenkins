@@ -12,13 +12,13 @@ ARG USER_HOME_DIR=/home/parasoft
 ENV JAVA_VERSION=17
 
 # Download and install Java 17
-RUN wget https://download.java.net/java/GA/jdk17/0d1f0a1f1b3c4e0f9f8a1d1e9b0e2a7b/1e1c5e4f9d204f2f8c2c001de3c3f4b7/jdk-17_linux-x64_bin.deb && \
-    apt-get install -y ./jdk-17_linux-x64_bin.deb && \
-    rm jdk-17_linux-x64_bin.deb
+RUN wget https://download.java.net/java/GA/jdk17/0d1f0a1f1b3c4e0f9f8a1d1e9b0e2a7b/1e1c5e4f9d204f2f8c2c001de3c3f4b7/jdk-17_linux-x64_bin.deb \
+    && apt-get install -y ./jdk-17_linux-x64_bin.deb \
+    && rm jdk-17_linux-x64_bin.deb
 
 # Update alternatives to use Java 17
-RUN update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk-17/bin/java 1 && \
-    update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/jdk-17/bin/javac 1
+RUN update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk-17/bin/java 1 \
+    && update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/jdk-17/bin/javac 1
 
 # Verify the installed Java version
 RUN java -version
