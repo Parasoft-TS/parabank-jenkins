@@ -362,7 +362,6 @@ pipeline {
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -installcertificate \
                     -report ./parabank-jenkins/soatest/report \
                     "
                     '''
