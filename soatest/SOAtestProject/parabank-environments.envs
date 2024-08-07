@@ -18,7 +18,7 @@
          <Value mask="false">http://localhost:8090/parabank/services/bank/openapi.yaml</Value>
       </Variable>
       <Variable>
-         <Name>PATH_BASE_URL</Name>
+         <Name>BASEURL</Name>
          <Value mask="false">http://localhost:8090/</Value>
       </Variable>
    </Environment>
@@ -40,7 +40,7 @@
          <Value mask="false">http://parabank-baseline:8080/parabank/services/bank/openapi.yaml</Value>
       </Variable>
       <Variable>
-         <Name>PATH_BASE_URL</Name>
+         <Name>BASEURL</Name>
          <Value mask="false">http://parabank-baseline:8080/</Value>
       </Variable>
    </Environment>
@@ -62,7 +62,7 @@
          <Value mask="false">http://parabank-feature:8080/parabank/services/bank/openapi.yaml</Value>
       </Variable>
       <Variable>
-         <Name>PATH_BASE_URL</Name>
+         <Name>BASEURL</Name>
          <Value mask="false">http://parabank-feature:8080/</Value>
       </Variable>
    </Environment>
