@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven'
+        jdk 'JDK 17'
+    }
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
@@ -29,6 +33,7 @@ pipeline {
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
+        jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
 
@@ -46,7 +51,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -171,11 +176,7 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -200,13 +201,24 @@ pipeline {
                     -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    # Compile the project and run Jtest Metrics Analysis
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestMAConfig}' \
+                    -Djtest.report=./target/jtest/ma \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
                 echo '---> Parsing 10.x static analysis reports'
                 recordIssues(
                     tools: [parasoftFindings(
                         localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/sa/*.xml'
+                        pattern: '**/target/jtest/*/*.xml'
                     )],
                     unhealthy: 100, // Adjust as needed
                     healthy: 50,   // Adjust as needed
@@ -221,11 +233,7 @@ pipeline {
             }
         }
         stage('Jtest: Unit Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -280,11 +288,7 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -327,11 +331,7 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // deploy the project
                 sh  '''
@@ -358,27 +358,23 @@ pipeline {
             }
         }       
         stage('SOAtest: Functional Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
-                     docker run \
-                     -u ${jenkins_uid}:${jenkins_gid} \
-                     --rm -i \
-                     --name soatest \
-                     -e ACCEPT_EULA=true \
-                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
-                     -w "/usr/local/parasoft" \
-                     --network=demo-net \
-                     $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name soatest \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -w "/usr/local/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                     # Create workspace directory and copy SOAtest project into it
-                     mkdir -p ./soavirt_workspace; \
-                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
+                    # Create workspace directory and copy SOAtest project into it
+                    mkdir -p ./soavirt_workspace; \
+                    cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
                      # SOAtest requires a project to be "imported" before you can run it
                      ./soavirt/soatestcli \
@@ -386,42 +382,41 @@ pipeline {
                      -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                      -import ./soavirt_workspace/parabank-jenkins/.project; \
                     
-                     # Execute the project with SOAtest CLI
-                     ./soavirt/soatestcli \
-                     -data ./soavirt_workspace \
-                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
-                     -environment 'parabank-baseline (docker)' \
-                     -config '${soatestConfig}' \
-                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                     -report ./parabank-jenkins/soatest/report \
-                     "
-                     '''
-                // echo '---> Parsing 9.x soatest reports'
-                // script {
-                //     step([$class: 'XUnitPublisher', 
-                //         // thresholds: [failed(
-                //         //     failureNewThreshold: '10', 
-                //         //     failureThreshold: '10',
-                //         //     unstableNewThreshold: '20', 
-                //         //     unstableThreshold: '20')
-                //         // ],
-                //         tools: [[$class: 'ParasoftSOAtest9xType', 
-                //             deleteOutputFiles: true, 
-                //             failIfNotNew: false, 
-                //             pattern: '**/soatest/report/*.xml', 
-                //             skipNoTestFiles: true, 
-                //             stopProcessingIfError: false
-                //         ]]
-                //     ])
-                // }
+                    # Execute the project with SOAtest CLI
+                    ./soavirt/soatestcli \
+                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
+                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
+                    -data ./soavirt_workspace \
+                    -resource /parabank-jenkins/soatest/SOAtestProject/functional \
+                    -config '${soatestConfig}' \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -environment 'parabank-baseline (docker)' \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    -report ./parabank-jenkins/soatest/report \
+                    "
+                    '''
+                echo '---> Parsing 9.x soatest reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '10', 
+                        //     failureThreshold: '10',
+                        //     unstableNewThreshold: '20', 
+                        //     unstableThreshold: '20')
+                        // ],
+                        tools: [[$class: 'ParasoftSOAtest9xType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/soatest/report/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
+                }
             }
         }
         stage('Selenic: Initialize Selenium Grid') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Initialize Selenium Grid to execute Selenic tests
                 sh  '''
@@ -435,11 +430,7 @@ pipeline {
         }
 
         stage('Selenic: Java Selenium Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Selenic from docker
                 sh  '''
@@ -453,11 +444,7 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''

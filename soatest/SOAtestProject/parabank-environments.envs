@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Environments xmlns="http://www.parasoft.com/schema/environment/1.0" product="SOAtest">
+   <Environment name="localhost">
+      <Variable>
+         <Name>HOST</Name>
+         <Value mask="false">localhost</Value>
+      </Variable>
+      <Variable>
+         <Name>PORT</Name>
+         <Value mask="false">8090</Value>
+      </Variable>
+      <Variable>
+         <Name>VIRT_PORT</Name>
+         <Value mask="false">9080</Value>
+      </Variable>
+      <Variable>
+         <Name>SWAGGER</Name>
+         <Value mask="false">http://localhost:8090/parabank/services/bank/openapi.yaml</Value>
+      </Variable>
+      <Variable>
+         <Name>BASEURL</Name>
+         <Value mask="false">http://localhost:8090</Value>
+      </Variable>
+   </Environment>
+   <Environment name="parabank-baseline (docker)">
+      <Variable>
+         <Name>HOST</Name>
+         <Value mask="false">parabank-baseline</Value>
+      </Variable>
+      <Variable>
+         <Name>PORT</Name>
+         <Value mask="false">8080</Value>
+      </Variable>
+      <Variable>
+         <Name>VIRT_PORT</Name>
+         <Value mask="false">9080</Value>
+      </Variable>
+      <Variable>
+         <Name>SWAGGER</Name>
+         <Value mask="false">http://parabank-baseline:8080/parabank/services/bank/openapi.yaml</Value>
+      </Variable>
+      <Variable>
+         <Name>BASEURL</Name>
+         <Value mask="false">http://parabank-baseline:8080</Value>
+      </Variable>
+   </Environment>
+   <Environment name="parabank-feature (docker)">
+      <Variable>
+         <Name>HOST</Name>
+         <Value mask="false">parabank-feature</Value>
+      </Variable>
+      <Variable>
+         <Name>PORT</Name>
+         <Value mask="false">8080</Value>
+      </Variable>
+      <Variable>
+         <Name>VIRT_PORT</Name>
+         <Value mask="false">9080</Value>
+      </Variable>
+      <Variable>
+         <Name>SWAGGER</Name>
+         <Value mask="false">http://parabank-feature:8080/parabank/services/bank/openapi.yaml</Value>
+      </Variable>
+      <Variable>
+         <Name>BASEURL</Name>
+         <Value mask="false">http://parabank-feature:8080</Value>
+      </Variable>
+   </Environment>
+</Environments>

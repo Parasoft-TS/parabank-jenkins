@@ -4,11 +4,26 @@ FROM parasoft/jtest
 ARG HOST_UID=995
 ARG HOST_GID=991
 
-# Install MVN
 ## Permissions to create dirs
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
+# Install JDK 17
+ARG JAVA_VER=17
+ARG JDK_VERSION=jdk-17.0.11
+ENV JAVA_HOME=${USER_HOME_DIR}/${JDK_VERSION}
+
+# Download Java 17
+RUN wget https://download.oracle.com/java/${JAVA_VER}/archive/${JDK_VERSION}_linux-x64_bin.tar.gz \
+    && tar xvzf ${JDK_VERSION}_linux-x64_bin.tar.gz -C ${USER_HOME_DIR}
+
+# Update alternatives to use Java 17
+RUN update-alternatives --install /usr/bin/java java /${USER_HOME_DIR}/${JDK_VERSION}/bin/java 1 \
+    && update-alternatives --install /usr/bin/javac javac /${USER_HOME_DIR}/${JDK_VERSION}/bin/javac 1
+
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Install MVN
 ## Set MVN args
 ARG MAVEN_VERSION=3.9.5
 ENV MAVEN_HOME=${USER_HOME_DIR}/apache-maven-${MAVEN_VERSION}
