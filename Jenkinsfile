@@ -353,7 +353,7 @@ pipeline {
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -report ./parabank-jenkins/soatest/report \
+                    -report ./parabank-jenkins/soatest/func-report \
                     "
                     '''
                 echo '---> Parsing 9.x soatest reports'
@@ -368,7 +368,7 @@ pipeline {
                         tools: [[$class: 'ParasoftSOAtest9xType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
-                            pattern: '**/soatest/report/*.xml', 
+                            pattern: '**/soatest/func-report/*.xml', 
                             skipNoTestFiles: true, 
                             stopProcessingIfError: false
                         ]]
@@ -390,7 +390,25 @@ pipeline {
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
-                    #TODO
+                   docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name loadtest \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -w "/usr/local/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+               
+                    # Execute the project with SOAtest CLI
+                    ./soavirt/loadtest \
+                    -cmd \
+                    -run ./parabank-jenkins/soatest/SOAtestProject/loadtest/script.txt \
+                    -licenseServer ${ls_url} \
+                    -licenseUsername ${ls_user} \
+                    -licensePassword ${ls_pass} \
+                    -licenseVus 1000 \
+                    "
                     '''
             }
         }
@@ -417,7 +435,8 @@ pipeline {
                     **/target/jtest/sa/**, 
                     **/target/jtest/ut/**, 
                     **/target/jtest/monitor/**, 
-                    **/soatest/report/**''',
+                    **/soatest/func-report/**, 
+                    **/soatest/load-report/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: true,
                 excludes: '''
