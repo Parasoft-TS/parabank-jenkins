@@ -19,7 +19,7 @@
       </Variable>
       <Variable>
          <Name>BASEURL</Name>
-         <Value mask="false">http://localhost:8090/</Value>
+         <Value mask="false">http://localhost:8090</Value>
       </Variable>
    </Environment>
    <Environment name="parabank-baseline (docker)">
@@ -41,7 +41,7 @@
       </Variable>
       <Variable>
          <Name>BASEURL</Name>
-         <Value mask="false">http://parabank-baseline:8080/</Value>
+         <Value mask="false">http://parabank-baseline:8080</Value>
       </Variable>
    </Environment>
    <Environment name="parabank-feature (docker)">
@@ -63,7 +63,7 @@
       </Variable>
       <Variable>
          <Name>BASEURL</Name>
-         <Value mask="false">http://parabank-feature:8080/</Value>
+         <Value mask="false">http://parabank-feature:8080</Value>
       </Variable>
    </Environment>
 </Environments>
