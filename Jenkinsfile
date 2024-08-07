@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven'
+        jdk 'JDK 17'
+    }
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
@@ -29,6 +33,7 @@ pipeline {
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
+        jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
 
@@ -55,6 +60,7 @@ pipeline {
                     #pwd
                     #ls -ll
                     '''
+
                 // Prepare the jtestcli.properties file
                 sh '''
                     # Set Up and write .properties file
@@ -70,7 +76,6 @@ pipeline {
                     license.network.password=${ls_pass}
 
                     report.associations=false
-                    report.coverage.images=${unitCovImage}
                     report.scontrol=full
                     scope.local=true
                     scope.scontrol=true
@@ -133,20 +138,12 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
-                sh  '''
-                    #TODO
-                    '''
-                /*
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                 # Run Maven build with Jtest tasks via Docker
-                   docker run \
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name jtest \
@@ -166,26 +163,51 @@ pipeline {
                     -Djtest.report=./target/jtest/sa \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
+
+                    # Compile the project and run Jtest Metrics Analysis
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestMAConfig}' \
+                    -Djtest.report=./target/jtest/ma \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-          */
+                echo '---> Parsing 10.x static analysis reports'
+                recordIssues(
+                    tools: [parasoftFindings(
+                        localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
+                        pattern: '**/target/jtest/*/*.xml'
+                    )],
+                    unhealthy: 100, // Adjust as needed
+                    healthy: 50,   // Adjust as needed
+                    minimumSeverity: 'HIGH', // Adjust as needed
+                    // qualityGates: [[
+                    //     threshold: 10,
+                    //     type: 'TOTAL_ERROR',
+                    //     unstable: true
+                    // ]],
+                    skipPublishingChecks: true // Adjust as needed
+                )
             }
         }
         stage('Jtest: Unit Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
-                sh  '''
-                    #TODO
-                    '''
-                /*
-                 Execute the build with Jtest Maven plugin in docker
+                // Setup stage-specific additional settings
                 sh '''
-                 # Run Maven build with Jtest tasks via Docker
-                     docker run \
+                    # Set Up and write .properties file
+                    echo $"
+                    report.coverage.images=${unitCovImage}
+                    " > ./parabank-jenkins/jtest/jtestcli-ut.properties
+                '''
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name jtest \
@@ -202,31 +224,43 @@ pipeline {
                     jtest:jtest \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.failure.ignore=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ut.properties' \
                     -Djtest.config='builtin://Unit Tests' \
                     -Djtest.report=./target/jtest/ut \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
                     '''
-                    */
-            }
-        }
-        
-        stage('Jtest: Package-CodeCoverage') {
-            when {
-                expression {
-                    return true;
+                echo '---> Parsing 10.x unit test reports'
+                script {
+                    step([$class: 'XUnitPublisher', 
+                        // thresholds: [failed(
+                        //     failureNewThreshold: '0', 
+                        //     failureThreshold: '0')
+                        // ],
+                        tools: [[$class: 'ParasoftType', 
+                            deleteOutputFiles: true, 
+                            failIfNotNew: false, 
+                            pattern: '**/target/jtest/ut/*.xml', 
+                            skipNoTestFiles: true, 
+                            stopProcessingIfError: false
+                        ]]
+                    ])
                 }
             }
+        }
+        stage('Jtest: Package-CodeCoverage') {
+            when { equals expected: true, actual: true }
             steps {
-                sh  '''
-                    #TODO
-                    '''
-                // Execute the build with Jtest Maven plugin in docker
-              /*
+                // Setup stage-specific additional settings
                 sh '''
-                
+                    # Set Up and write .properties file
+                    echo $"
+                    report.coverage.images=${soatestCovImage}
+                    " > ./parabank-jenkins/jtest/jtestcli-ft.properties
+                '''
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
                     # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -242,7 +276,7 @@ pipeline {
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -255,24 +289,13 @@ pipeline {
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     #ls -ll
                     #ls -la monitor
-                    
                     '''
-                    */
-                    
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when {
-                expression {
-                    return true;
-                }
-            }
-            
+            when { equals expected: true, actual: true }
             steps {
                 // deploy the project
-                sh '''
-                '''
-                /*
                 sh  '''
                     # Run Parabank-baseline docker image with Jtest coverage agent configured
                     docker run \
@@ -294,23 +317,14 @@ pipeline {
                     curl -iv --raw http://localhost:${app_port}/parabank
                     curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
-                    */
             }
         }       
         stage('SOAtest: Functional Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: false }
             steps {
-                sh  '''
-                    #TODO
-                    '''
-               /*
                 // Run SOAtestCLI from docker
                 sh  '''
-                  docker run \
+                    docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
                     --name soatest \
@@ -332,59 +346,17 @@ pipeline {
                     
                     # Execute the project with SOAtest CLI
                     ./soavirt/soatestcli \
+                    -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
+                    -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
-                    -environment 'parabank-baseline (docker)' \
                     -config '${soatestConfig}' \
-                    -settings /usr/local/parasoft/soatest/soatestcli.properties \
+                    -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -environment 'parabank-baseline (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
-                    -report /usr/local/parasoft/soatest/report \
+                    -report ./parabank-jenkins/soatest/func-report \
                     "
                     '''
-                    */
-            }
-        }
-
-        stage('Web Functional Test') {
-            steps {
-                // Run SOAtest CLI prepped for web functional testing from docker
-                sh  '''
-                    #TODO
-                    '''
-            }
-        }
-
-        stage('Shift-Left Load Test') {
-            steps {
-                // Run Load Test CLI from docker
-                sh  '''
-                   docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name loadtest \
-                    -e ACCEPT_EULA=true \
-                    -v "$PWD/parabank-jenkins/loadtest:/usr/local/parasoft/loadtest" \
-                    -w "/usr/local/parasoft" \
-                    --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/loadtest) /bin/bash -c " \
-
-                    cd soavirt; \
-               
-                    # Execute the project with SOAtest CLI
-                    ./loadtest \
-                    -cmd \
-                    -run /usr/local/parasoft/soatest/loadtest/script.txt \
-                    -licenseServer https://35.92.154.15:8443 \
-                    -licenseUsername demo \
-                    -licensePassword demo-user \
-                    -licenseVus 5 \
-                    "
-                    '''
-            }
-        }
-
-        stage('Post: Process Reports') {
-            steps {
                 echo '---> Parsing 9.x soatest reports'
                 script {
                     step([$class: 'XUnitPublisher', 
@@ -397,7 +369,7 @@ pipeline {
                         tools: [[$class: 'ParasoftSOAtest9xType', 
                             deleteOutputFiles: true, 
                             failIfNotNew: false, 
-                            pattern: '**/soatest/report/*.xml', 
+                            pattern: '**/soatest/func-report/*.xml', 
                             skipNoTestFiles: true, 
                             stopProcessingIfError: false
                         ]]
@@ -406,11 +378,7 @@ pipeline {
             }
         }
         stage('Selenic: Java Selenium Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Selenic from docker
                 sh  '''
@@ -419,15 +387,29 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when {
-                expression {
-                    return true;
-                }
-            }
+            when { equals expected: true, actual: true }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
-                    #TODO
+                   docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name loadtest \
+                    -e ACCEPT_EULA=true \
+                    -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -w "/usr/local/parasoft" \
+                    --network=demo-net \
+                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+               
+                    # Execute the project with SOAtest CLI
+                    ./soavirt/loadtest \
+                    -cmd \
+                    -run /parabank-jenkins/soatest/SOAtestProject/loadtest/script.txt \
+                    -licenseServer ${ls_url} \
+                    -licenseUsername ${ls_user} \
+                    -licensePassword ${ls_pass} \
+                    -licenseVus 1000 \
+                    "
                     '''
             }
         }
@@ -454,8 +436,8 @@ pipeline {
                     **/target/jtest/sa/**, 
                     **/target/jtest/ut/**, 
                     **/target/jtest/monitor/**, 
-                    **/soatest/report/**, 
-                    **/loadtest/report/**''',
+                    **/soatest/func-report/**, 
+                    **/soatest/load-report/**''',
                 fingerprint: true, 
                 onlyIfSuccessful: true,
                 excludes: '''
