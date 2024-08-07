@@ -404,7 +404,7 @@ pipeline {
                     # Execute the project with SOAtest CLI
                     ./soavirt/loadtest \
                     -cmd \
-                    -run /parabank-jenkins/soatest/SOAtestProject/loadtest/script.txt \
+                    -run ./parabank-jenkins/soatest/SOAtestProject/loadtest/script.txt \
                     -licenseServer ${ls_url} \
                     -licenseUsername ${ls_user} \
                     -licensePassword ${ls_pass} \
