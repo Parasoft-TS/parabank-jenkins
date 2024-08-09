@@ -1,8 +1,8 @@
 # baseline image
 FROM parasoft/parabank:baseline
 
-ARG HOST_UID=995
-ARG HOST_GID=991
+ARG HOST_UID=992
+ARG HOST_GID=992
 
 # Setup parasoft user
 USER root

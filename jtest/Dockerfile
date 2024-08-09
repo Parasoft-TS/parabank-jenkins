@@ -1,8 +1,8 @@
 # baseline image
 FROM parasoft/jtest
 
-ARG HOST_UID=995
-ARG HOST_GID=991
+ARG HOST_UID=992
+ARG HOST_GID=992
 
 ## Permissions to create dirs
 USER root
