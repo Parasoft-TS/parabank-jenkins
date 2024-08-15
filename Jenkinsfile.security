@@ -345,7 +345,6 @@ pipeline {
                     -DnvdApiKey=${nvd_key} \
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
-                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
                         -results.file ./target/dependency-check-report.xml \
                     "
                     '''
