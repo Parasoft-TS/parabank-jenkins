@@ -15,7 +15,7 @@ pipeline {
         jenkins_uid=992
         jenkins_gid=992
 
-        nvd_apikey="${NVD_APIKEY}" //nvd api key to speed up owasp dependency check
+        nvd_key="${NVD_APIKEY}" //nvd api key to speed up owasp dependency check
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
@@ -344,7 +344,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.3:check \
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
-                    -DnvdApiKey=${nvd_apikey} \
+                    -DnvdApiKeyEnvironmentVariable=${nvd_key} \
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
