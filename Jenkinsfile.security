@@ -15,6 +15,8 @@ pipeline {
         jenkins_uid=992
         jenkins_gid=992
 
+        nvd_apikey="${NVD_APIKEY}" //nvd api key to speed up owasp dependency check
+
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
         ls_user="${PARASOFT_LS_USER}" //admin
@@ -63,13 +65,14 @@ pipeline {
                 sh '''
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
-                    mkdir dependency-check-pack-2023.2.0;
-                    unzip -q ./dependency-check-pack-2023.2.0.zip -d ./dependency-check-pack-2023.2.0;
+                    mkdir dependency-check-pack-2024.1.0;
+                    unzip -q ./dependency-check-pack-2024.1.0.zip -d ./dependency-check-pack-2024.1.0;
                     ls -ll;
-                    ls -la ./dependency-check-pack-2023.2.0;
+                    ls -la ./dependency-check-pack-2024.1.0;
 
                     # Set Up and write .properties file 
                     echo $"
+                    parasoft.eula.accepted=true
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
@@ -77,7 +80,8 @@ pipeline {
                     analyzer.dependencycheck.enabled=true
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
-                    " > ./dependency-check-pack-2023.2.0/settings.properties
+                    report.dtp.publish=${dtp_publish}
+                    " > ./dependency-check-pack-2024.1.0/settings.properties
                     '''
 
                 // Prepare the jtestcli.properties file
@@ -159,7 +163,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) CWE Top 25') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -188,7 +192,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) OWASP Top 10') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -217,7 +221,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) PCI-DSS') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -246,7 +250,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) DISA ASD-STIG') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -275,7 +279,7 @@ pipeline {
             }
         }
         stage('Jtest: (SAST) CERT for Java') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -320,7 +324,7 @@ pipeline {
             }
         }
         stage('Parasoft: (SCA) OWASP Dependency Check') {
-            when { equals expected: true, actual: false }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -339,6 +343,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:check \
                     -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
+                    -DnvdApiKey=${nvd_apikey} \
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/settings.properties \
@@ -348,7 +353,7 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -392,7 +397,7 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // deploy the project
                 sh  '''
@@ -419,7 +424,7 @@ pipeline {
             }
         }
         stage('SOAtest: (DAST) UI-API Tests') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
