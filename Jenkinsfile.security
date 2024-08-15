@@ -340,10 +340,11 @@ pipeline {
                     $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
+                    -X \
                     -s /home/parasoft/.m2/settings.xml \
-                    -P owasp-dependency-check org.owasp:dependency-check-maven:check \
-                    -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
-                    -Dowasp.dependency-check.nvdApiKey=${nvd_apikey} \
+                    -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.3:check \
+                    -Dodc.outputDirectory=./target/owasp-dependency-check \
+                    -DnvdApiKey=${nvd_apikey} \
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
