@@ -77,7 +77,6 @@ pipeline {
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}
-                    analyzer.dependencycheck.enabled=true
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
                     report.dtp.publish=${dtp_publish}
@@ -344,7 +343,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.3:check \
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
-                    -DnvdApiKey=${nvd_key} \
+                    -DnvdApiKeyEnvironmentVariable=nvd_key \
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
