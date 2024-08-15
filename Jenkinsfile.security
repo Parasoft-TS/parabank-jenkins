@@ -343,10 +343,10 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:check \
                     -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
-                    -DnvdApiKey=${nvd_apikey} \
+                    -Dowasp.dependency-check.nvdApiKey=${nvd_apikey} \
                     
-                    ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/dependencycheck.sh \
-                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/settings.properties \
+                    ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
+                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
                         -results.file ./target/dependency-check-report.xml \
                     "
                     '''
