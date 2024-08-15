@@ -342,7 +342,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.2:check \
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
-                    -DnvdApiKey=nvd_key \
+                    -DnvdApiKey=${nvd_key} \
                     
                     ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
