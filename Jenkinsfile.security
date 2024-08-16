@@ -344,7 +344,7 @@ pipeline {
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
                     -DnvdApiKey=${nvd_key} \
                     
-                    ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
+                    ../../dependency-check-pack-2024.1.0/dependencycheck.sh \
                         -results.file ./target/dependency-check-report.xml \
                     "
                     '''
