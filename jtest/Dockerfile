@@ -41,7 +41,6 @@ ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 ## Copy Deps
 COPY jtestcli.properties /home/parasoft/jtestcli.properties
 COPY .m2 /home/parasoft/.m2
-COPY dependency-check-pack-2024.1.0 /home/parasoft/dependency-check-pack-2024.1.0
 
 ## Fix permissions
 RUN chown -h -R ${HOST_UID}:${HOST_GID} ${USER_HOME_DIR}
