@@ -1,6 +1,12 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven'
+        jdk 'JDK 17'
+    }
     environment {
+        JAVA_HOME="${tool 'JDK 17'}"
+        
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
         app_name="parabank-baseline" //docker container
