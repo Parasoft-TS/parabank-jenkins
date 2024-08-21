@@ -342,20 +342,24 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build -q -f DepCheckDockerfile ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.2:check \
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
                     -DnvdApiKey=${nvd_key} \
+
+                    ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
+                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
+                        -results.file ./target/dependency-check-report.xml \
                     "
                     '''
                 // Run Parasoft OWASP Dependency Check Pack directly on VM
-                sh '''
-                    ./parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
-                        -results.file ./parabank/target/dependency-check-report.xml
-                    '''
+                //sh '''
+                //    ./parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
+                //        -results.file ./parabank/target/dependency-check-report.xml
+                //    '''
             }
         }
         stage('Jtest: Package-CodeCoverage') {
