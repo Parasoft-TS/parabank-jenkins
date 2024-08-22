@@ -352,7 +352,7 @@ pipeline {
 
                     ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack-2024.1.0/settings.properties \
-                        -results.file ./target/dependency-check-report.xml \
+                        -results.file ./target/owasp-dependency-check/dependency-check-report.xml \
                     "
                     '''
                 // Run Parasoft OWASP Dependency Check Pack directly on VM
