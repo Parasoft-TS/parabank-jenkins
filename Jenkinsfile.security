@@ -18,8 +18,8 @@ pipeline {
         app_jms_port=63616
 
         // Jenkins UID:GID
-        jenkins_uid=992
-        jenkins_gid=992
+        //jenkins_uid=992
+        //jenkins_gid=992
 
         nvd_key="${NVD_APIKEY}" //nvd api key to speed up owasp dependency check
 
@@ -33,7 +33,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}"
+        //buildId="${app_short}-${BUILD_TIMESTAMP}"
         
         // Parasoft Jtest Settings
         jtestCWEConfig="builtin://CWE Top 25 2023"
@@ -52,7 +52,15 @@ pipeline {
         stage('Setup') {
             steps {
                 deleteDir()
-                                
+                
+                // setup additional environment
+                script {
+                    env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
+                    env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
+                    env.buildId = "${app_short}-${buildTimestamp}"
+                }
+
                 // setup the workspace
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
@@ -181,7 +189,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn compile \
                     jtest:jtest \
@@ -210,7 +218,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -239,7 +247,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -268,7 +276,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -297,7 +305,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -383,7 +391,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
@@ -423,7 +431,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker)
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
                     sleep 15
@@ -446,7 +454,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace; \
