@@ -29,7 +29,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}"
+        //buildId="${app_short}-${BUILD_TIMESTAMP}"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
@@ -51,6 +51,8 @@ pipeline {
                 script {
                     env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
                     env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
+                    env.buildId= ${app_short}-${buildTimestamp}
                 }
                 
                 // setup the workspace

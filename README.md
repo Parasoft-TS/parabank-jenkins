@@ -12,7 +12,7 @@ This repository is a working demonstration of Parasoft's Continuous Quality Plat
 - The tree command is used for debugging in the pipeline scripts, which does not come pre-installed with Amazon Linux.  If your Jenkins machine is running on EC2: sudo yum install tree
 
 ## Jenkins Setup:
-- Add the following Jenkins plugins: Pipeline.*, Build Timestamp Plugin, Timestamper, Parasoft Environment Manager, Parasoft Findings
+- Add the following Jenkins plugins: Pipeline.*, Parasoft Environment Manager, Parasoft Findings
 
 ## Jenkins Parameterized Pipeline Build Paramaters:
 - PARASOFT_LS_URL
@@ -23,6 +23,7 @@ This repository is a working demonstration of Parasoft's Continuous Quality Plat
 - PARASOFT_DTP_PASS
 - PARASOFT_DTP_PUBLISH
     - true/false
+- NVD_APIKEY (for OWASP Dependency Check API in Jenkinsfile.security)
 
 ## Configure Jenkins Pipeline with the following:
 - Jenkinsfile: Quality Scan, Unit Tests, Deploy with coverage, Functional Test
