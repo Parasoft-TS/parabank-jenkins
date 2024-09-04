@@ -350,7 +350,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q -f ./parabank-jenkins/jtest/DepCheckDockerfile ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q -f ./parabank-jenkins/jtest/DepCheckDockerfile ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     -s /home/parasoft/.m2/settings.xml \
