@@ -52,7 +52,7 @@ pipeline {
                     env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
                     env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
                     env.buildTimestamp = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
-                    env.buildId= ${app_short}-${buildTimestamp}
+                    env.buildId = "${app_short}-${buildTimestamp}"
                 }
                 
                 // setup the workspace
