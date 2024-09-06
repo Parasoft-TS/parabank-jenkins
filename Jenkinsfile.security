@@ -352,6 +352,8 @@ pipeline {
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q -f ./parabank-jenkins/jtest/DepCheckDockerfile ./parabank-jenkins/jtest) /bin/bash -c " \
 
+                    java -version \
+
                     mvn \
                     -s /home/parasoft/.m2/settings.xml \
                     -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.2:check \
