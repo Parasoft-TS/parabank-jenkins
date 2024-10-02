@@ -80,7 +80,7 @@ pipeline {
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
                     mkdir dependency-check-pack-2024.1.0;
-                    unzip -q ./Dependency-Check-Pack-2024.1.0.zip -d ./dependency-check-pack-2024.1.0;
+                    unzip -q ./DependencyCheckPack-2024.1.0.zip -d ./dependency-check-pack-2024.1.0;
                     ls -ll;
                     ls -la ./dependency-check-pack-2024.1.0;
 
