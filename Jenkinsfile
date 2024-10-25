@@ -63,6 +63,9 @@ pipeline {
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
+					
+					mkdir parabank-selenic
+					git clone -b selenic-tests https://github.com/pteodor/parabank.git parabank-selenic
 
                     # Debugging
                     #pwd
@@ -142,6 +145,44 @@ pipeline {
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
+                    '''
+                    
+                // Setup selenic.properties file
+                sh  '''
+                    # Set Up and write .properties file
+                    echo $"
+                    parasoft.eula.accepted=true
+
+                    license.network.use.specified.server=true
+                    license.network.url=${ls_url}
+                    license.network.auth.enabled=true
+                    license.network.user=${ls_user}
+                    license.network.password=${ls_pass}
+                    selenic.license.use_network=true
+                    selenic.license.network.edition=custom_edition
+                    selenic.license.custom_edition_features=Selenic,API Test Creation with SOAtest,Automation,Generate Recommendations,Performance Benchmarking,Publish to DTP,Quick Fix,Selenium Test Creation,Self-Healing,Test Impact Analysis
+                    
+                    dtp.enabled=true
+                    dtp.url=${dtp_url}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
+                    dtp.project=${project_name}
+
+                    build.id=${buildId}
+                    #session.tag=${soatestSessionTag}
+
+                    report.dtp.publish=${dtp_publish}
+                    report.associations=true
+                    report.scontrol=full
+                    scope.local=true
+                    scope.scontrol=true
+                    scope.xmlmap=false
+
+                    scontrol.git.exec=git
+                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                    scontrol.rep1.type=git
+                    " > ./parabank-jenkins/selenic.properties
                     '''
             }
         }
@@ -385,12 +426,18 @@ pipeline {
                 }
             }
         }
-        stage('Selenic: Java Selenium Test') {
+		stage('Selenic: Java Selenium Test') {
             when { equals expected: true, actual: true }
             steps {
                 // Run Selenic from docker
                 sh  '''
-                    #TODO
+                docker run -u 991:990 \
+                --rm -i --name selenic \
+                --network demo-net \
+				-v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank" \
+                -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                -w "/home/parasoft/jenkins/parabank" \
+                pteodor/selenic:10.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -Dmaven.test.failure.ignore=true && java -jar /selenic/selenic_analyzer.jar -report report"   
                     '''
             }
         }
