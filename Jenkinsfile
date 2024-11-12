@@ -64,9 +64,6 @@ pipeline {
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
-					
-					mkdir parabank-selenic
-					git clone -b selenic-tests https://github.com/pteodor/parabank.git parabank-selenic
 
                     # Debugging
                     #pwd
@@ -435,11 +432,15 @@ pipeline {
                 docker run -u ${jenkins_uid}:${jenkins_gid} \
                 --rm -i --name selenic \
                 --network demo-net \
-				-v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank" \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                -w "/home/parasoft/jenkins/parabank" \
-                pteodor/selenic:10.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -DGRID_URL='http://${public_ip}:4444/wd/hub' -DPARABANK_BASE_URL='http://${public_up}:${app_port}' -Dmaven.test.failure.ignore=true && java -jar /selenic/selenic_analyzer.jar -report report"   
-                    '''
+                -w "/home/parasoft/jenkins/parabank-jenkins/selenic/selenic-tests" \
+                pteodor/selenic:10.0 sh -c " \
+
+                cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic \
+                mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -DGRID_URL='http://${public_ip}:4444/wd/hub' -DPARABANK_BASE_URL='http://${public_up}:${app_port}' -Dmaven.test.failure.ignore=true \
+                java -jar /selenic/selenic_analyzer.jar -report report
+                "   
+                '''
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
