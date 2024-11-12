@@ -51,6 +51,7 @@ pipeline {
                 script {
                     env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
                     env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.public_ip = sh(script: """curl -s https://httpbin.org/ip | jq -r '.origin'""", returnStdout: true).trim()
                     env.buildTimestamp = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
                     env.buildId = "${app_short}-${buildTimestamp}"
                 }
@@ -437,7 +438,7 @@ pipeline {
 				-v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank" \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                 -w "/home/parasoft/jenkins/parabank" \
-                pteodor/selenic:10.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -Dmaven.test.failure.ignore=true && java -jar /selenic/selenic_analyzer.jar -report report"   
+                pteodor/selenic:10.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -DGRID_URL='http://${PUBLIC_IP}:4444/wd/hub' -DPARABANK_BASE_URL='http://${PUBLIC_IP}:${app_port}' -Dmaven.test.failure.ignore=true && java -jar /selenic/selenic_analyzer.jar -report report"   
                     '''
             }
         }
