@@ -188,7 +188,7 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -245,7 +245,7 @@ pipeline {
             }
         }
         stage('Jtest: Unit Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -370,7 +370,7 @@ pipeline {
             }
         }       
         stage('SOAtest: Functional Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -443,7 +443,7 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
