@@ -60,7 +60,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -180,7 +180,7 @@ pipeline {
                     scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
-                    " > ./parabank-jenkins/selenic.properties
+                    " > ./parabank-jenkins/selenic/selenic.properties
                     '''
             }
         }
@@ -436,7 +436,7 @@ pipeline {
                 -w "/home/parasoft/jenkins/parabank-jenkins/selenic/selenic-tests" \
                 pteodor/selenic:10.0 sh -c " \
 
-                cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic; \
+                cp /home/parasoft/jenkins/parabank-jenkins/selenic/selenic.properties /selenic; \
                 
                 mvn test \
                 -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true \
