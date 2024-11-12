@@ -80,7 +80,7 @@ public class ParabankTest {
 	 */
 	@Test
 	public void test1() throws Throwable {
-		driver.get(System.getProperty("PARABANK_BASE_URL", PARABANK_BASE_URL) + "/parabank/index.htm");
+		driver.get(PARABANK_BASE_URL + "/parabank/index.htm");
 
 		ParaBankWelcomeOnlineBankingPage paraBankWelcomeOnlineBankingPage = new ParaBankWelcomeOnlineBankingPage(
 				driver);

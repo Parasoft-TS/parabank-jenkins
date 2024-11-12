@@ -79,7 +79,7 @@ public class TransferTest {
 	 */
 	@Test
 	public void testTransfer() throws Throwable {
-		driver.get(System.getProperty("PARABANK_BASE_URL", PARABANK_BASE_URL) + "/parabank/index.htm?ConnType=JDBC");
+		driver.get(PARABANK_BASE_URL + "/parabank/index.htm?ConnType=JDBC");
 
 		ParaBankWelcomeOnlineBankingPage paraBankWelcomeOnlineBankingPage = new ParaBankWelcomeOnlineBankingPage(
 				driver);

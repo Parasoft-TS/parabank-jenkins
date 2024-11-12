@@ -502,7 +502,7 @@ pipeline {
                     **/soatest/func-report/**, 
                     **/soatest/load-report/**''',
                 fingerprint: true, 
-                onlyIfSuccessful: true,
+                onlyIfSuccessful: false,
                 excludes: '''
                     **/.jtest/**, 
                     **/metadata.json'''
