@@ -158,8 +158,7 @@ pipeline {
                     license.network.password=${ls_pass}
                     selenic.license.use_network=true
                     selenic.license.network.edition=custom_edition
-                    selenic.license.custom_edition_features=Selenic,API Test Creation with SOAtest,Automation,Generate Recommendations,Performance Benchmarking,Publish to DTP,Quick Fix,Selenium Test Creation,Self-Healing,Test Impact Analysis
-                    
+                    selenic.license.custom_edition_features=Selenic, Selenic API Test Creation, Selenic Automation, Selenic Generate Recommendations, Selenic Performance Benchmarking, Selenic Publish to DTP, Selenic Quick Fix, Selenic Selenium Test Creation, Selenic Self Healing, Selenic Test Impact Analysis
                     dtp.enabled=true
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
