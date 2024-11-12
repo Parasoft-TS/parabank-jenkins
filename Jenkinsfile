@@ -432,13 +432,13 @@ pipeline {
             steps {
                 // Run Selenic from docker
                 sh  '''
-                docker run -u 991:990 \
+                docker run -u ${jenkins_uid}:${jenkins_gid} \
                 --rm -i --name selenic \
                 --network demo-net \
 				-v "$PWD/parabank-selenic:/home/parasoft/jenkins/parabank" \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                 -w "/home/parasoft/jenkins/parabank" \
-                pteodor/selenic:10.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -DGRID_URL='http://${PUBLIC_IP}:4444/wd/hub' -DPARABANK_BASE_URL='http://${PUBLIC_IP}:${app_port}' -Dmaven.test.failure.ignore=true && java -jar /selenic/selenic_analyzer.jar -report report"   
+                pteodor/selenic:10.0 sh -c "cp /home/parasoft/jenkins/parabank-jenkins/selenic.properties /selenic && mvn test -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true -DGRID_URL='http://${public_ip}:4444/wd/hub' -DPARABANK_BASE_URL='http://${public_up}:${app_port}' -Dmaven.test.failure.ignore=true && java -jar /selenic/selenic_analyzer.jar -report report"   
                     '''
             }
         }
