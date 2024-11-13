@@ -436,7 +436,8 @@ pipeline {
                 pteodor/selenic:10.0 sh -c " \
 
                 cp /home/parasoft/jenkins/parabank-jenkins/selenic/selenic.properties /selenic; \
-                
+                ls -ll /selenic; \
+
                 mvn test \
                 -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true \
                 -DGRID_URL='http://${public_ip}:4444/wd/hub' \
