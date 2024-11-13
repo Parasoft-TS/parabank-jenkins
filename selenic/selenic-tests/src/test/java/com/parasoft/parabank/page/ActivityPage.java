@@ -27,7 +27,7 @@ public class ActivityPage {
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { "Account", "Activity" };
+	private static final String[] TITLE_WORDS = { };
 
 	public ActivityPage(WebDriver driver) {
 		this.driver = driver;

@@ -494,7 +494,6 @@ pipeline {
             sh 'docker image prune -f'
 
             archiveArtifacts(artifacts: '''
-                    **/parabank-jenkins/selenic/**,
                     **/target/**/*.war, 
                     **/target/jtest/sa/**, 
                     **/target/jtest/ut/**, 
@@ -502,13 +501,13 @@ pipeline {
                     **/soatest/func-report/**, 
                     **/soatest/load-report/**''',
                 fingerprint: true, 
-                onlyIfSuccessful: false,
+                onlyIfSuccessful: true,
                 excludes: '''
                     **/.jtest/**, 
                     **/metadata.json'''
             )
 
-            deleteDir()
+            //deleteDir()
         }
     }
 }

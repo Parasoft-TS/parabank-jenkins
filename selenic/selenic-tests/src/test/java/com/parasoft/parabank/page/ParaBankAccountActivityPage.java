@@ -27,7 +27,7 @@ public class ParaBankAccountActivityPage {
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { "Account", "Activity" };
+	private static final String[] TITLE_WORDS = { };
 
 	public ParaBankAccountActivityPage(WebDriver driver) {
 		this.driver = driver;

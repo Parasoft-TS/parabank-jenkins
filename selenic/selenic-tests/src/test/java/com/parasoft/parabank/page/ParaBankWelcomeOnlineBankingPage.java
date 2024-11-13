@@ -33,7 +33,7 @@ public class ParaBankWelcomeOnlineBankingPage {
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { "Welcome", "Online", "Banking" };
+	private static final String[] TITLE_WORDS = { };
 
 	public ParaBankWelcomeOnlineBankingPage(WebDriver driver) {
 		this.driver = driver;

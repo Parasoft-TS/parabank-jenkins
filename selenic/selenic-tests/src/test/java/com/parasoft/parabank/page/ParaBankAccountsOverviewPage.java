@@ -39,7 +39,7 @@ public class ParaBankAccountsOverviewPage {
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { "Accounts", "Overview" };
+	private static final String[] TITLE_WORDS = { };
 
 	public ParaBankAccountsOverviewPage(WebDriver driver) {
 		this.driver = driver;

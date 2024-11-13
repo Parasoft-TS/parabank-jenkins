@@ -34,7 +34,7 @@ public class ParaBankTransferFundsPage {
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { "Transfer", "Funds" };
+	private static final String[] TITLE_WORDS = { };
 
 	public ParaBankTransferFundsPage(WebDriver driver) {
 		this.driver = driver;

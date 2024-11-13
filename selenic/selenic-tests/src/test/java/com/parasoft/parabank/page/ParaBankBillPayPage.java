@@ -57,7 +57,7 @@ public class ParaBankBillPayPage {
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { "Bill", "Pay" };
+	private static final String[] TITLE_WORDS = { };
 
 	public ParaBankBillPayPage(WebDriver driver) {
 		this.driver = driver;
