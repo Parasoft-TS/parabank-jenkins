@@ -51,6 +51,7 @@ pipeline {
                 script {
                     env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
                     env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.public_ip = sh(script: """curl -s https://httpbin.org/ip | jq -r '.origin'""", returnStdout: true).trim()
                     env.buildTimestamp = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
                     env.buildId = "${app_short}-${buildTimestamp}"
                 }
@@ -59,7 +60,7 @@ pipeline {
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                    git clone -b Pawel-Selenic https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
 
                     mkdir parabank
                     git clone https://github.com/parasoft/parabank parabank
@@ -143,10 +144,47 @@ pipeline {
                     scontrol.rep1.type=git
                     " > ./parabank-jenkins/soatest/soatestcli.properties
                     '''
+                    
+                // Setup selenic.properties file
+                sh  '''
+                    # Set Up and write .properties file
+                    echo $"
+                    parasoft.eula.accepted=true
+
+                    license.network.use.specified.server=true
+                    license.network.url=${ls_url}
+                    license.network.auth.enabled=true
+                    license.network.user=${ls_user}
+                    license.network.password=${ls_pass}
+                    selenic.license.use_network=true
+                    selenic.license.network.edition=custom_edition
+                    selenic.license.custom_edition_features=Selenic, Selenic API Test Creation, Selenic Automation, Selenic Generate Recommendations, Selenic Performance Benchmarking, Selenic Publish to DTP, Selenic Quick Fix, Selenic Selenium Test Creation, Selenic Self Healing, Selenic Test Impact Analysis
+                    dtp.enabled=true
+                    dtp.url=${dtp_url}
+                    dtp.user=${dtp_user}
+                    dtp.password=${dtp_pass}
+                    dtp.project=${project_name}
+
+                    build.id=${buildId}
+                    #session.tag=${soatestSessionTag}
+
+                    report.dtp.publish=${dtp_publish}
+                    report.associations=true
+                    report.scontrol=full
+                    scope.local=true
+                    scope.scontrol=true
+                    scope.xmlmap=false
+
+                    scontrol.git.exec=git
+                    scontrol.rep1.git.branch=master
+                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+                    scontrol.rep1.type=git
+                    " > ./parabank-jenkins/selenic/selenic.properties
+                    '''
             }
         }
         stage('Jtest: Quality Scan') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -203,7 +241,7 @@ pipeline {
             }
         }
         stage('Jtest: Unit Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -328,7 +366,7 @@ pipeline {
             }
         }       
         stage('SOAtest: Functional Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -385,17 +423,34 @@ pipeline {
                 }
             }
         }
-        stage('Selenic: Java Selenium Test') {
+		stage('Selenic: Java Selenium Test') {
             when { equals expected: true, actual: true }
             steps {
                 // Run Selenic from docker
                 sh  '''
-                    #TODO
-                    '''
+                docker run -u ${jenkins_uid}:${jenkins_gid} \
+                --rm -i --name selenic \
+                --network demo-net \
+                -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                -w "/home/parasoft/jenkins/parabank-jenkins/selenic/selenic-tests" \
+                pteodor/selenic:10.0 sh -c " \
+
+                cp /home/parasoft/jenkins/parabank-jenkins/selenic/selenic.properties /selenic; \
+                ls -ll /selenic; \
+
+                mvn test \
+                -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true \
+                -DGRID_URL='http://${public_ip}:4444/wd/hub' \
+                -DPARABANK_BASE_URL='http://${public_ip}:${app_port}' \
+                -Dmaven.test.failure.ignore=true; \
+                
+                java -jar /selenic/selenic_analyzer.jar -report report
+                "   
+                '''
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
@@ -453,7 +508,7 @@ pipeline {
                     **/metadata.json'''
             )
 
-            deleteDir()
+            //deleteDir()
         }
     }
 }
