@@ -29,7 +29,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
+        //buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
         jtestSAConfig="jtest.builtin://Recommended Rules"
@@ -46,7 +46,15 @@ pipeline {
         stage('Setup') {
             steps {
                 deleteDir()
-                                
+
+                // setup additional environment
+                script {
+                    env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
+                    env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y-%m-%d', returnStdout: true).trim()
+                    env.buildId = "${app_short}-${buildTimestamp}-feature"
+                }
+
                 // setup the workspace
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
@@ -126,6 +134,7 @@ pipeline {
 
                     application.coverage.enabled=true
                     application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
+                    application.coverage.dtp.publish=${dtp_publish}
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
@@ -150,7 +159,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
                     mvn compile \
@@ -214,7 +223,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
                     mvn test-compile \
@@ -269,7 +278,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Package the application with the Jtest Monitor
                     mvn package jtest:monitor \
@@ -308,7 +317,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker)
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
                     sleep 15
@@ -331,7 +340,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace; \
@@ -398,7 +407,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
                
                     # Execute the project with SOAtest CLI
                     ./soavirt/loadtest \

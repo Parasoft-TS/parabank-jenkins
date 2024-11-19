@@ -25,7 +25,7 @@ pipeline {
         dtp_user="${PARASOFT_DTP_USER}" //admin
         dtp_pass="${PARASOFT_DTP_PASS}"
         dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
+        //buildId="${app_short}-${BUILD_TIMESTAMP}-feature"
         
         // Parasoft Jtest Settings
         jtestSessionTag="ParabankJenkins-Jtest"
@@ -35,7 +35,15 @@ pipeline {
         stage('Build') {
             steps {
                 deleteDir()
-                                
+
+                // setup additional environment
+                script {
+                    env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
+                    env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y-%m-%d', returnStdout: true).trim()
+                    env.buildId = "${app_short}-${buildTimestamp}-feature"
+                }
+
                 // setup the workspace and jtestcli.properties file
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
@@ -89,7 +97,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     
                     cd parabank; \
 
@@ -129,7 +137,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker)
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
                     sleep 15

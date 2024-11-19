@@ -30,7 +30,9 @@ pipeline {
         // Parasoft Jtest Settings
         jtestCWEConfig="builtin://CWE Top 25 2023"
         jtestOWASPConfig="builtin://OWASP Top 10-2021"
+        jtestOWASPAPIConfig="builtin://OWASP API Security Top 10-2023"
         jtestPCIConfig="builtin://PCI DSS 4.0"
+        jtestHIPAAConfig="builtin://HIPAA"
         jtestSTIGConfig="builtin://DISA-ASD-STIG"
         jtestCERTConfig="builtin://CERT for Java"
         jtestSessionTag="ParabankJenkins-Jtest-Security"
@@ -63,10 +65,10 @@ pipeline {
                 sh '''
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
-                    mkdir dependency-check-pack-2023.2.0;
-                    unzip -q ./dependency-check-pack-2023.2.0.zip -d ./dependency-check-pack-2023.2.0;
+                    mkdir dependency-check-pack;
+                    unzip -q ./dependency-check-pack-2024.2.0.zip -d ./dependency-check-pack;
                     ls -ll;
-                    ls -la ./dependency-check-pack-2023.2.0;
+                    ls -la ./dependency-check-pack;
 
                     # Set Up and write .properties file 
                     echo $"
@@ -77,7 +79,8 @@ pipeline {
                     analyzer.dependencycheck.enabled=true
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
-                    " > ./dependency-check-pack-2023.2.0/settings.properties
+                    report.dtp.publish=${dtp_publish}
+                    " > ./dependency-check-pack/settings.properties
                     '''
 
                 // Prepare the jtestcli.properties file
@@ -172,7 +175,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn compile \
                     jtest:jtest \
@@ -201,7 +204,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -209,6 +212,35 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestOWASPConfig}' \
+                    -Djtest.report=./target/jtest/sast/owasp \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+            }
+        }
+        stage('Jtest: (SAST) OWASP API Security Top 10') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestOWASPAPIConfig}' \
                     -Djtest.report=./target/jtest/sast/owasp \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
@@ -230,7 +262,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -238,6 +270,35 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestPCIConfig}' \
+                    -Djtest.report=./target/jtest/sast/pci \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    "
+                    '''
+            }
+        }
+        stage('Jtest: HIPAA') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Execute the build with Jtest Maven plugin in docker
+                sh '''
+                    # Run Maven build with Jtest tasks via Docker
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    mvn \
+                    jtest:jtest \
+                    -DskipTests=true \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                    -Djtest.config='${jtestHIPAAConfig}' \
                     -Djtest.report=./target/jtest/sast/pci \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
@@ -259,7 +320,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -288,7 +349,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     jtest:jtest \
@@ -333,16 +394,17 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     mvn \
                     -s /home/parasoft/.m2/settings.xml \
-                    -P owasp-dependency-check org.owasp:dependency-check-maven:check \
-                    -Dowasp.dependency-check.outputDirectory=./target/owasp-dependency-check \
-                    
-                    ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/dependencycheck.sh \
-                        -settings ../parabank-jenkins/jtest/dependency-check-pack-2023.2.0/settings.properties \
-                        -results.file ./target/dependency-check-report.xml \
+                    -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.2:check \
+                    -Dodc.outputDirectory=./target/owasp-dependency-check \
+                    -DnvdApiKey=${nvd_key} \
+
+                    ../parabank-jenkins/jtest/dependency-check-pack/dependencycheck.sh \
+                        -settings ../parabank-jenkins/jtest/dependency-check-pack/settings.properties \
+                        -results.file ./target/owasp-dependency-check/dependency-check-report.xml \
                     "
                     '''
             }
@@ -368,7 +430,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
                     
                     mvn package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
@@ -408,7 +470,7 @@ pipeline {
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
-                    $(docker build -q ./parabank-jenkins/parabank-docker)
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
 
                     # Health Check
                     sleep 15
@@ -431,7 +493,7 @@ pipeline {
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
-                    $(docker build -q ./parabank-jenkins/soatest) /bin/bash -c " \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
                     # Create workspace directory and copy SOAtest project into it
                     mkdir -p ./soavirt_workspace; \
