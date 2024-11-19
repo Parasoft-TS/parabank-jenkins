@@ -169,7 +169,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
-                    mvn compile \
+                    mvn -ntp compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
@@ -180,7 +180,7 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     # Compile the project and run Jtest Metrics Analysis
-                    mvn \
+                    mvn -ntp \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
@@ -233,7 +233,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
-                    mvn test-compile \
+                    mvn -ntp test-compile \
                     jtest:agent \
                     test \
                     jtest:jtest \
@@ -288,7 +288,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Package the application with the Jtest Monitor
-                    mvn package jtest:monitor \
+                    mvn -ntp package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
                     -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
