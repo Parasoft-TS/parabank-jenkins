@@ -142,6 +142,12 @@ pipeline {
                     scontrol.rep1.git.branch=master
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
+
+                    techsupport.auto_creation=true
+                    techsupport.archive_location=./parabank-jenkins/soatest/tsa
+                    techsupport.verbose=true
+                    techsupport.item.general=true
+                    techsupport.item.environment.true
                     " > ./parabank-jenkins/soatest/soatestcli.properties
                     '''
             }
@@ -446,9 +452,10 @@ pipeline {
                     **/target/jtest/ut/**, 
                     **/target/jtest/monitor/**, 
                     **/soatest/func-report/**, 
+                    **/soatest/tsa/**,
                     **/soatest/load-report/**''',
                 fingerprint: true, 
-                onlyIfSuccessful: true,
+                onlyIfSuccessful: false,
                 excludes: '''
                     **/.jtest/**, 
                     **/metadata.json'''
