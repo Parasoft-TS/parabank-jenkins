@@ -144,7 +144,7 @@ pipeline {
                     scontrol.rep1.type=git
 
                     techsupport.auto_creation=true
-                    techsupport.archive_location=./parabank-jenkins/soatest/tsa
+                    techsupport.archive_location=/parabank-jenkins/soatest/tsa
                     techsupport.verbose=true
                     techsupport.item.general=true
                     techsupport.item.environment.true
