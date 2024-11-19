@@ -102,7 +102,7 @@ pipeline {
                     cd parabank; \
 
                     # Package the application with the Jtest Monitor
-                    mvn package jtest:monitor \
+                    mvn -ntp package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
