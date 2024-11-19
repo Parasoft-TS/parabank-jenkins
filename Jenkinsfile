@@ -134,7 +134,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://localhost\\:${app_cov_port}
+                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
                     application.coverage.dtp.publish=${dtp_publish}
                     application.coverage.images=${soatestCovImage}
 
