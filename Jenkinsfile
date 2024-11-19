@@ -134,7 +134,7 @@ pipeline {
                     scope.xmlmap=false
 
                     application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
+                    application.coverage.agent.url=http\\://localhost\\:${app_cov_port}
                     application.coverage.dtp.publish=${dtp_publish}
                     application.coverage.images=${soatestCovImage}
 
@@ -323,8 +323,8 @@ pipeline {
                     # Health Check
                     sleep 15
                     docker ps -f name=${app_name}
-                    curl -iv --raw http://${app_name}:${app_port}/parabank
-                    curl -iv --raw http://${app_name}:${app_cov_port}/status
+                    curl -iv --raw http://localhost:${app_port}/parabank
+                    curl -iv --raw http://localhost:${app_cov_port}/status
                     '''
             }
         }       
