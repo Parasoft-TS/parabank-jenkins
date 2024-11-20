@@ -389,7 +389,7 @@ pipeline {
             }
         }
         stage('Parasoft: (SCA) OWASP Dependency Check') {
-            when { equals expected: true, actual: false }
+            when { equals expected: true, actual: true }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
