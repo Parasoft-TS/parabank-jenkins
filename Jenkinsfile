@@ -297,14 +297,14 @@ pipeline {
                     "
 
                     # check parabank/target permissions
-                    ls -la ./parabank/target;
+                    #ls -la ./parabank/target;
 
                     # Unzip monitor.zip
-                    pwd;
+                    #pwd;
                     mkdir monitor;
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .;
-                    ls -ll;
-                    ls -la monitor;
+                    #ls -ll;
+                    #ls -la monitor;
                     '''
             }
         }
@@ -322,7 +322,7 @@ pipeline {
                     -p ${app_db_port}:9001 \
                     -p ${app_jms_port}:61616 \
                     --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
-                    -v "$PWD/monitor:/usr/local/tomcat/jtest/monitor" \
+                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
