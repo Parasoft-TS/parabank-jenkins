@@ -80,11 +80,11 @@ pipeline {
 
                     # Set Up and write .properties file 
                     echo $"
+                    parasoft.eula.accepted=true
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
                     dtp.password=${dtp_pass}
                     dtp.project=${project_name}
-                    analyzer.dependencycheck.enabled=true
                     build.id=${buildId}
                     session.tag=${jtestSessionTag}
                     report.dtp.publish=${dtp_publish}
