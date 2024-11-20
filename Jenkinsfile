@@ -16,8 +16,8 @@ pipeline {
         app_jms_port=63616
 
         // Jenkins UID:GID
-        jenkins_uid=992
-        jenkins_gid=992
+        //jenkins_uid=992
+        //jenkins_gid=992
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
