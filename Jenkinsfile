@@ -162,7 +162,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
-                    mvn -ntp -X compile \
+                    mvn -ntp compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
