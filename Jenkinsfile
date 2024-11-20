@@ -143,7 +143,7 @@ pipeline {
                     scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
                     scontrol.rep1.type=git
 
-                    techsupport.auto_creation=true
+                    techsupport.auto_creation=false
                     techsupport.archive_location=/parabank-jenkins/soatest/tsa
                     techsupport.verbose=true
                     techsupport.item.general=true
