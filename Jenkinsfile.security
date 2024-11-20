@@ -46,7 +46,15 @@ pipeline {
         stage('Setup') {
             steps {
                 deleteDir()
-                                
+
+                // setup additional environment
+                script {
+                    env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
+                    env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y-%m-%d', returnStdout: true).trim()
+                    env.buildId = "${app_short}-${buildTimestamp}-feature"
+                }
+
                 // setup the workspace
                 sh  '''
                     # Clone this repository & Parabank repository into the workspace
