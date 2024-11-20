@@ -257,7 +257,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestOWASPAPIConfig}' \
-                    -Djtest.report=./target/jtest/sast/owasp \
+                    -Djtest.report=./target/jtest/sast/owaspapi \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
@@ -315,7 +315,7 @@ pipeline {
                     -s /home/parasoft/.m2/settings.xml \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestHIPAAConfig}' \
-                    -Djtest.report=./target/jtest/sast/pci \
+                    -Djtest.report=./target/jtest/sast/hipaa \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
                     "
