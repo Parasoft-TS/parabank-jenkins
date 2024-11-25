@@ -57,6 +57,9 @@ pipeline {
 
                 // setup the workspace
                 sh  '''
+                    # Start Selenium Grid for Selenium test execution
+                    docker run -d --rm -p 4444:4444 -p 7900:7900 --network=demo-net --shm-size "2g" --name selenium-grid selenium/standalone-chrome:latest
+                    
                     # Clone this repository & Parabank repository into the workspace
                     mkdir parabank-jenkins
                     git clone -b selenium-demo https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
@@ -434,6 +437,8 @@ pipeline {
     post {
         // Clean after build
         always {
+            sh 'docker container stop selenium-grid'
+            sh 'docker container rm selenium-grid'
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
             sh 'docker container prune -f'
