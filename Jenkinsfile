@@ -446,7 +446,6 @@ pipeline {
         // Clean after build
         always {
             sh 'docker container stop selenium-grid'
-            sh 'docker container rm selenium-grid'
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
             sh 'docker container prune -f'
