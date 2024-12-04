@@ -158,7 +158,7 @@ pipeline {
                     license.network.password=${ls_pass}
                     selenic.license.use_network=true
                     selenic.license.network.edition=custom_edition
-                    selenic.license.custom_edition_features=Selenic, Selenic API Test Creation, Selenic Automation, Selenic Generate Recommendations, Selenic Performance Benchmarking, Selenic Publish to DTP, Selenic Quick Fix, Selenic Selenium Test Creation, Selenic Self Healing, Selenic Test Impact Analysis
+                    selenic.license.custom_edition_features=Selenic,API Test Creation with SOAtest,Automation,Generate Recommendations,Performance Benchmarking,Publish to DTP,Quick Fix,Selenium Test Creation,Self-Healing,Test Impact Analysis
                     dtp.enabled=true
                     dtp.url=${dtp_url}
                     dtp.user=${dtp_user}
@@ -423,6 +423,19 @@ pipeline {
                 }
             }
         }
+        stage('Selenic: Initialize Selenium Grid') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Initialize Selenium Grid to execute Selenic tests
+                sh  '''
+                    docker run -d \
+                    --name selenium-grid \
+                    --network demo-net \
+					-p 4444:4444 \
+                    selenium/standalone-chrome:latest
+                    '''
+            }
+        }
 		stage('Selenic: Java Selenium Test') {
             when { equals expected: true, actual: true }
             steps {
@@ -436,7 +449,6 @@ pipeline {
                 pteodor/selenic:10.0 sh -c " \
 
                 cp /home/parasoft/jenkins/parabank-jenkins/selenic/selenic.properties /selenic; \
-                ls -ll /selenic; \
 
                 mvn test \
                 -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true \
@@ -491,6 +503,8 @@ pipeline {
         always {
             sh 'docker container stop ${app_name}'
             sh 'docker container rm ${app_name}'
+			sh 'docker container stop selenium-grid'
+            sh 'docker container rm selenium-grid'
             sh 'docker container prune -f'
             sh 'docker image prune -f'
 
@@ -508,7 +522,7 @@ pipeline {
                     **/metadata.json'''
             )
 
-            //deleteDir()
+            deleteDir()
         }
     }
 }
