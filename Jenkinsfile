@@ -36,15 +36,11 @@ pipeline {
         jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
-        funcCovImage="Parabank_All;Parabank_SOAtest;Parabank_Selenic"
 
         // Parasoft SOAtest Settings
         soatestConfig="soatest.user://Example Configuration"
         soatestSessionTag="ParabankJenkins-SOAtest"
         soatestCovImage="Parabank_All;Parabank_SOAtest"
-
-        // Parasoft Selenic Settings
-        selenicCovImage="Parabank_All;Parabank_Selenic"
     }
     stages {
         stage('Setup') {
@@ -173,7 +169,7 @@ pipeline {
                     build.id=${buildId}
                     #session.tag=${soatestSessionTag}
 
-                    report.coverage.images=${selenicCovImage}
+                    report.coverage.images=${soatestCovImage}
                     report.dtp.publish=${dtp_publish}
                     report.associations=true
                     report.scontrol=full
@@ -308,7 +304,7 @@ pipeline {
                 sh '''
                     # Set Up and write .properties file
                     echo $"
-                    report.coverage.images=${funcCovImage}
+                    report.coverage.images=${soatestCovImage}
                     " > ./parabank-jenkins/jtest/jtestcli-ft.properties
                 '''
                 // Execute the build with Jtest Maven plugin in docker
@@ -456,7 +452,7 @@ pipeline {
 
                 cp /home/parasoft/jenkins/parabank-jenkins/selenic/selenic.properties /selenic; \
 
-                mvn test \
+                mvn -ntp test \
                 -DargLine=-javaagent:/selenic/selenic_agent.jar=captureDom=true \
                 -DGRID_URL='http://${public_ip}:4444/wd/hub' \
                 -DPARABANK_BASE_URL='http://${public_ip}:${app_port}' \
