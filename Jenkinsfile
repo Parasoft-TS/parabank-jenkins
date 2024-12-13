@@ -36,11 +36,15 @@ pipeline {
         jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
+        funcCovImage="Parabank_All;Parabank_SOAtest;Parabank_Selenic"
 
         // Parasoft SOAtest Settings
         soatestConfig="soatest.user://Example Configuration"
         soatestSessionTag="ParabankJenkins-SOAtest"
         soatestCovImage="Parabank_All;Parabank_SOAtest"
+
+        // Parasoft Selenic Settings
+        selenicCovImage="Parabank_All;Parabank_Selenic"
     }
     stages {
         stage('Setup') {
@@ -52,7 +56,7 @@ pipeline {
                     env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
                     env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
                     env.public_ip = sh(script: """curl -s https://httpbin.org/ip | jq -r '.origin'""", returnStdout: true).trim()
-                    env.buildTimestamp = sh(script: 'date +%Y%m%d', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y-%m-%d', returnStdout: true).trim()
                     env.buildId = "${app_short}-${buildTimestamp}"
                 }
                 
@@ -136,6 +140,7 @@ pipeline {
 
                     application.coverage.enabled=true
                     application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
+                    application.coverage.dtp.publish=${dtp_publish}
                     application.coverage.images=${soatestCovImage}
 
                     scontrol.git.exec=git
@@ -168,6 +173,7 @@ pipeline {
                     build.id=${buildId}
                     #session.tag=${soatestSessionTag}
 
+                    report.coverage.images=${selenicCovImage}
                     report.dtp.publish=${dtp_publish}
                     report.associations=true
                     report.scontrol=full
@@ -200,7 +206,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the project and run Jtest Static Analysis
-                    mvn compile \
+                    mvn -ntp compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
@@ -211,7 +217,7 @@ pipeline {
                     -Dproperty.report.dtp.publish=${dtp_publish}; \
 
                     # Compile the project and run Jtest Metrics Analysis
-                    mvn \
+                    mvn -ntp \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
@@ -264,7 +270,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Compile the test sources and run unit tests with Jtest
-                    mvn test-compile \
+                    mvn -ntp test-compile \
                     jtest:agent \
                     test \
                     jtest:jtest \
@@ -302,7 +308,7 @@ pipeline {
                 sh '''
                     # Set Up and write .properties file
                     echo $"
-                    report.coverage.images=${soatestCovImage}
+                    report.coverage.images=${funcCovImage}
                     " > ./parabank-jenkins/jtest/jtestcli-ft.properties
                 '''
                 // Execute the build with Jtest Maven plugin in docker
@@ -319,7 +325,7 @@ pipeline {
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
                     # Package the application with the Jtest Monitor
-                    mvn package jtest:monitor \
+                    mvn -ntp package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
                     -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
