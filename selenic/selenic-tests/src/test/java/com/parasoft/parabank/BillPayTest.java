@@ -78,33 +78,35 @@ public class BillPayTest {
 	 *
 	 * Parasoft recorded Selenium test on Sun Sep 03 2023 20:30:26 GMT+0200 (czas środkowoeuropejski letni)
 	 */
+
 	@Test
-	public void testBill_pay() throws Throwable {
-		driver.get(PARABANK_BASE_URL + "/parabank/index.htm");
+	public void testBillPayTest() throws Throwable {
+		driver.get(System.getProperty("PARABANK_BASE_URL", PARABANK_BASE_URL) + "/parabank/index.htm?ConnType=JDBC");
 
 		ParaBankWelcomeOnlineBankingPage paraBankWelcomeOnlineBankingPage = new ParaBankWelcomeOnlineBankingPage(
 				driver);
-		paraBankWelcomeOnlineBankingPage.setUsernameField("john");
-		paraBankWelcomeOnlineBankingPage.setPasswordField("demo");
-		paraBankWelcomeOnlineBankingPage.clickLogInButton();
+		paraBankWelcomeOnlineBankingPage.setUsernameText("john");
+		paraBankWelcomeOnlineBankingPage.setPassword("demo");
+		paraBankWelcomeOnlineBankingPage.clickLogInSubmit();
 
 		ParaBankAccountsOverviewPage paraBankAccountsOverviewPage = new ParaBankAccountsOverviewPage(driver);
 		paraBankAccountsOverviewPage.clickBillPayLink();
 
 		ParaBankBillPayPage paraBankBillPayPage = new ParaBankBillPayPage(driver);
-		paraBankBillPayPage.setPayeeNameField("John");
-		paraBankBillPayPage.setPayeeAddressStreetField("street");
-		paraBankBillPayPage.setPayeeAddressCityField("city");
-		paraBankBillPayPage.setPayeeAddressStateField("state");
-		paraBankBillPayPage.setPayeeAddressZipCodeField("zip");
-		paraBankBillPayPage.setPayeePhoneNumberField("12345");
-		paraBankBillPayPage.setPayeeAccountNumberField("12345");
-		paraBankBillPayPage.setVerifyAccountField("12456");
-		paraBankBillPayPage.setAmountField("10");
-		paraBankBillPayPage.clickForm();
-		paraBankBillPayPage.setVerifyAccountField("12345");
-		paraBankBillPayPage.clickForm();
-		paraBankBillPayPage.clickSendPaymentButton();
+		paraBankBillPayPage.setPayeeNameText("John");
+		paraBankBillPayPage.setPayeeAddressStreetText("Kolberga");
+		paraBankBillPayPage.clickPayeeName();
+		paraBankBillPayPage.setPayeeAddressStreetText("Szewska");
+		paraBankBillPayPage.setPayeeAddressCityText("Krakow");
+		paraBankBillPayPage.setPayeeAddressStateText("malopolskie");
+		paraBankBillPayPage.setPayeeAddressZipCodeText("31000");
+		paraBankBillPayPage.setPayeePhoneNumberText("691691691");
+		paraBankBillPayPage.setPayeeAccountNumberText("12345");
+		paraBankBillPayPage.setVerifyAccountText("12456");
+		paraBankBillPayPage.setAmountText("100");
+		paraBankBillPayPage.clickPhoneNumberIsRequired();
+		paraBankBillPayPage.setPayeeAccountNumberText("12456");
+		paraBankBillPayPage.clickSendPaymentSubmit();
 	}
 
 }
