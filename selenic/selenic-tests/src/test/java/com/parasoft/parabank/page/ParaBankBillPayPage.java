@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.parasoft.page;
+package com.parasoft.parabank.page;
 
 import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 
@@ -13,7 +13,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class ParaBankBillPayPage {
@@ -24,20 +23,20 @@ public class ParaBankBillPayPage {
 	@FindBy(name = "payee.address.street")
 	private WebElement payeeAddressStreetText;
 
+	@FindBy(xpath = "/descendant::td[normalize-space(.)='Payee Name:']")
+	private WebElement payeeName;
+
 	@FindBy(name = "payee.address.city")
 	private WebElement payeeAddressCityText;
+
+	@FindBy(name = "payee.address.state")
+	private WebElement payeeAddressStateText;
 
 	@FindBy(name = "payee.address.zipCode")
 	private WebElement payeeAddressZipCodeText;
 
-	@FindBy(name = "payee.contactInformation.phoneNumber")
-	private WebElement payeeContactInformationPhoneNumberText;
-
-	@FindBy(name = "payee.contactInformation.email")
-	private WebElement payeeContactInformationEmailText;
-
-	@FindBy(name = "payee.address.state")
-	private WebElement payeeAddressStateText;
+	@FindBy(name = "payee.phoneNumber")
+	private WebElement payeePhoneNumberText;
 
 	@FindBy(name = "payee.accountNumber")
 	private WebElement payeeAccountNumberText;
@@ -48,8 +47,8 @@ public class ParaBankBillPayPage {
 	@FindBy(name = "amount")
 	private WebElement amountText;
 
-	@FindBy(name = "fromAccountId")
-	private WebElement fromAccountIdSelectOne;
+	@FindBy(xpath = "/descendant::td[normalize-space(.)='Phone number is required.']")
+	private WebElement phoneNumberIsRequired;
 
 	@FindBy(css = "input[value='Send Payment']")
 	private WebElement sendPaymentSubmit;
@@ -94,9 +93,18 @@ public class ParaBankBillPayPage {
 		payeeAddressStreetText.sendKeys(text);
 	}
 
+	public void clickPayeeName() {
+		click(payeeName);
+	}
+
 	public void setPayeeAddressCityText(String text) {
 		waitFor(payeeAddressCityText).clear();
 		payeeAddressCityText.sendKeys(text);
+	}
+
+	public void setPayeeAddressStateText(String text) {
+		waitFor(payeeAddressStateText).clear();
+		payeeAddressStateText.sendKeys(text);
 	}
 
 	public void setPayeeAddressZipCodeText(String text) {
@@ -104,19 +112,9 @@ public class ParaBankBillPayPage {
 		payeeAddressZipCodeText.sendKeys(text);
 	}
 
-	public void setPayeeContactInformationPhoneNumberText(String text) {
-		waitFor(payeeContactInformationPhoneNumberText).clear();
-		payeeContactInformationPhoneNumberText.sendKeys(text);
-	}
-
-	public void setPayeeContactInformationEmailText(String text) {
-		waitFor(payeeContactInformationEmailText).clear();
-		payeeContactInformationEmailText.sendKeys(text);
-	}
-
-	public void setPayeeAddressStateText(String text) {
-		waitFor(payeeAddressStateText).clear();
-		payeeAddressStateText.sendKeys(text);
+	public void setPayeePhoneNumberText(String text) {
+		waitFor(payeePhoneNumberText).clear();
+		payeePhoneNumberText.sendKeys(text);
 	}
 
 	public void setPayeeAccountNumberText(String text) {
@@ -134,13 +132,8 @@ public class ParaBankBillPayPage {
 		amountText.sendKeys(text);
 	}
 
-	public void selectFromAccountIdSelectOne(String text) {
-		WebDriverWait wait = new WebDriverWait(driver, DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT);
-		wait.ignoring(StaleElementReferenceException.class);
-		wait.until(webdriver -> new Select(fromAccountIdSelectOne).getOptions().stream()
-				.anyMatch(element -> text.equals(element.getText())));
-		Select dropdown = new Select(fromAccountIdSelectOne);
-		dropdown.selectByVisibleText(text);
+	public void clickPhoneNumberIsRequired() {
+		click(phoneNumberIsRequired);
 	}
 
 	public void clickSendPaymentSubmit() {

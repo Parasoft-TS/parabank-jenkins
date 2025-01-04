@@ -85,9 +85,9 @@ public class BillPayTest {
 
 		ParaBankWelcomeOnlineBankingPage paraBankWelcomeOnlineBankingPage = new ParaBankWelcomeOnlineBankingPage(
 				driver);
-		paraBankWelcomeOnlineBankingPage.setUsernameText("john");
-		paraBankWelcomeOnlineBankingPage.setPassword("demo");
-		paraBankWelcomeOnlineBankingPage.clickLogInSubmit();
+		paraBankWelcomeOnlineBankingPage.setUsernameField("john");
+		paraBankWelcomeOnlineBankingPage.setPasswordField("demo");
+		paraBankWelcomeOnlineBankingPage.clickLogInButton();
 
 		ParaBankAccountsOverviewPage paraBankAccountsOverviewPage = new ParaBankAccountsOverviewPage(driver);
 		paraBankAccountsOverviewPage.clickBillPayLink();
