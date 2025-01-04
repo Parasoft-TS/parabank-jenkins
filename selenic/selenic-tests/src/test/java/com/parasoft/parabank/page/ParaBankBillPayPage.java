@@ -1,14 +1,11 @@
 /**
  * 
  */
-package com.parasoft.parabank.page;
+package com.parasoft.page;
 
-import static org.openqa.selenium.support.ui.ExpectedConditions.attributeContains;
 import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 
 import java.time.Duration;
-import java.util.Arrays;
-import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -16,56 +13,53 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class ParaBankBillPayPage {
 
 	@FindBy(name = "payee.name")
-	private WebElement payeeNameField;
+	private WebElement payeeNameText;
 
 	@FindBy(name = "payee.address.street")
-	private WebElement payeeAddressStreetField;
+	private WebElement payeeAddressStreetText;
 
 	@FindBy(name = "payee.address.city")
-	private WebElement payeeAddressCityField;
-
-	@FindBy(name = "payee.address.state")
-	private WebElement payeeAddressStateField;
+	private WebElement payeeAddressCityText;
 
 	@FindBy(name = "payee.address.zipCode")
-	private WebElement payeeAddressZipCodeField;
+	private WebElement payeeAddressZipCodeText;
 
-	@FindBy(name = "payee.phoneNumber")
-	private WebElement payeePhoneNumberField;
+	@FindBy(name = "payee.contactInformation.phoneNumber")
+	private WebElement payeeContactInformationPhoneNumberText;
+
+	@FindBy(name = "payee.contactInformation.email")
+	private WebElement payeeContactInformationEmailText;
+
+	@FindBy(name = "payee.address.state")
+	private WebElement payeeAddressStateText;
 
 	@FindBy(name = "payee.accountNumber")
-	private WebElement payeeAccountNumberField;
+	private WebElement payeeAccountNumberText;
 
 	@FindBy(name = "verifyAccount")
-	private WebElement verifyAccountField;
+	private WebElement verifyAccountText;
 
 	@FindBy(name = "amount")
-	private WebElement amountField;
+	private WebElement amountText;
 
-	@FindBy(className = "form2")
-	private WebElement form;
+	@FindBy(name = "fromAccountId")
+	private WebElement fromAccountIdSelectOne;
 
 	@FindBy(css = "input[value='Send Payment']")
-	private WebElement sendPaymentButton;
+	private WebElement sendPaymentSubmit;
 
 	private WebDriver driver;
 
 	private static final Duration DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT = Duration.ofSeconds(15);
 
-	private static final String[] TITLE_WORDS = { };
-
 	public ParaBankBillPayPage(WebDriver driver) {
 		this.driver = driver;
-		WebDriverWait wait = new WebDriverWait(driver, DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT);
-		wait.ignoring(StaleElementReferenceException.class);
-		Arrays.stream(TITLE_WORDS).forEach(word -> {
-			wait.until(attributeContains(By.tagName("title"), "innerHTML", word));
-		});
 		PageFactory.initElements(driver, this);
 	}
 
@@ -90,57 +84,67 @@ public class ParaBankBillPayPage {
 		});
 	}
 
-	public void setPayeeNameField(String text) {
-		waitFor(payeeNameField).clear();
-		payeeNameField.sendKeys(text);
+	public void setPayeeNameText(String text) {
+		waitFor(payeeNameText).clear();
+		payeeNameText.sendKeys(text);
 	}
 
-	public void setPayeeAddressStreetField(String text) {
-		waitFor(payeeAddressStreetField).clear();
-		payeeAddressStreetField.sendKeys(text);
+	public void setPayeeAddressStreetText(String text) {
+		waitFor(payeeAddressStreetText).clear();
+		payeeAddressStreetText.sendKeys(text);
 	}
 
-	public void setPayeeAddressCityField(String text) {
-		waitFor(payeeAddressCityField).clear();
-		payeeAddressCityField.sendKeys(text);
+	public void setPayeeAddressCityText(String text) {
+		waitFor(payeeAddressCityText).clear();
+		payeeAddressCityText.sendKeys(text);
 	}
 
-	public void setPayeeAddressStateField(String text) {
-		waitFor(payeeAddressStateField).clear();
-		payeeAddressStateField.sendKeys(text);
+	public void setPayeeAddressZipCodeText(String text) {
+		waitFor(payeeAddressZipCodeText).clear();
+		payeeAddressZipCodeText.sendKeys(text);
 	}
 
-	public void setPayeeAddressZipCodeField(String text) {
-		waitFor(payeeAddressZipCodeField).clear();
-		payeeAddressZipCodeField.sendKeys(text);
+	public void setPayeeContactInformationPhoneNumberText(String text) {
+		waitFor(payeeContactInformationPhoneNumberText).clear();
+		payeeContactInformationPhoneNumberText.sendKeys(text);
 	}
 
-	public void setPayeePhoneNumberField(String text) {
-		waitFor(payeePhoneNumberField).clear();
-		payeePhoneNumberField.sendKeys(text);
+	public void setPayeeContactInformationEmailText(String text) {
+		waitFor(payeeContactInformationEmailText).clear();
+		payeeContactInformationEmailText.sendKeys(text);
 	}
 
-	public void setPayeeAccountNumberField(String text) {
-		waitFor(payeeAccountNumberField).clear();
-		payeeAccountNumberField.sendKeys(text);
+	public void setPayeeAddressStateText(String text) {
+		waitFor(payeeAddressStateText).clear();
+		payeeAddressStateText.sendKeys(text);
 	}
 
-	public void setVerifyAccountField(String text) {
-		waitFor(verifyAccountField).clear();
-		verifyAccountField.sendKeys(text);
+	public void setPayeeAccountNumberText(String text) {
+		waitFor(payeeAccountNumberText).clear();
+		payeeAccountNumberText.sendKeys(text);
 	}
 
-	public void setAmountField(String text) {
-		waitFor(amountField).clear();
-		amountField.sendKeys(text);
+	public void setVerifyAccountText(String text) {
+		waitFor(verifyAccountText).clear();
+		verifyAccountText.sendKeys(text);
 	}
 
-	public void clickForm() {
-		click(form);
+	public void setAmountText(String text) {
+		waitFor(amountText).clear();
+		amountText.sendKeys(text);
 	}
 
-	public void clickSendPaymentButton() {
-		click(sendPaymentButton);
+	public void selectFromAccountIdSelectOne(String text) {
+		WebDriverWait wait = new WebDriverWait(driver, DEFAULT_WAIT_FOR_ELEMENT_TIMEOUT);
+		wait.ignoring(StaleElementReferenceException.class);
+		wait.until(webdriver -> new Select(fromAccountIdSelectOne).getOptions().stream()
+				.anyMatch(element -> text.equals(element.getText())));
+		Select dropdown = new Select(fromAccountIdSelectOne);
+		dropdown.selectByVisibleText(text);
+	}
+
+	public void clickSendPaymentSubmit() {
+		click(sendPaymentSubmit);
 	}
 
 }
