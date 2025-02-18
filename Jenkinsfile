@@ -448,7 +448,7 @@ pipeline {
                 --network demo-net \
                 -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                 -w "/home/parasoft/jenkins/parabank-jenkins/selenic/selenic-tests" \
-                pteodor/selenic:10.0 sh -c " \
+                pteodor/selenic:11.0 sh -c " \
 
                 cp /home/parasoft/jenkins/parabank-jenkins/selenic/selenic.properties /selenic; \
 
