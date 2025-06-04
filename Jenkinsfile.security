@@ -36,7 +36,7 @@ pipeline {
         //buildId="${app_short}-${BUILD_TIMESTAMP}"
         
         // Parasoft Jtest Settings
-        jtestCWEConfig="builtin://CWE Top 25 2023"
+        jtestCWEConfig="builtin://CWE Top 25 2024"
         jtestOWASPConfig="builtin://OWASP Top 10-2021"
         jtestOWASPAPIConfig="builtin://OWASP API Security Top 10-2023"
         jtestPCIConfig="builtin://PCI DSS 4.0"
@@ -82,7 +82,7 @@ pipeline {
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
                     mkdir dependency-check-pack;
-                    unzip -q ./dependency-check-pack-2024.2.0.zip -d ./dependency-check-pack;
+                    unzip -q ./dependency-check-pack-2025.1.0.zip -d ./dependency-check-pack;
                     ls -ll;
                     ls -la ./dependency-check-pack;
 
