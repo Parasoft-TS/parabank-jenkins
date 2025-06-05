@@ -416,7 +416,7 @@ pipeline {
 
                     mvn -ntp \
                     -s /home/parasoft/.m2/settings.xml \
-                    -P owasp-dependency-check org.owasp:dependency-check-maven:10.0.2:check \
+                    -P owasp-dependency-check org.owasp:dependency-check-maven:12.1.1:check \
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
                     -DnvdApiKey=${nvd_key} \
 
