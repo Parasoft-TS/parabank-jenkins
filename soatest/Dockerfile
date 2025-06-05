@@ -1,5 +1,5 @@
 # baseline image
-FROM parasoft/soavirt:2024.2
+FROM parasoft/soavirt:2025.1
 
 ARG HOST_UID=992
 ARG HOST_GID=992
