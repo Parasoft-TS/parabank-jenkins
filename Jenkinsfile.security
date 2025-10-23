@@ -424,7 +424,7 @@ pipeline {
                 sh '''
                     # Set Up and write .properties file
                     echo $"
-                    report.coverage.images=${soatestCovImage}
+                    report.coverage.images=${soatestCovImage};Parabank_Manual
                     " > ./parabank-jenkins/jtest/jtestcli-ft.properties
                 '''
                 // Package the application with the Jtest Monitor
