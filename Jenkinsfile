@@ -267,7 +267,7 @@ pipeline {
                 sh '''
                     # Set Up and write .properties file
                     echo $"
-                    report.coverage.images=${soatestCovImage}
+                    report.coverage.images=${soatestCovImage};Parabank_Manual
                     " > ./parabank-jenkins/jtest/jtestcli-ft.properties
                 '''
                 // Execute the build with Jtest Maven plugin in docker
