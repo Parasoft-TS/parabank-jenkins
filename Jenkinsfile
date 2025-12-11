@@ -1,9 +1,6 @@
 pipeline {
     agent any
-    tools {
-        maven 'maven'
-        jdk 'JDK 17'
-    }
+
     environment {
         // App Settings
         project_name="Parabank-Jenkins" //DTP Project
