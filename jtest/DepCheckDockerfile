@@ -1,5 +1,5 @@
 # baseline image
-FROM parasoft/jtest:2025.1
+FROM parasoft/jtest:2025.2
 
 ARG HOST_UID=992
 ARG HOST_GID=992
@@ -8,15 +8,15 @@ ARG HOST_GID=992
 USER root
 ARG USER_HOME_DIR=/home/parasoft
 
-# Install JDK 11
-ARG JDK_VERSION=jdk-11.0.24+8
+# Install JDK 17
+ARG JDK_VERSION=jdk-17.0.14+7
 ENV JAVA_HOME=${USER_HOME_DIR}/${JDK_VERSION}
 
-# Download Java 11
-RUN wget https://aka.ms/download-jdk/microsoft-jdk-11.0.24-linux-x64.tar.gz \
-    && tar xvzf microsoft-jdk-11.0.24-linux-x64.tar.gz -C ${USER_HOME_DIR}
+# Download Java 17
+RUN wget https://aka.ms/download-jdk/microsoft-jdk-17.0.14-linux-x64.tar.gz \
+    && tar xvzf microsoft-jdk-17.0.14-linux-x64.tar.gz -C ${USER_HOME_DIR}
 
-# Update alternatives to use Java 11
+# Update alternatives to use Java 17
 RUN update-alternatives --install /usr/bin/java java /${USER_HOME_DIR}/${JDK_VERSION}/bin/java 1 \
     && update-alternatives --install /usr/bin/javac javac /${USER_HOME_DIR}/${JDK_VERSION}/bin/javac 1
 

@@ -16,6 +16,8 @@ pipeline {
         //jenkins_gid=992
 
         nvd_key="${NVD_APIKEY}" //nvd api key to speed up owasp dependency check
+        ossIndexUsername="${OSS_INDEX_USERNAME}" //Sonatype OSS Index Username *hint: email address
+        ossIndexPassword="${OSS_INDEX_PASSWORD}" //Sonatype OSS Index Password
 
         // Parasoft Licenses
         ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
@@ -76,7 +78,7 @@ pipeline {
                     # Prepare owasp dependency check pack for jtest docker build
                     cd parabank-jenkins/jtest;
                     mkdir dependency-check-pack;
-                    unzip -q ./dependency-check-pack-2025.1.0.zip -d ./dependency-check-pack;
+                    unzip -q ./dependency-check-pack-2025.2.0.zip -d ./dependency-check-pack;
                     ls -ll;
                     ls -la ./dependency-check-pack;
 
@@ -410,9 +412,11 @@ pipeline {
 
                     mvn -ntp \
                     -s /home/parasoft/.m2/settings.xml \
-                    -P owasp-dependency-check org.owasp:dependency-check-maven:12.1.1:check \
+                    -P owasp-dependency-check org.owasp:dependency-check-maven:12.1.8:check \
                     -Dodc.outputDirectory=./target/owasp-dependency-check \
                     -DnvdApiKey=${nvd_key} \
+                    -DossIndexUsername=${ossIndexUsername} \
+                    -DossIndexPassword=${ossIndexPassword} \
 
                     ../parabank-jenkins/jtest/dependency-check-pack/dependencycheck.sh \
                         -settings ../parabank-jenkins/jtest/dependency-check-pack/settings.properties \
