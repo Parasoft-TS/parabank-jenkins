@@ -28,7 +28,7 @@ pipeline {
         //buildId="${app_short}-${BUILD_TIMESTAMP}"
         
         // Parasoft Jtest Settings
-        jtestSAConfig="jtest.builtin://Recommended Rules"
+        jtestSAConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/Recommended Rules.properties" //jtest.builtin://Recommended Rules
         jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
