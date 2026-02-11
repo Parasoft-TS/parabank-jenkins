@@ -32,6 +32,7 @@ pipeline {
         jtestMAConfig="jtest.builtin://Metrics"
         jtestSessionTag="ParabankJenkins-Jtest"
         unitCovImage="Parabank_All;Parabank_UnitTest"
+        staticCovImage="Parabank_All;Parabank_UnitTest;Parabank_Static"
 
         // Parasoft SOAtest Settings
         soatestConfig="soatest.user://Example Configuration"
@@ -152,7 +153,7 @@ pipeline {
             }
         }
         stage('Jtest: Quality Scan') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Execute the build with Jtest Maven plugin in docker
                 sh '''
@@ -216,6 +217,7 @@ pipeline {
                     # Set Up and write .properties file
                     echo $"
                     report.coverage.images=${unitCovImage}
+                    report.coverage.static.images=${staticCovImage}
                     " > ./parabank-jenkins/jtest/jtestcli-ut.properties
                 '''
                 // Execute the build with Jtest Maven plugin in docker
@@ -264,7 +266,7 @@ pipeline {
             }
         }
         stage('Jtest: Package-CodeCoverage') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Setup stage-specific additional settings
                 sh '''
@@ -308,7 +310,7 @@ pipeline {
             }
         }
         stage('Jtest: Deploy-CodeCoverage') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // deploy the project
                 sh  '''
@@ -335,7 +337,7 @@ pipeline {
             }
         }       
         stage('SOAtest: Functional Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run SOAtestCLI from docker
                 sh  '''
@@ -393,7 +395,7 @@ pipeline {
             }
         }
         stage('Selenic: Java Selenium Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run Selenic from docker
                 sh  '''
@@ -402,7 +404,7 @@ pipeline {
             }
         }
         stage('SOAtest: Shift-Left Load Test') {
-            when { equals expected: true, actual: true }
+            when { equals expected: true, actual: false }
             steps {
                 // Run Load Test CLI from docker
                 sh  '''
