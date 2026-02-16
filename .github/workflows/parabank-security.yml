@@ -1,0 +1,185 @@
+name: Parabank Security Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      dtp_publish:
+        description: 'Publish results to DTP'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+env:
+  # App Settings
+  PROJECT_NAME: "Parabank-Jenkins"
+  APP_NAME: "parabank-baseline"
+  APP_SHORT: "PB"
+  APP_PORT: 8090
+  APP_COV_PORT: 8050
+  APP_DB_PORT: 9021
+  APP_JMS_PORT: 63616
+  
+  # Parasoft Jtest Settings
+  JTEST_CWE_CONFIG: "builtin://CWE Top 25 2024"
+  JTEST_OWASP_CONFIG: "builtin://OWASP Top 10-2021"
+  JTEST_OWASP_API_CONFIG: "builtin://OWASP API Security Top 10-2023"
+  JTEST_PCI_CONFIG: "builtin://PCI DSS 4.0"
+  JTEST_HIPAA_CONFIG: "builtin://HIPAA"
+  JTEST_STIG_CONFIG: "builtin://DISA-ASD-STIG"
+  JTEST_CERT_CONFIG: "builtin://CERT for Java"
+  JTEST_SESSION_TAG: "ParabankGitHubActions-Jtest-Security"
+  
+  # Parasoft SOAtest Settings
+  SOATEST_CONFIG: "soatest.user://Example Configuration"
+  SOATEST_SESSION_TAG: "ParabankGitHubActions-SOAtest-Security"
+  SOATEST_COV_IMAGE: "Parabank_All;Parabank_SOAtest"
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout parabank-jenkins
+        uses: actions/checkout@v4
+        with:
+          path: parabank-jenkins
+      
+      - name: Checkout parabank
+        uses: actions/checkout@v4
+        with:
+          repository: parasoft/parabank
+          path: parabank
+      
+      - name: Set up environment variables
+        run: |
+          echo "BUILD_TIMESTAMP=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          echo "BUILD_ID=${{ env.APP_SHORT }}-$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          echo "JENKINS_UID=$(id -u)" >> $GITHUB_ENV
+          echo "JENKINS_GID=$(id -g)" >> $GITHUB_ENV
+      
+      - name: Create Docker network
+        run: |
+          docker network create demo-net || true
+      
+      - name: Prepare Jtest properties
+        run: |
+          cat > ./parabank-jenkins/jtest/jtestcli.properties << 'EOF'
+          parasoft.eula.accepted=true
+          jtest.license.use_network=true
+          jtest.license.network.edition=custom_edition
+          jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Test Impact Analysis
+          license.network.use.specified.server=true
+          license.network.auth.enabled=true
+          license.network.url=${{ secrets.PARASOFT_LS_URL }}
+          license.network.user=${{ secrets.PARASOFT_LS_USER }}
+          license.network.password=${{ secrets.PARASOFT_LS_PASS }}
+          
+          report.associations=false
+          report.scontrol=full
+          scope.local=true
+          scope.scontrol=true
+          scope.xmlmap=false
+          
+          scontrol.git.exec=git
+          scontrol.rep1.git.branch=master
+          scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+          scontrol.rep1.type=git
+          
+          build.id=${{ env.BUILD_ID }}
+          session.tag=${{ env.JTEST_SESSION_TAG }}
+          dtp.url=${{ secrets.PARASOFT_DTP_URL }}
+          dtp.user=${{ secrets.PARASOFT_DTP_USER }}
+          dtp.password=${{ secrets.PARASOFT_DTP_PASS }}
+          dtp.project=${{ env.PROJECT_NAME }}
+          EOF
+      
+      - name: SAST - CWE Top 25
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp compile jtest:jtest \
+                -DskipTests=true \
+                -s /home/parasoft/.m2/settings.xml \
+                -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                -Djtest.config='${{ env.JTEST_CWE_CONFIG }}' \
+                -Djtest.report=./target/jtest/sast/cwe \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+      
+      - name: SAST - OWASP Top 10
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp jtest:jtest \
+                -DskipTests=true \
+                -s /home/parasoft/.m2/settings.xml \
+                -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                -Djtest.config='${{ env.JTEST_OWASP_CONFIG }}' \
+                -Djtest.report=./target/jtest/sast/owasp \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+      
+      - name: SAST - OWASP API Security Top 10
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp jtest:jtest \
+                -DskipTests=true \
+                -s /home/parasoft/.m2/settings.xml \
+                -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                -Djtest.config='${{ env.JTEST_OWASP_API_CONFIG }}' \
+                -Djtest.report=./target/jtest/sast/owaspapi \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+      
+      - name: Upload Security Scan Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            parabank/target/jtest/sast/**/*.xml
+          retention-days: 90
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker network rm demo-net || true
+          docker container prune -f
+          docker image prune -f

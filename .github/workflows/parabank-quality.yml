@@ -1,0 +1,339 @@
+name: Parabank Quality Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      dtp_publish:
+        description: 'Publish results to DTP'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  # App Settings
+  PROJECT_NAME: "Parabank-Jenkins"
+  APP_NAME: "parabank-baseline"
+  IMAGE: "parasoft/parabank:baseline"
+  APP_SHORT: "PB"
+  APP_PORT: 8090
+  APP_COV_PORT: 8050
+  APP_DB_PORT: 9021
+  APP_JMS_PORT: 63616
+  
+  # Parasoft Jtest Settings
+  JTEST_SA_CONFIG: "jtest.builtin://Recommended Rules"
+  JTEST_MA_CONFIG: "jtest.builtin://Metrics"
+  JTEST_SESSION_TAG: "ParabankGitHubActions-Jtest"
+  UNIT_COV_IMAGE: "Parabank_All;Parabank_UnitTest"
+  
+  # Parasoft SOAtest Settings
+  SOATEST_CONFIG: "soatest.user://Example Configuration"
+  SOATEST_SESSION_TAG: "ParabankGitHubActions-SOAtest"
+  SOATEST_COV_IMAGE: "Parabank_All;Parabank_SOAtest"
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      selenium:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
+          - 7900:7900
+        options: --shm-size "2g"
+    
+    steps:
+      - name: Checkout parabank-jenkins
+        uses: actions/checkout@v4
+        with:
+          path: parabank-jenkins
+      
+      - name: Checkout parabank
+        uses: actions/checkout@v4
+        with:
+          repository: parasoft/parabank
+          path: parabank
+      
+      - name: Set up environment variables
+        run: |
+          echo "BUILD_TIMESTAMP=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          echo "BUILD_ID=${{ env.APP_SHORT }}-$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          echo "JENKINS_UID=$(id -u)" >> $GITHUB_ENV
+          echo "JENKINS_GID=$(id -g)" >> $GITHUB_ENV
+      
+      - name: Create Docker network
+        run: |
+          docker network create demo-net || true
+      
+      - name: Prepare Jtest properties
+        run: |
+          cat > ./parabank-jenkins/jtest/jtestcli.properties << 'EOF'
+          parasoft.eula.accepted=true
+          jtest.license.use_network=true
+          jtest.license.network.edition=custom_edition
+          jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Test Impact Analysis
+          license.network.use.specified.server=true
+          license.network.auth.enabled=true
+          license.network.url=${{ secrets.PARASOFT_LS_URL }}
+          license.network.user=${{ secrets.PARASOFT_LS_USER }}
+          license.network.password=${{ secrets.PARASOFT_LS_PASS }}
+          
+          report.associations=false
+          report.scontrol=full
+          scope.local=true
+          scope.scontrol=true
+          scope.xmlmap=false
+          
+          scontrol.git.exec=git
+          scontrol.rep1.git.branch=master
+          scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+          scontrol.rep1.type=git
+          
+          build.id=${{ env.BUILD_ID }}
+          session.tag=${{ env.JTEST_SESSION_TAG }}
+          dtp.url=${{ secrets.PARASOFT_DTP_URL }}
+          dtp.user=${{ secrets.PARASOFT_DTP_USER }}
+          dtp.password=${{ secrets.PARASOFT_DTP_PASS }}
+          dtp.project=${{ env.PROJECT_NAME }}
+          EOF
+      
+      - name: Prepare SOAtest properties
+        run: |
+          cat > ./parabank-jenkins/soatest/soatestcli.properties << 'EOF'
+          parasoft.eula.accepted=true
+          
+          license.network.use.specified.server=true
+          license.network.url=${{ secrets.PARASOFT_LS_URL }}
+          license.network.auth.enabled=true
+          license.network.user=${{ secrets.PARASOFT_LS_USER }}
+          license.network.password=${{ secrets.PARASOFT_LS_PASS }}
+          soatest.license.use_network=true
+          soatest.license.network.edition=custom_edition
+          soatest.license.custom_edition_features=RuleWizard, Command Line, SOA, Web, Server API Enabled, Message Packs, Advanced Test Generation Desktop, Requirements Traceability, API Security Testing
+          
+          dtp.enabled=true
+          dtp.url=${{ secrets.PARASOFT_DTP_URL }}
+          dtp.user=${{ secrets.PARASOFT_DTP_USER }}
+          dtp.password=${{ secrets.PARASOFT_DTP_PASS }}
+          dtp.project=${{ env.PROJECT_NAME }}
+          
+          build.id=${{ env.BUILD_ID }}
+          session.tag=${{ env.SOATEST_SESSION_TAG }}
+          
+          report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+          report.associations=true
+          report.scontrol=full
+          scope.local=true
+          scope.scontrol=true
+          scope.xmlmap=false
+          
+          application.coverage.enabled=true
+          application.coverage.agent.url=http://${{ env.APP_NAME }}:${{ env.APP_COV_PORT }}
+          application.coverage.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+          application.coverage.images=${{ env.SOATEST_COV_IMAGE }}
+          
+          scontrol.git.exec=git
+          scontrol.rep1.git.branch=master
+          scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
+          scontrol.rep1.type=git
+          
+          techsupport.auto_creation=false
+          techsupport.archive_location=/parabank-jenkins/soatest/tsa
+          techsupport.verbose=true
+          techsupport.item.general=true
+          techsupport.item.environment.true
+          EOF
+      
+      - name: Jtest Static Analysis
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp compile jtest:jtest \
+                -DskipTests=true \
+                -s /home/parasoft/.m2/settings.xml \
+                -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                -Djtest.config='${{ env.JTEST_SA_CONFIG }}' \
+                -Djtest.report=./target/jtest/sa \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+      
+      - name: Jtest Metrics Analysis
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp jtest:jtest \
+                -DskipTests=true \
+                -s /home/parasoft/.m2/settings.xml \
+                -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
+                -Djtest.config='${{ env.JTEST_MA_CONFIG }}' \
+                -Djtest.report=./target/jtest/ma \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+      
+      - name: Prepare Unit Test properties
+        run: |
+          cat > ./parabank-jenkins/jtest/jtestcli-ut.properties << 'EOF'
+          report.coverage.images=${{ env.UNIT_COV_IMAGE }}
+          EOF
+      
+      - name: Jtest Unit Tests
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp test-compile jtest:agent test jtest:jtest \
+                -s /home/parasoft/.m2/settings.xml \
+                -Dmaven.test.failure.ignore=true \
+                -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ut.properties' \
+                -Djtest.config='builtin://Unit Tests' \
+                -Djtest.report=./target/jtest/ut \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+      
+      - name: Prepare Package properties
+        run: |
+          cat > ./parabank-jenkins/jtest/jtestcli-ft.properties << 'EOF'
+          report.coverage.images=${{ env.SOATEST_COV_IMAGE }};Parabank_Manual
+          EOF
+      
+      - name: Package with Code Coverage
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name jtest \
+            -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+            -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+            -w "/home/parasoft/jenkins/parabank" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/jtest) \
+            /bin/bash -c "
+              mvn -ntp package jtest:monitor \
+                -s /home/parasoft/.m2/settings.xml \
+                -Dmaven.test.skip=true \
+                -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
+                -Djtest.showSettings=true \
+                -Dproperty.report.dtp.publish=${{ github.event.inputs.dtp_publish || 'false' }}
+            "
+          
+          mkdir monitor
+          unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+      
+      - name: Deploy with Code Coverage
+        if: success()
+        run: |
+          docker run \
+            -d \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            -p ${{ env.APP_PORT }}:8080 \
+            -p ${{ env.APP_COV_PORT }}:8050 \
+            -p ${{ env.APP_DB_PORT }}:9001 \
+            -p ${{ env.APP_JMS_PORT }}:61616 \
+            --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
+            -v "$PWD/monitor:/home/docker/jtest/monitor" \
+            --network=demo-net \
+            --name ${{ env.APP_NAME }} \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/parabank-docker)
+          
+          sleep 15
+          docker ps -f name=${{ env.APP_NAME }}
+          curl -iv --raw http://localhost:${{ env.APP_PORT }}/parabank || true
+          curl -iv --raw http://localhost:${{ env.APP_COV_PORT }}/status || true
+      
+      - name: SOAtest Functional Tests
+        if: success()
+        run: |
+          docker run \
+            -u ${{ env.JENKINS_UID }}:${{ env.JENKINS_GID }} \
+            --rm \
+            --name soatest \
+            -e ACCEPT_EULA=true \
+            -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+            -w "/usr/local/parasoft" \
+            --network=demo-net \
+            $(docker build --build-arg HOST_UID="${{ env.JENKINS_UID }}" --build-arg HOST_GID="${{ env.JENKINS_GID }}" -q ./parabank-jenkins/soatest) \
+            /bin/bash -c "
+              mkdir -p ./soavirt_workspace
+              cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins
+              
+              ./soavirt/soatestcli \
+                -data ./soavirt_workspace \
+                -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                -import ./soavirt_workspace/parabank-jenkins/.project
+              
+              ./soavirt/soatestcli \
+                -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
+                -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
+                -data ./soavirt_workspace \
+                -resource /parabank-jenkins/soatest/SOAtestProject/functional \
+                -config '${{ env.SOATEST_CONFIG }}' \
+                -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                -environment 'parabank-baseline (docker)' \
+                -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                -report ./parabank-jenkins/soatest/func-report
+            "
+      
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            parabank/target/jtest/**/*.xml
+            parabank-jenkins/soatest/func-report/**/*.xml
+          retention-days: 30
+      
+      - name: Upload WAR Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parabank-war
+          path: parabank/target/*.war
+          retention-days: 30
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker container stop ${{ env.APP_NAME }} || true
+          docker container rm ${{ env.APP_NAME }} || true
+          docker network rm demo-net || true
+          docker container prune -f
+          docker image prune -f
