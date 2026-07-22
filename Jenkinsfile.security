@@ -35,6 +35,11 @@ pipeline {
         PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
         PARABANK_REPO_BRANCH = "master"
 
+        // Persistent NVD database cache for OWASP Dependency Check (host dir must exist on the Jenkins agent
+        // with appropriate ownership; first build populates it, subsequent builds only fetch the delta)
+        NVD_CACHE_HOST_DIR      = "/var/lib/jenkins-nvd-cache"
+        NVD_CACHE_CONTAINER_DIR = "/home/parasoft/dependency-check-data"
+
         // Parasoft Jtest Settings (Security configs)
         jtestCWEConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CWE Top 25 2024.properties"                   // builtin://CWE Top 25 2024
         jtestOWASPConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP Top 10-2021.properties"                 // builtin://OWASP Top 10-2021
@@ -443,6 +448,7 @@ EOF
                         --name jtest \
                         -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                         -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                        -v "${NVD_CACHE_HOST_DIR}:${NVD_CACHE_CONTAINER_DIR}" \
                         -w "/home/parasoft/jenkins/parabank" \
                         --network=demo-net \
                         $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -453,6 +459,7 @@ EOF
                         -s /home/parasoft/.m2/settings.xml \
                         -P owasp-dependency-check org.owasp:dependency-check-maven:12.1.8:check \
                         -Dodc.outputDirectory=./target/owasp-dependency-check \
+                        -DdataDirectory=${NVD_CACHE_CONTAINER_DIR} \
                         -DnvdApiKey=${NVD_APIKEY} \
                         -DossIndexUsername=${OSS_INDEX_USERNAME} \
                         -DossIndexPassword=${OSS_INDEX_PASSWORD} \
