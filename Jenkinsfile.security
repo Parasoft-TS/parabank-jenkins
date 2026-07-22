@@ -16,8 +16,8 @@ pipeline {
     environment {
         // App Settings
         project_name = "Parabank-Jenkins"           // DTP Project
-        app_name     = "parabank-baseline"          // docker container
-        image        = "parasoft/parabank:baseline" // docker image
+        app_name     = "parabank-feature"           // docker container
+        image        = "parasoft/parabank:feature"  // docker image
         app_short    = "PB"                         // parabank
         app_port     = 8090
         app_cov_port = 8050
@@ -33,7 +33,7 @@ pipeline {
 
         // Upstream Parabank app-under-test repository (stable target; edit here if it ever moves)
         PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
-        PARABANK_REPO_BRANCH = "master"
+        PARABANK_REPO_BRANCH = "selenium-demo"
 
         // Persistent NVD database cache for OWASP Dependency Check (host dir must exist on the Jenkins agent
         // with appropriate ownership; first build populates it, subsequent builds only fetch the delta)
@@ -93,7 +93,7 @@ pipeline {
                         env.buildId = params.BUILD_ID_OVERRIDE.trim()
                         echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
                     } else {
-                        env.buildId = "${app_short}-${env.buildTimestamp}"
+                        env.buildId = "${app_short}-${env.buildTimestamp}-feature"
                         echo "Using auto-generated buildId: ${env.buildId}"
                     }
                 }
@@ -532,7 +532,7 @@ EOF
         stage('Deploy: Docker + Coverage') {
             when { equals expected: true, actual: true }
             steps {
-                // Run Parabank baseline docker image with the Jtest coverage agent attached
+                // Run Parabank feature docker image with the Jtest coverage agent attached
                 sh '''
                     docker run \
                     -d \
@@ -559,7 +559,7 @@ EOF
         stage('Test: SOAtest (DAST) UI + API') {
             when { equals expected: true, actual: true }
             steps {
-                // Run SOAtest CLI (via Docker) against the deployed baseline — security suite
+                // Run SOAtest CLI (via Docker) against the deployed feature — security suite
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -585,7 +585,7 @@ EOF
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/security \
-                    -environment 'parabank-baseline (docker)' \
+                    -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -report ./parabank-jenkins/soatest/report \

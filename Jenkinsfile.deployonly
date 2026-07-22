@@ -19,8 +19,8 @@ pipeline {
     environment {
         // App Settings
         project_name = "Parabank-Jenkins"                     // DTP Project
-        app_name     = "parabank-baseline-ephemeral"          // docker container
-        image        = "parasoft/parabank:baseline"           // docker image
+        app_name     = "parabank-feature-ephemeral"           // docker container
+        image        = "parasoft/parabank:feature"            // docker image
         app_short    = "PB"                                   // parabank
         app_port     = 9876
         app_cov_port = 8850
@@ -36,7 +36,7 @@ pipeline {
 
         // Upstream Parabank app-under-test repository (stable target; edit here if it ever moves)
         PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
-        PARABANK_REPO_BRANCH = "master"
+        PARABANK_REPO_BRANCH = "selenium-demo"
 
         // Parasoft Jtest Settings
         jtestSessionTag = "ParabankJenkins-Jtest"
@@ -81,7 +81,7 @@ pipeline {
                         env.buildId = params.BUILD_ID_OVERRIDE.trim()
                         echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
                     } else {
-                        env.buildId = "${app_short}-${env.buildTimestamp}"
+                        env.buildId = "${app_short}-${env.buildTimestamp}-feature"
                         echo "Using auto-generated buildId: ${env.buildId}"
                     }
                 }
@@ -161,7 +161,7 @@ EOF
 
         stage('Deploy: Docker + Coverage') {
             steps {
-                // Run Parabank baseline docker image with the Jtest coverage agent attached
+                // Run Parabank feature docker image with the Jtest coverage agent attached
                 sh '''
                     docker run \
                     -d \

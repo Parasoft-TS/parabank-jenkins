@@ -18,8 +18,8 @@ pipeline {
     environment {
         // App Settings
         project_name = "Parabank-Jenkins"           // DTP Project
-        app_name     = "parabank-baseline"          // docker container
-        image        = "parasoft/parabank:baseline" // docker image
+        app_name     = "parabank-feature"           // docker container
+        image        = "parasoft/parabank:feature"  // docker image
         app_short    = "PB"                         // parabank
         app_port     = 8090
         app_cov_port = 8050
@@ -35,7 +35,7 @@ pipeline {
 
         // Upstream Parabank app-under-test repository
         PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
-        PARABANK_REPO_BRANCH = "master"
+        PARABANK_REPO_BRANCH = "selenium-demo"
 
         // Parasoft Jtest Settings
         jtestSAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/Recommended Rules.properties" // jtest.builtin://Recommended Rules
@@ -98,7 +98,7 @@ pipeline {
                         env.buildId = params.BUILD_ID_OVERRIDE.trim()
                         echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
                     } else {
-                        env.buildId = "${app_short}-${env.buildTimestamp}"
+                        env.buildId = "${app_short}-${env.buildTimestamp}-feature"
                         echo "Using auto-generated buildId: ${env.buildId}"
                     }
                 }
@@ -373,7 +373,7 @@ EOF
         stage('Deploy: Docker + Jtest Coverage') {
             when { equals expected: true, actual: true }
             steps {
-                // Run Parabank baseline docker image with the Jtest coverage agent attached
+                // Run Parabank feature docker image with the Jtest coverage agent attached
                 sh '''
                     docker run \
                     -d \
@@ -400,7 +400,7 @@ EOF
         stage('Test: SOAtest Functional') {
             when { equals expected: true, actual: true }
             steps {
-                // Run SOAtest CLI (via Docker) against the deployed baseline
+                // Run SOAtest CLI (via Docker) against the deployed feature
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -430,7 +430,7 @@ EOF
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
-                    -environment 'parabank-baseline (docker)' \
+                    -environment 'parabank-feature (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
                     -report ./parabank-jenkins/soatest/func-report \
                     "

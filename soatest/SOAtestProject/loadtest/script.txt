@@ -13,4 +13,4 @@ var test-name = BillPayTest
 var test-name2 = DepositTest
 var test-name3 = WithdrawTest
 open ${base}/${test-name}.lt
-loadtest -env "parabank-baseline (docker)" -minutes ${minutes} -allReports ${report-home}/%d/${category}/${test-name} ${scenario}
+loadtest -env "parabank-feature (docker)" -minutes ${minutes} -allReports ${report-home}/%d/${category}/${test-name} ${scenario}
