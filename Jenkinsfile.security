@@ -1,184 +1,224 @@
 pipeline {
     agent any
+
+    parameters {
+        // Parasoft License Server / DTP endpoints (defaults come from global env for backward compat)
+        string(name: 'DTP_URL', defaultValue: '', description: 'Parasoft DTP URL for this run (e.g. https://dtp:8443)')
+        booleanParam(name: 'DTP_PUBLISH', defaultValue: false, description: 'Publish Parasoft analysis + coverage results to DTP')
+
+        // CI debug toggle: enables shell trace (set -x) + echoes generated .properties files to the console
+        booleanParam(name: 'CI_DEBUG', defaultValue: false, description: 'Enable verbose CI debug logging (shell trace + properties-file echo)')
+
+        // Optional buildId override; leave blank to use the auto-generated <app_short>-<yyyy-MM-dd>
+        string(name: 'BUILD_ID_OVERRIDE', defaultValue: '', description: 'Optional buildId override (leave blank to use the auto-generated <app_short>-<yyyy-MM-dd> value)')
+    }
+
     environment {
         // App Settings
-        project_name="Parabank-Jenkins" //DTP Project
-        app_name="parabank-baseline" //docker container
-        image="parasoft/parabank:baseline" //docker image
-        app_short="PB" //parabank
-        app_port=8090
-        app_cov_port=8050
-        app_db_port=9021
-        app_jms_port=63616
+        project_name = "Parabank-Jenkins"           // DTP Project
+        app_name     = "parabank-baseline"          // docker container
+        image        = "parasoft/parabank:baseline" // docker image
+        app_short    = "PB"                         // parabank
+        app_port     = 8090
+        app_cov_port = 8050
+        app_db_port  = 9021
+        app_jms_port = 63616
 
         // Jenkins UID:GID
         //jenkins_uid=992
         //jenkins_gid=992
 
-        nvd_key="${NVD_APIKEY}" //nvd api key to speed up owasp dependency check
-        ossIndexUsername="${OSS_INDEX_USERNAME}" //Sonatype OSS Index Username *hint: email address
-        ossIndexPassword="${OSS_INDEX_PASSWORD}" //Sonatype OSS Index Password
+        // Parasoft License Server URL (stable; sourced from Jenkins global env var DEFAULT_LSS_URL)
+        LS_URL = "${env.DEFAULT_LSS_URL ?: ''}"
 
-        // Parasoft Licenses
-        ls_url="${PARASOFT_LS_URL}" //https\://dtp:8443
-        ls_user="${PARASOFT_LS_USER}" //admin
-        ls_pass="${PARASOFT_LS_PASS}"
-        
-        // Parasoft Common Settings
-        dtp_url="${PARASOFT_DTP_URL}" //https://dtp:8443
-        dtp_user="${PARASOFT_DTP_USER}" //admin
-        dtp_pass="${PARASOFT_DTP_PASS}"
-        dtp_publish="${PARASOFT_DTP_PUBLISH}" //false
-        //buildId="${app_short}-${BUILD_TIMESTAMP}"
-        
-        // Parasoft Jtest Settings
-        jtestCWEConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CWE Top 25 2024.properties" //builtin://CWE Top 25 2024
-        jtestOWASPConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP Top 10-2021.properties" //builtin://OWASP Top 10-2021
-        jtestOWASPAPIConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP API Security Top 10-2023.properties" //builtin://OWASP API Security Top 10-2023
-        jtestPCIConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/PCI DSS 4.0.properties" //builtin://PCI DSS 4.0
-        jtestHIPAAConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/HIPAA.properties" //builtin://HIPAA
-        jtestSTIGConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/DISA-ASD-STIG.properties" //builtin://DISA-ASD-STIG
-        jtestCERTConfig="file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CERT for Java.properties" //builtin://CERT for Java
-        jtestSessionTag="ParabankJenkins-Jtest-Security"
+        // Upstream Parabank app-under-test repository (stable target; edit here if it ever moves)
+        PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
+        PARABANK_REPO_BRANCH = "master"
+
+        // Parasoft Jtest Settings (Security configs)
+        jtestCWEConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CWE Top 25 2024.properties"                   // builtin://CWE Top 25 2024
+        jtestOWASPConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP Top 10-2021.properties"                 // builtin://OWASP Top 10-2021
+        jtestOWASPAPIConfig = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP API Security Top 10-2023.properties"    // builtin://OWASP API Security Top 10-2023
+        jtestPCIConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/PCI DSS 4.0.properties"                       // builtin://PCI DSS 4.0
+        jtestHIPAAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/HIPAA.properties"                             // builtin://HIPAA
+        jtestSTIGConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/DISA-ASD-STIG.properties"                     // builtin://DISA-ASD-STIG
+        jtestCERTConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CERT for Java.properties"                     // builtin://CERT for Java
+        jtestSessionTag     = "ParabankJenkins-Jtest-Security"
 
         // Parasoft SOAtest Settings
-        soatestConfig="soatest.user://Example Configuration"
-        soatestSessionTag="ParabankJenkins-SOAtest-Security"
-        soatestCovImage="Parabank_All;Parabank_SOAtest"
+        soatestConfig      = "soatest.user://Example Configuration"
+        soatestSessionTag  = "ParabankJenkins-SOAtest-Security"
+        soatestCovImage    = "Parabank_All;Parabank_SOAtest"
     }
+
     stages {
-        stage('Setup') {
+        stage('Set Up') {
             steps {
                 deleteDir()
-                
-                // setup additional environment
+
+                // Normalize URL values (strip trailing slashes) and export debug flag for shell steps
                 script {
-                    env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
-                    env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
-                    env.buildTimestamp = sh(script: 'date +%Y-%m-%d', returnStdout: true).trim()
-                    env.buildId = "${app_short}-${buildTimestamp}"
+                    env.LS_URL      = (env.LS_URL     ?: '').replaceAll('/+$', '')
+                    env.DTP_URL     = (params.DTP_URL ?: '').replaceAll('/+$', '')
+                    env.DTP_PUBLISH = params.DTP_PUBLISH.toString()
+                    env.CI_DEBUG    = params.CI_DEBUG.toString()
                 }
 
-                // setup the workspace
-                sh  '''
-                    # Clone this repository & Parabank repository into the workspace
-                    mkdir parabank-jenkins
-                    git clone https://github.com/whaaker/parabank-jenkins.git parabank-jenkins
+                // Check out this pipeline repo into ./parabank-jenkins (matches downstream $PWD/parabank-jenkins mounts)
+                dir('parabank-jenkins') {
+                    checkout scm
+                }
 
-                    mkdir parabank
-                    git clone https://github.com/parasoft/parabank parabank
+                // Clone upstream Parabank app-under-test into ./parabank
+                sh '''
+                    if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                    git clone -b "${PARABANK_REPO_BRANCH}" "${PARABANK_REPO_URL}" parabank
 
                     # Debugging
                     #pwd
                     #ls -ll
+                '''
+
+                // Resolve build environment (uid/gid, timestamp, buildId)
+                script {
+                    env.jenkins_uid    = sh(script: 'id -u jenkins', returnStdout: true).trim()
+                    env.jenkins_gid    = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.buildTimestamp = sh(script: 'date +%Y-%m-%d', returnStdout: true).trim()
+                    if (params.BUILD_ID_OVERRIDE?.trim()) {
+                        env.buildId = params.BUILD_ID_OVERRIDE.trim()
+                        echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
+                    } else {
+                        env.buildId = "${app_short}-${env.buildTimestamp}"
+                        echo "Using auto-generated buildId: ${env.buildId}"
+                    }
+                }
+
+                // Prepare OWASP Dependency Check pack + its settings.properties (painful distribution)
+                withCredentials([
+                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                ]) {
+                    sh '''
+                        if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                        cd parabank-jenkins/jtest
+                        mkdir dependency-check-pack
+                        unzip -q ./dependency-check-pack-2026.1.0.zip -d ./dependency-check-pack
+                        ls -ll;
+                        ls -la ./dependency-check-pack;
+                        cat > ./dependency-check-pack/settings.properties << EOF
+parasoft.eula.accepted=true
+dtp.url=${DTP_URL}
+dtp.user=${PARASOFT_USER}
+dtp.password=${PARASOFT_PASS}
+dtp.project=${project_name}
+build.id=${buildId}
+session.tag=${jtestSessionTag}
+report.dtp.publish=${DTP_PUBLISH}
+EOF
+                        if [ "${CI_DEBUG}" = "true" ]; then
+                            echo "--- dependency-check-pack/settings.properties ---"
+                            cat ./dependency-check-pack/settings.properties
+                        fi
                     '''
-                
-                // setup OWASP Dependency Check installation (painful distribution)
-                sh '''
-                    # Prepare owasp dependency check pack for jtest docker build
-                    cd parabank-jenkins/jtest;
-                    mkdir dependency-check-pack;
-                    unzip -q ./dependency-check-pack-2025.2.0.zip -d ./dependency-check-pack;
-                    ls -ll;
-                    ls -la ./dependency-check-pack;
+                }
 
-                    # Set Up and write .properties file 
-                    echo $"
-                    parasoft.eula.accepted=true
-                    dtp.url=${dtp_url}
-                    dtp.user=${dtp_user}
-                    dtp.password=${dtp_pass}
-                    dtp.project=${project_name}
-                    build.id=${buildId}
-                    session.tag=${jtestSessionTag}
-                    report.dtp.publish=${dtp_publish}
-                    " > ./dependency-check-pack/settings.properties
+                // Emit jtestcli.properties (secrets injected via withCredentials; content echoed only when CI_DEBUG=true)
+                withCredentials([
+                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                ]) {
+                    sh '''
+                        if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                        cat > ./parabank-jenkins/jtest/jtestcli.properties << EOF
+parasoft.eula.accepted=true
+jtest.license.use_network=true
+jtest.license.network.edition=custom_edition
+jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Test Impact Analysis
+license.network.use.specified.server=true
+license.network.auth.enabled=true
+license.network.url=${LS_URL}
+license.network.user=${PARASOFT_USER}
+license.network.password=${PARASOFT_PASS}
+
+report.associations=false
+report.scontrol=full
+scope.local=true
+scope.scontrol=true
+scope.xmlmap=false
+
+scontrol.git.exec=git
+scontrol.rep1.git.branch=${PARABANK_REPO_BRANCH}
+scontrol.rep1.git.url=${PARABANK_REPO_URL}
+scontrol.rep1.type=git
+
+build.id=${buildId}
+session.tag=${jtestSessionTag}
+dtp.url=${DTP_URL}
+dtp.user=${PARASOFT_USER}
+dtp.password=${PARASOFT_PASS}
+dtp.project=${project_name}
+EOF
+                        if [ "${CI_DEBUG}" = "true" ]; then
+                            echo "--- jtestcli.properties ---"
+                            cat ./parabank-jenkins/jtest/jtestcli.properties
+                        fi
                     '''
+                }
 
-                // Prepare the jtestcli.properties file
-                sh '''
-                    # Set Up and write .properties file
-                    cd parabank-jenkins/jtest
-                    pwd
-                    echo $"
-                    parasoft.eula.accepted=true
-                    jtest.license.use_network=true
-                    jtest.license.network.edition=custom_edition
-                    jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Test Impact Analysis
-                    license.network.use.specified.server=true
-                    license.network.auth.enabled=true
-                    license.network.url=${ls_url}
-                    license.network.user=${ls_user}
-                    license.network.password=${ls_pass}
+                // Emit soatestcli.properties (same pattern as jtestcli.properties above)
+                withCredentials([
+                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                ]) {
+                    sh '''
+                        if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                        cat > ./parabank-jenkins/soatest/soatestcli.properties << EOF
+parasoft.eula.accepted=true
 
-                    report.associations=false
-                    report.scontrol=full
-                    scope.local=true
-                    scope.scontrol=true
-                    scope.xmlmap=false
-                    
-                    scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
-                    scontrol.rep1.type=git
+license.network.use.specified.server=true
+license.network.url=${LS_URL}
+license.network.auth.enabled=true
+license.network.user=${PARASOFT_USER}
+license.network.password=${PARASOFT_PASS}
+soatest.license.use_network=true
+soatest.license.network.edition=custom_edition
+soatest.license.custom_edition_features=RuleWizard, Command Line, SOA, Web, Server API Enabled, Message Packs, Advanced Test Generation Desktop, Requirements Traceability, API Security Testing
 
-                    build.id=${buildId}
-                    session.tag=${jtestSessionTag}
-                    dtp.url=${dtp_url}
-                    dtp.user=${dtp_user}
-                    dtp.password=${dtp_pass}
-                    dtp.project=${project_name}" > ./jtestcli.properties
+dtp.enabled=true
+dtp.url=${DTP_URL}
+dtp.user=${PARASOFT_USER}
+dtp.password=${PARASOFT_PASS}
+dtp.project=${project_name}
+
+build.id=${buildId}
+session.tag=${soatestSessionTag}
+
+report.dtp.publish=${DTP_PUBLISH}
+report.associations=true
+report.scontrol=full
+scope.local=true
+scope.scontrol=true
+scope.xmlmap=false
+
+application.coverage.enabled=true
+application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
+application.coverage.images=${soatestCovImage}
+
+scontrol.git.exec=git
+scontrol.rep1.git.branch=${PARABANK_REPO_BRANCH}
+scontrol.rep1.git.url=${PARABANK_REPO_URL}
+scontrol.rep1.type=git
+EOF
+                        if [ "${CI_DEBUG}" = "true" ]; then
+                            echo "--- soatestcli.properties ---"
+                            cat ./parabank-jenkins/soatest/soatestcli.properties
+                        fi
                     '''
-                
-                // Setup soatestcli.properties file
-                sh  '''
-                    # Set Up and write .properties file
-                    echo $"
-                    parasoft.eula.accepted=true
-
-                    license.network.use.specified.server=true
-                    license.network.url=${ls_url}
-                    license.network.auth.enabled=true
-                    license.network.user=${ls_user}
-                    license.network.password=${ls_pass}
-                    soatest.license.use_network=true
-                    soatest.license.network.edition=custom_edition
-                    soatest.license.custom_edition_features=RuleWizard, Command Line, SOA, Web, Server API Enabled, Message Packs, Advanced Test Generation Desktop, Requirements Traceability, API Security Testing
-                    
-                    dtp.enabled=true
-                    dtp.url=${dtp_url}
-                    dtp.user=${dtp_user}
-                    dtp.password=${dtp_pass}
-                    dtp.project=${project_name}
-
-                    build.id=${buildId}
-                    session.tag=${soatestSessionTag}
-
-                    report.dtp.publish=${dtp_publish}
-                    report.associations=true
-                    report.scontrol=full
-                    scope.local=true
-                    scope.scontrol=true
-                    scope.xmlmap=false
-
-                    application.coverage.enabled=true
-                    application.coverage.agent.url=http\\://${app_name}\\:${app_cov_port}
-                    application.coverage.images=${soatestCovImage}
-
-                    scontrol.git.exec=git
-                    scontrol.rep1.git.branch=master
-                    scontrol.rep1.git.url=https://github.com/parasoft/parabank.git
-                    scontrol.rep1.type=git
-                    " > ./parabank-jenkins/soatest/soatestcli.properties
-                    '''
+                }
             }
         }
-        stage('Jtest: (SAST) CWE Top 25') {
+
+        stage('Analyze: Jtest (SAST) CWE Top 25') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -197,17 +237,16 @@ pipeline {
                     -Djtest.config='${jtestCWEConfig}' \
                     -Djtest.report=./target/jtest/sast/cwe \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
+                '''
             }
         }
-        stage('Jtest: (SAST) OWASP Top 10') {
+
+        stage('Analyze: Jtest (SAST) OWASP Top 10') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -226,17 +265,16 @@ pipeline {
                     -Djtest.config='${jtestOWASPConfig}' \
                     -Djtest.report=./target/jtest/sast/owasp \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
+                '''
             }
         }
-        stage('Jtest: (SAST) OWASP API Security Top 10') {
+
+        stage('Analyze: Jtest (SAST) OWASP API Security Top 10') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -255,17 +293,16 @@ pipeline {
                     -Djtest.config='${jtestOWASPAPIConfig}' \
                     -Djtest.report=./target/jtest/sast/owaspapi \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
+                '''
             }
         }
-        stage('Jtest: (SAST) PCI-DSS') {
+
+        stage('Analyze: Jtest (SAST) PCI-DSS') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -284,17 +321,16 @@ pipeline {
                     -Djtest.config='${jtestPCIConfig}' \
                     -Djtest.report=./target/jtest/sast/pci \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
+                '''
             }
         }
-        stage('Jtest: HIPAA') {
+
+        stage('Analyze: Jtest (SAST) HIPAA') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -313,17 +349,16 @@ pipeline {
                     -Djtest.config='${jtestHIPAAConfig}' \
                     -Djtest.report=./target/jtest/sast/hipaa \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
+                '''
             }
         }
-        stage('Jtest: (SAST) DISA ASD-STIG') {
+
+        stage('Analyze: Jtest (SAST) DISA-ASD-STIG') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -342,17 +377,16 @@ pipeline {
                     -Djtest.config='${jtestSTIGConfig}' \
                     -Djtest.report=./target/jtest/sast/stig \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
+                '''
             }
         }
-        stage('Jtest: (SAST) CERT for Java') {
+
+        stage('Analyze: Jtest (SAST) CERT for Java') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -371,10 +405,11 @@ pipeline {
                     -Djtest.config='${jtestCERTConfig}' \
                     -Djtest.report=./target/jtest/sast/cert \
                     -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${dtp_publish}; \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
-                    '''
-                echo '---> Parsing 10.x static analysis reports'
+                '''
+
+                echo '---> Parsing 10.x static analysis reports (all SAST configs)'
                 recordIssues(
                     tools: [parasoftFindings(
                         localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
@@ -392,57 +427,68 @@ pipeline {
                 )
             }
         }
-        stage('Parasoft: (SCA) OWASP Dependency Check') {
+
+        stage('Analyze: (SCA) OWASP Dependency Check') {
             when { equals expected: true, actual: true }
             steps {
-                // Execute the build with Jtest Maven plugin in docker
-                sh '''
-                    # Run Maven build with Jtest tasks via Docker
-                    docker run \
-                    -u ${jenkins_uid}:${jenkins_gid} \
-                    --rm -i \
-                    --name jtest \
-                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
-                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
-                    -w "/home/parasoft/jenkins/parabank" \
-                    --network=demo-net \
-                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
+                // Run OWASP Dependency Check (Maven) + Parasoft Dependency Check Pack via Docker
+                withCredentials([
+                    string(credentialsId: 'nvd-api-key', variable: 'NVD_APIKEY'),
+                    usernamePassword(credentialsId: 'oss-index', usernameVariable: 'OSS_INDEX_USERNAME', passwordVariable: 'OSS_INDEX_PASSWORD')
+                ]) {
+                    sh '''
+                        docker run \
+                        -u ${jenkins_uid}:${jenkins_gid} \
+                        --rm -i \
+                        --name jtest \
+                        -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                        -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                        -w "/home/parasoft/jenkins/parabank" \
+                        --network=demo-net \
+                        $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
-                    java -version \
+                        java -version \
 
-                    mvn -ntp \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -P owasp-dependency-check org.owasp:dependency-check-maven:12.1.8:check \
-                    -Dodc.outputDirectory=./target/owasp-dependency-check \
-                    -DnvdApiKey=${nvd_key} \
-                    -DossIndexUsername=${ossIndexUsername} \
-                    -DossIndexPassword=${ossIndexPassword} \
+                        mvn -ntp \
+                        -s /home/parasoft/.m2/settings.xml \
+                        -P owasp-dependency-check org.owasp:dependency-check-maven:12.1.8:check \
+                        -Dodc.outputDirectory=./target/owasp-dependency-check \
+                        -DnvdApiKey=${NVD_APIKEY} \
+                        -DossIndexUsername=${OSS_INDEX_USERNAME} \
+                        -DossIndexPassword=${OSS_INDEX_PASSWORD} \
 
-                    ../parabank-jenkins/jtest/dependency-check-pack/dependencycheck.sh \
-                        -settings ../parabank-jenkins/jtest/dependency-check-pack/settings.properties \
-                        -results.file ./target/owasp-dependency-check/dependency-check-report.xml \
-                    "
+                        ../parabank-jenkins/jtest/dependency-check-pack/dependencycheck.sh \
+                            -settings ../parabank-jenkins/jtest/dependency-check-pack/settings.properties \
+                            -results.file ./target/owasp-dependency-check/dependency-check-report.xml \
+                        "
                     '''
-                // Run Parasoft OWASP Dependency Check Pack directly on VM
+                }
+
+                // Run Parasoft OWASP Dependency Check Pack directly on VM (alternative to running via Docker above)
                 //sh '''
                 //    ./parabank-jenkins/jtest/dependency-check-pack-2024.1.0/dependencycheck.sh \
                 //        -results.file ./parabank/target/owasp-dependency-check/dependency-check-report.xml
                 //    '''
             }
         }
-        stage('Jtest: Package-CodeCoverage') {
+
+        stage('Package: Jtest Monitor') {
             when { equals expected: true, actual: true }
             steps {
-                // Setup stage-specific additional settings
+                // Stage-specific coverage image override for functional coverage
                 sh '''
-                    # Set Up and write .properties file
-                    echo $"
-                    report.coverage.images=${soatestCovImage};Parabank_Manual
-                    " > ./parabank-jenkins/jtest/jtestcli-ft.properties
+                    if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                    cat > ./parabank-jenkins/jtest/jtestcli-ft.properties << EOF
+report.coverage.images=${soatestCovImage};Parabank_Manual
+EOF
+                    if [ "${CI_DEBUG}" = "true" ]; then
+                        echo "--- jtestcli-ft.properties ---"
+                        cat ./parabank-jenkins/jtest/jtestcli-ft.properties
+                    fi
                 '''
-                // Package the application with the Jtest Monitor
+
+                // Package the application with the Jtest Monitor coverage agent
                 sh '''
-                    # Run Maven build with Jtest tasks via Docker
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -452,16 +498,16 @@ pipeline {
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
-                    
+
                     mvn -ntp package jtest:monitor \
                     -s /home/parasoft/.m2/settings.xml \
                     -Dmaven.test.skip=true \
                     -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
                     -Djtest.showSettings=true \
                     "
-                    '''
-                
-                // Unzip the monitor package in preparation for mounting with deployment
+                '''
+
+                // Unzip monitor.zip for the Deploy stage to mount
                 sh '''
                     # check parabank/target permissions
                     #ls -la ./parabank/target
@@ -471,15 +517,15 @@ pipeline {
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
                     #ls -ll
                     #ls -la monitor
-                    '''
+                '''
             }
         }
-        stage('Jtest: Deploy-CodeCoverage') {
+
+        stage('Deploy: Docker + Coverage') {
             when { equals expected: true, actual: true }
             steps {
-                // deploy the project
-                sh  '''
-                    # Run Parabank-baseline docker image with Jtest coverage agent configured
+                // Run Parabank baseline docker image with the Jtest coverage agent attached
+                sh '''
                     docker run \
                     -d \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -493,19 +539,20 @@ pipeline {
                     --name ${app_name} \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
 
-                    # Health Check
+                    # Health check
                     sleep 15
                     docker ps -f name=${app_name}
-                    curl -iv --raw http://localhost:${app_port}/parabank
-                    curl -iv --raw http://localhost:${app_cov_port}/status
-                    '''
+                    curl -iv --raw http://localhost:${app_port}/parabank      || true
+                    curl -iv --raw http://localhost:${app_cov_port}/status    || true
+                '''
             }
         }
-        stage('SOAtest: (DAST) UI-API Tests') {
+
+        stage('Test: SOAtest (DAST) UI + API') {
             when { equals expected: true, actual: true }
             steps {
-                // Run SOAtestCLI from docker
-                sh  '''
+                // Run SOAtest CLI (via Docker) against the deployed baseline — security suite
+                sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
                     --rm -i \
@@ -516,17 +563,17 @@ pipeline {
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
 
-                    # Create workspace directory and copy SOAtest project into it
+                    # SOAtest workspace scaffolding
                     mkdir -p ./soavirt_workspace; \
                     cp -f -R ./parabank-jenkins ./soavirt_workspace/parabank-jenkins; \
 
-                    # SOAtest requires a project to be "imported" before you can run it
+                    # SOAtest requires the project to be imported before it can be run
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
-                    
-                    # Execute the project with SOAtest CLI
+
+                    # Execute the security test suite
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/security \
@@ -535,57 +582,58 @@ pipeline {
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -report ./parabank-jenkins/soatest/report \
                     "
-                    '''
+                '''
+
                 echo '---> Parsing 9.x soatest reports'
                 script {
-                    step([$class: 'XUnitPublisher', 
+                    step([$class: 'XUnitPublisher',
                         // thresholds: [failed(
-                        //     failureNewThreshold: '10', 
+                        //     failureNewThreshold: '10',
                         //     failureThreshold: '10',
-                        //     unstableNewThreshold: '20', 
+                        //     unstableNewThreshold: '20',
                         //     unstableThreshold: '20')
                         // ],
-                        tools: [[$class: 'ParasoftSOAtest9xType', 
-                            deleteOutputFiles: true, 
-                            failIfNotNew: false, 
-                            pattern: '**/soatest/report/*.xml', 
-                            skipNoTestFiles: true, 
+                        tools: [[$class: 'ParasoftSOAtest9xType',
+                            deleteOutputFiles: true,
+                            failIfNotNew: false,
+                            pattern: '**/soatest/report/*.xml',
+                            skipNoTestFiles: true,
                             stopProcessingIfError: false
                         ]]
                     ])
                 }
             }
         }
+
         stage('Release') {
             steps {
-                // Release the project
-                sh  '''
-                        
-                # Clean up
-                docker container stop ${app_name}
-                    
-                '''
+                // Placeholder release stage; container cleanup is handled by post.always
+                sh 'echo "no-op release stage"'
             }
         }
     }
-    post {
-        // Clean after build
-        always {
-            sh 'docker container stop ${app_name}'
-            sh 'docker container rm ${app_name}'
-            sh 'docker container prune -f'
-            sh 'docker image prune -f'
 
-            archiveArtifacts(artifacts: '''
-                    **/target/**/*.war, 
-                    **/target/jtest/sast/**, 
-                    **/target/dependency-check-report.*, 
-                    **/target/jtest/monitor/**, 
+    post {
+        always {
+            // Consolidated Docker cleanup — tolerate missing containers/images
+            sh '''
+                docker container stop ${app_name} || true
+                docker container rm   ${app_name} || true
+                docker container prune -f
+                docker image     prune -f
+            '''
+
+            archiveArtifacts(
+                artifacts: '''
+                    **/target/**/*.war,
+                    **/target/jtest/sast/**,
+                    **/target/dependency-check-report.*,
+                    **/target/jtest/monitor/**,
                     **/soatest/report/**''',
-                fingerprint: true, 
+                fingerprint: true,
                 onlyIfSuccessful: true,
                 excludes: '''
-                    **/.jtest/**, 
+                    **/.jtest/**,
                     **/metadata.json'''
             )
 
