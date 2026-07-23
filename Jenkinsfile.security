@@ -461,6 +461,7 @@ EOF
                         -Dodc.outputDirectory=./target/owasp-dependency-check \
                         -DdataDirectory=${NVD_CACHE_CONTAINER_DIR} \
                         -DnvdApiKey=${NVD_APIKEY} \
+                        -DossIndexUrl=https://api.guide.sonatype.com \
                         -DossIndexUsername=${OSS_INDEX_USERNAME} \
                         -DossIndexPassword=${OSS_INDEX_PASSWORD} \
 
