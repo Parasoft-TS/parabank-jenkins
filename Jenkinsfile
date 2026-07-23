@@ -509,6 +509,15 @@ EOF
     post {
         // Clean after build
         always {
+            // Capture detached-container logs before cleanup, when CI_DEBUG=true
+            sh '''
+                if [ "${CI_DEBUG}" = "true" ]; then
+                    mkdir -p ./debug-logs
+                    docker logs ${app_name}   > ./debug-logs/${app_name}.log   2>&1 || true
+                    docker logs selenium-grid > ./debug-logs/selenium-grid.log 2>&1 || true
+                fi
+            '''
+
             // Consolidated Docker cleanup — tolerate missing containers/images
             sh '''
                 docker container stop selenium-grid || true
@@ -533,6 +542,20 @@ EOF
                     **/.jtest/**,
                     **/metadata.json'''
             )
+
+            // Debug-only archive: detached-container logs + unzipped Jtest monitor contents
+            script {
+                if (params.CI_DEBUG) {
+                    archiveArtifacts(
+                        artifacts: '''
+                            debug-logs/**,
+                            monitor/**''',
+                        fingerprint: false,
+                        onlyIfSuccessful: false,
+                        allowEmptyArchive: true
+                    )
+                }
+            }
 
             deleteDir()
         }
