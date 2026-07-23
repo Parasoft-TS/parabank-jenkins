@@ -40,14 +40,14 @@ pipeline {
         NVD_CACHE_HOST_DIR      = "/var/lib/jenkins-nvd-cache"
         NVD_CACHE_CONTAINER_DIR = "/home/parasoft/dependency-check-data"
 
-        // Parasoft Jtest Settings (TIA: uses DTP-hosted "feature-branch" test configs — create in DTP as manual prerequisite)
-        jtestCWEConfig      = "user://CWE Top 25 2025 feature-branch"
-        jtestOWASPConfig    = "user://OWASP Top 10-2025 feature-branch"
-        jtestOWASPAPIConfig = "user://OWASP API Security Top 10-2023 feature-branch"
-        jtestPCIConfig      = "user://PCI DSS 4.0 feature-branch"
-        jtestHIPAAConfig    = "user://HIPAA feature-branch"
-        jtestSTIGConfig     = "user://DISA-ASD-STIG feature-branch"
-        jtestCERTConfig     = "user://CERT for Java feature-branch"
+        // Parasoft Jtest Settings (TIA: local "feature-branch" test config files carry TIA-specific settings; recreate/update manually)
+        jtestCWEConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CWE Top 25 2025 feature-branch.properties"
+        jtestOWASPConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP Top 10-2025 feature-branch.properties"
+        jtestOWASPAPIConfig = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP API Security Top 10-2023 feature-branch.properties"
+        jtestPCIConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/PCI DSS 4.0 feature-branch.properties"
+        jtestHIPAAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/HIPAA feature-branch.properties"
+        jtestSTIGConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/DISA-ASD-STIG feature-branch.properties"
+        jtestCERTConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CERT for Java feature-branch.properties"
         jtestSessionTag     = "ParabankJenkins-Jtest-Security"
 
         // Parasoft SOAtest Settings
@@ -639,6 +639,9 @@ EOF
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
 
+                    # Resolve the baseline parabank WAR path (from copyArtifacts) for SOAtest coverage instrumentation
+                    WAR_PATH=\$(ls ./copied/parabank/target/*.war 2>/dev/null | head -1); \
+
                     # Execute the TIA-optimized security test suite (impacted tests only)
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
@@ -647,6 +650,9 @@ EOF
                     -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    -property application.coverage.binaries=\$WAR_PATH \
+                    -property application.coverage.binaries.include=com/parasoft/** \
                     -report ./parabank-jenkins/soatest/report \
                     "
                 '''

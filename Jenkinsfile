@@ -37,8 +37,8 @@ pipeline {
         PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
         PARABANK_REPO_BRANCH = "selenium-demo"
 
-        // Parasoft Jtest Settings (TIA: uses DTP-hosted "feature-branch" test configs)
-        jtestSAConfig    = "user://Recommended Rules feature-branch"
+        // Parasoft Jtest Settings (TIA: local "feature-branch" test config files carry TIA-specific settings; recreate/update manually)
+        jtestSAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/Recommended Rules feature-branch.properties"
         jtestSessionTag  = "ParabankJenkins-Jtest"
         unitCovImage     = "Parabank_All;Parabank_UnitTest"
 
@@ -444,6 +444,9 @@ EOF
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
 
+                    # Resolve the baseline parabank WAR path (from copyArtifacts) for SOAtest coverage instrumentation
+                    WAR_PATH=\$(ls ./copied/parabank/target/*.war 2>/dev/null | head -1); \
+
                     # Execute the TIA-optimized functional test suite (impacted tests only)
                     ./soavirt/soatestcli \
                     -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
@@ -455,6 +458,8 @@ EOF
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -environment 'parabank-feature (docker)' \
                     -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    -property application.coverage.binaries=\$WAR_PATH \
+                    -property application.coverage.binaries.include=com/parasoft/** \
                     -report ./parabank-jenkins/soatest/func-report \
                     "
                 '''
@@ -487,6 +492,37 @@ EOF
                 sh '''
                     echo "TODO: Selenic stage not yet implemented"
                 '''
+            }
+        }
+
+        stage('Performance: SOAtest Load Test') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Run SOAtest Load Test CLI via Docker
+                withCredentials([
+                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                ]) {
+                    sh '''
+                        docker run \
+                        -u ${jenkins_uid}:${jenkins_gid} \
+                        --rm -i \
+                        --name loadtest \
+                        -e ACCEPT_EULA=true \
+                        -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                        -w "/usr/local/parasoft" \
+                        --network=demo-net \
+                        $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
+
+                        ./soavirt/loadtest \
+                        -cmd \
+                        -run ./parabank-jenkins/soatest/SOAtestProject/loadtest/script.txt \
+                        -licenseServer ${LS_URL} \
+                        -licenseUsername ${PARASOFT_USER} \
+                        -licensePassword ${PARASOFT_PASS} \
+                        -licenseVus 1000 \
+                        "
+                    '''
+                }
             }
         }
 
