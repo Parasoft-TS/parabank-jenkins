@@ -40,14 +40,14 @@ pipeline {
         NVD_CACHE_HOST_DIR      = "/var/lib/jenkins-nvd-cache"
         NVD_CACHE_CONTAINER_DIR = "/home/parasoft/dependency-check-data"
 
-        // Parasoft Jtest Settings (Security configs)
-        jtestCWEConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CWE Top 25 2025.properties"                   // builtin://CWE Top 25 2025
-        jtestOWASPConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP Top 10-2025.properties"                 // builtin://OWASP Top 10-2025
-        jtestOWASPAPIConfig = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP API Security Top 10-2023.properties"    // builtin://OWASP API Security Top 10-2023
-        jtestPCIConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/PCI DSS 4.0.properties"                       // builtin://PCI DSS 4.0
-        jtestHIPAAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/HIPAA.properties"                             // builtin://HIPAA
-        jtestSTIGConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/DISA-ASD-STIG.properties"                     // builtin://DISA-ASD-STIG
-        jtestCERTConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CERT for Java.properties"                     // builtin://CERT for Java
+        // Parasoft Jtest Settings (TIA: local "feature-branch" test config files carry TIA-specific settings; recreate/update manually)
+        jtestCWEConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CWE Top 25 2025 feature-branch.properties"
+        jtestOWASPConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP Top 10-2025 feature-branch.properties"
+        jtestOWASPAPIConfig = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/OWASP API Security Top 10-2023 feature-branch.properties"
+        jtestPCIConfig      = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/PCI DSS 4.0 feature-branch.properties"
+        jtestHIPAAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/HIPAA feature-branch.properties"
+        jtestSTIGConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/DISA-ASD-STIG feature-branch.properties"
+        jtestCERTConfig     = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/CERT for Java feature-branch.properties"
         jtestSessionTag     = "ParabankJenkins-Jtest-Security"
 
         // Parasoft SOAtest Settings
@@ -84,6 +84,26 @@ pipeline {
                     #ls -ll
                 '''
 
+                // TIA: copy baseline artifacts from the main-branch DevSecOps Jenkins job into ./copied/
+                copyArtifacts(
+                    projectName: 'Parabank-Jenkins-DevSecOps (main branch)',
+                    target: 'copied/',
+                    filter: '''
+                        **/target/jtest/sast/**/*.xml,
+                        **/target/*.war,
+                        **/soatest/report/*.xml''',
+                    fingerprintArtifacts: true,
+                    selector: lastSuccessful()
+                )
+
+                // Debug: show what got copied when CI_DEBUG=true
+                sh '''
+                    if [ "${CI_DEBUG}" = "true" ]; then
+                        echo "--- copied/ contents ---"
+                        ls -R ./copied 2>/dev/null || echo "no copied/ directory"
+                    fi
+                '''
+
                 // Resolve build environment (uid/gid, timestamp, buildId)
                 script {
                     env.jenkins_uid    = sh(script: 'id -u jenkins', returnStdout: true).trim()
@@ -93,7 +113,7 @@ pipeline {
                         env.buildId = params.BUILD_ID_OVERRIDE.trim()
                         echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
                     } else {
-                        env.buildId = "${app_short}-${env.buildTimestamp}-feature"
+                        env.buildId = "${app_short}-${env.buildTimestamp}-feature-tia"
                         echo "Using auto-generated buildId: ${env.buildId}"
                     }
                 }
@@ -148,6 +168,8 @@ report.scontrol=full
 scope.local=true
 scope.scontrol=true
 scope.xmlmap=false
+scope.scontrol.files.filter.mode=branch
+scope.scontrol.ref.branch=origin/master
 
 scontrol.git.exec=git
 scontrol.rep1.git.branch=${PARABANK_REPO_BRANCH}
@@ -220,9 +242,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) CWE Top 25') {
+        stage('Analyze: Jtest (SAST) CWE Top 25 - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -230,6 +253,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -238,9 +262,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cwe/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestCWEConfig}' \
-                    -Djtest.report=./target/jtest/sast/cwe \
+                    -Djtest.report=./target/jtest/sast/cwe-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -248,9 +275,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) OWASP Top 10') {
+        stage('Analyze: Jtest (SAST) OWASP Top 10 - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -258,6 +286,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -266,9 +295,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/owasp/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestOWASPConfig}' \
-                    -Djtest.report=./target/jtest/sast/owasp \
+                    -Djtest.report=./target/jtest/sast/owasp-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -276,9 +308,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) OWASP API Security Top 10') {
+        stage('Analyze: Jtest (SAST) OWASP API Security Top 10 - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -286,6 +319,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -294,9 +328,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/owaspapi/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestOWASPAPIConfig}' \
-                    -Djtest.report=./target/jtest/sast/owaspapi \
+                    -Djtest.report=./target/jtest/sast/owaspapi-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -304,9 +341,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) PCI-DSS') {
+        stage('Analyze: Jtest (SAST) PCI-DSS - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -314,6 +352,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -322,9 +361,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/pci/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestPCIConfig}' \
-                    -Djtest.report=./target/jtest/sast/pci \
+                    -Djtest.report=./target/jtest/sast/pci-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -332,9 +374,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) HIPAA') {
+        stage('Analyze: Jtest (SAST) HIPAA - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -342,6 +385,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -350,9 +394,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/hipaa/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestHIPAAConfig}' \
-                    -Djtest.report=./target/jtest/sast/hipaa \
+                    -Djtest.report=./target/jtest/sast/hipaa-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -360,9 +407,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) DISA-ASD-STIG') {
+        stage('Analyze: Jtest (SAST) DISA-ASD-STIG - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -370,6 +418,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -378,9 +427,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/stig/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestSTIGConfig}' \
-                    -Djtest.report=./target/jtest/sast/stig \
+                    -Djtest.report=./target/jtest/sast/stig-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -388,9 +440,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest (SAST) CERT for Java') {
+        stage('Analyze: Jtest (SAST) CERT for Java - Optimized') {
             when { equals expected: true, actual: true }
             steps {
+                // TIA-optimized SAST: uses "feature-branch" DTP config + baseline SAST report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -398,6 +451,7 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
@@ -406,9 +460,12 @@ EOF
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sast/cert/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestCERTConfig}' \
-                    -Djtest.report=./target/jtest/sast/cert \
+                    -Djtest.report=./target/jtest/sast/cert-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
@@ -556,10 +613,10 @@ EOF
             }
         }
 
-        stage('Test: SOAtest (DAST) UI + API') {
+        stage('Test: SOAtest (DAST) UI + API - Optimized') {
             when { equals expected: true, actual: true }
             steps {
-                // Run SOAtest CLI (via Docker) against the deployed feature — security suite
+                // TIA-optimized SOAtest DAST: -impactedTests limits execution to tests whose covered code changed since baseline
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -567,6 +624,7 @@ EOF
                     --name soatest \
                     -e ACCEPT_EULA=true \
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -v "$PWD/copied:/usr/local/parasoft/copied" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
@@ -581,13 +639,17 @@ EOF
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
 
-                    # Execute the security test suite
+                    # Execute the TIA-optimized security test suite (impacted tests only).
                     ./soavirt/soatestcli \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/security \
+                    -impactedTests ./copied/parabank-jenkins/soatest/report/coverage.xml \
                     -environment 'parabank-feature (docker)' \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
+                    -property application.coverage.runtime.dir=/usr/local/parasoft/soavirt_workspace/SOAtestProject/coverage_runtime_dir \
+                    -property application.coverage.binaries=$(ls ./copied/parabank/target/*.war 2>/dev/null | head -1) \
+                    -property application.coverage.binaries.include=com/parasoft/** \
                     -report ./parabank-jenkins/soatest/report \
                     "
                 '''
