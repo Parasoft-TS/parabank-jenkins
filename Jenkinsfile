@@ -37,9 +37,8 @@ pipeline {
         PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
         PARABANK_REPO_BRANCH = "selenium-demo"
 
-        // Parasoft Jtest Settings
-        jtestSAConfig    = "file:///home/parasoft/jenkins/parabank-jenkins/jtest/configs/Recommended Rules.properties" // jtest.builtin://Recommended Rules
-        jtestMAConfig    = "jtest.builtin://Metrics"
+        // Parasoft Jtest Settings (TIA: uses DTP-hosted "feature-branch" test configs)
+        jtestSAConfig    = "user://Recommended Rules feature-branch"
         jtestSessionTag  = "ParabankJenkins-Jtest"
         unitCovImage     = "Parabank_All;Parabank_UnitTest"
 
@@ -89,6 +88,27 @@ pipeline {
                     #ls -ll
                 '''
 
+                // TIA: copy baseline artifacts from the main-branch Jenkins job into ./copied/
+                copyArtifacts(
+                    projectName: 'Parabank-Jenkins (main branch)',
+                    target: 'copied/',
+                    filter: '''
+                        **/target/jtest/ut/*.xml,
+                        **/target/jtest/sa/*.xml,
+                        **/target/*.war,
+                        **/soatest/func-report/*.xml''',
+                    fingerprintArtifacts: true,
+                    selector: lastSuccessful()
+                )
+
+                // Debug: show what got copied when CI_DEBUG=true
+                sh '''
+                    if [ "${CI_DEBUG}" = "true" ]; then
+                        echo "--- copied/ contents ---"
+                        ls -R ./copied 2>/dev/null || echo "no copied/ directory"
+                    fi
+                '''
+
                 // Resolve build environment (uid/gid, timestamp, buildId)
                 script {
                     env.jenkins_uid    = sh(script: 'id -u jenkins', returnStdout: true).trim()
@@ -98,7 +118,7 @@ pipeline {
                         env.buildId = params.BUILD_ID_OVERRIDE.trim()
                         echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
                     } else {
-                        env.buildId = "${app_short}-${env.buildTimestamp}-feature"
+                        env.buildId = "${app_short}-${env.buildTimestamp}-feature-tia"
                         echo "Using auto-generated buildId: ${env.buildId}"
                     }
                 }
@@ -125,6 +145,8 @@ report.scontrol=full
 scope.local=true
 scope.scontrol=true
 scope.xmlmap=false
+scope.scontrol.files.filter.mode=branch
+scope.scontrol.ref.branch=origin/master
 
 scontrol.git.exec=git
 scontrol.rep1.git.branch=${PARABANK_REPO_BRANCH}
@@ -204,10 +226,10 @@ EOF
             }
         }
 
-        stage('Analyze: Jtest Static') {
+        stage('Analyze: Jtest Static - Optimized') {
             when { equals expected: true, actual: true }
             steps {
-                // Run Jtest static analysis + metrics via Docker
+                // TIA-optimized Jtest static analysis: uses "feature-branch" DTP config + baseline SA report to exclude already-known findings
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -215,39 +237,32 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
-                    # Compile the project and run Jtest Static Analysis
+                    # Compile the project and run TIA-optimized Jtest Static Analysis
                     mvn -ntp compile \
                     jtest:jtest \
                     -DskipTests=true \
                     -s /home/parasoft/.m2/settings.xml \
+                    -Dproperty.configuration.dir.user='../parabank-jenkins/jtest/configs' \
+                    -Dproperty.goal.ref.report.file='../copied/parabank/target/jtest/sa/report.xml' \
+                    -Dproperty.goal.ref.report.findings.exclude=true \
                     -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
                     -Djtest.config='${jtestSAConfig}' \
-                    -Djtest.report=./target/jtest/sa \
-                    -Djtest.showSettings=true \
-                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
-
-                    # Compile the project and run Jtest Metrics Analysis
-                    mvn -ntp \
-                    jtest:jtest \
-                    -DskipTests=true \
-                    -s /home/parasoft/.m2/settings.xml \
-                    -Djtest.settings='../parabank-jenkins/jtest/jtestcli.properties' \
-                    -Djtest.config='${jtestMAConfig}' \
-                    -Djtest.report=./target/jtest/ma \
+                    -Djtest.report=./target/jtest/sa-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
                 '''
 
-                echo '---> Parsing 10.x static analysis reports'
+                echo '---> Parsing 10.x static analysis reports (TIA-optimized)'
                 recordIssues(
                     tools: [parasoftFindings(
                         localSettingsPath: '$PWD/parabank-jenkins/jtest/jtestcli.properties',
-                        pattern: '**/target/jtest/*/*.xml'
+                        pattern: '**/target/jtest/sa-tia/*.xml'
                     )],
                     unhealthy: 100, // Adjust as needed
                     healthy: 50,   // Adjust as needed
@@ -262,7 +277,7 @@ EOF
             }
         }
 
-        stage('Test: Jtest Unit') {
+        stage('Test: Jtest Unit - Optimized') {
             when { equals expected: true, actual: true }
             steps {
                 // Stage-specific coverage image override
@@ -277,7 +292,7 @@ EOF
                     fi
                 '''
 
-                // Compile test sources and run unit tests with Jtest coverage agent
+                // TIA-optimized unit test: only run tests affected by code changes since baseline
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -285,11 +300,14 @@ EOF
                     --name jtest \
                     -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
                     -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -v "$PWD/copied:/home/parasoft/jenkins/copied" \
                     -w "/home/parasoft/jenkins/parabank" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
 
-                    mvn -ntp test-compile \
+                    # TIA workflow: process-test-classes → tia:affected-tests → test → jtest:jtest
+                    mvn -ntp process-test-classes \
+                    tia:affected-tests \
                     jtest:agent \
                     test \
                     jtest:jtest \
@@ -297,13 +315,16 @@ EOF
                     -Dmaven.test.failure.ignore=true \
                     -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ut.properties' \
                     -Djtest.config='builtin://Unit Tests' \
-                    -Djtest.report=./target/jtest/ut \
+                    -Djtest.referenceCoverageFile=../copied/parabank/target/jtest/ut/coverage.xml \
+                    -Djtest.referenceReportFile=../copied/parabank/target/jtest/ut/report.xml \
+                    -Dparasoft.runModifiedTests=true \
+                    -Djtest.report=./target/jtest/ut-tia \
                     -Djtest.showSettings=true \
                     -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
                     "
                 '''
 
-                echo '---> Parsing 10.x unit test reports'
+                echo '---> Parsing 10.x unit test reports (TIA-optimized)'
                 script {
                     step([$class: 'XUnitPublisher',
                         // thresholds: [failed(
@@ -313,7 +334,7 @@ EOF
                         tools: [[$class: 'ParasoftType',
                             deleteOutputFiles: true,
                             failIfNotNew: false,
-                            pattern: '**/target/jtest/ut/*.xml',
+                            pattern: '**/target/jtest/ut-tia/*.xml',
                             skipNoTestFiles: true,
                             stopProcessingIfError: false
                         ]]
@@ -397,10 +418,10 @@ EOF
             }
         }
 
-        stage('Test: SOAtest Functional') {
+        stage('Test: SOAtest Functional - Optimized') {
             when { equals expected: true, actual: true }
             steps {
-                // Run SOAtest CLI (via Docker) against the deployed feature
+                // TIA-optimized SOAtest functional: -impactedTests limits execution to tests whose covered code changed since baseline
                 sh '''
                     docker run \
                     -u ${jenkins_uid}:${jenkins_gid} \
@@ -408,6 +429,7 @@ EOF
                     --name soatest \
                     -e ACCEPT_EULA=true \
                     -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
+                    -v "$PWD/copied:/usr/local/parasoft/copied" \
                     -w "/usr/local/parasoft" \
                     --network=demo-net \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
@@ -422,12 +444,13 @@ EOF
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -import ./soavirt_workspace/parabank-jenkins/.project; \
 
-                    # Execute the functional test suite
+                    # Execute the TIA-optimized functional test suite (impacted tests only)
                     ./soavirt/soatestcli \
                     -J-Dcom.parasoft.browser.BrowserPropertyOptions.CHROME_ARGUMENTS=headless,disable-gpu,no-sandbox,disable-dev-shm-usage \
                     -J-Dwebtool.browsercontroller.webdriver.thirdparty.GeneralOptions.MAN_IN_THE_MIDDLE_ENABLED=false \
                     -data ./soavirt_workspace \
                     -resource /parabank-jenkins/soatest/SOAtestProject/functional \
+                    -impactedTests ./copied/parabank-jenkins/soatest/func-report/coverage.xml \
                     -config '${soatestConfig}' \
                     -settings ./soavirt_workspace/parabank-jenkins/soatest/soatestcli.properties \
                     -environment 'parabank-feature (docker)' \
@@ -457,44 +480,13 @@ EOF
             }
         }
 
-        stage('Test: Selenic') {
+        stage('Test: Selenic - Optimized') {
             when { equals expected: true, actual: true }
             steps {
-                // TODO: implement Selenic Java Selenium test execution
+                // TODO: implement Selenic Java Selenium test execution (TIA-optimized)
                 sh '''
                     echo "TODO: Selenic stage not yet implemented"
                 '''
-            }
-        }
-
-        stage('Performance: SOAtest Load Test') {
-            when { equals expected: true, actual: true }
-            steps {
-                // Run SOAtest Load Test CLI via Docker
-                withCredentials([
-                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
-                ]) {
-                    sh '''
-                        docker run \
-                        -u ${jenkins_uid}:${jenkins_gid} \
-                        --rm -i \
-                        --name loadtest \
-                        -e ACCEPT_EULA=true \
-                        -v "$PWD/parabank-jenkins:/usr/local/parasoft/parabank-jenkins" \
-                        -w "/usr/local/parasoft" \
-                        --network=demo-net \
-                        $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/soatest) /bin/bash -c " \
-
-                        ./soavirt/loadtest \
-                        -cmd \
-                        -run ./parabank-jenkins/soatest/SOAtestProject/loadtest/script.txt \
-                        -licenseServer ${LS_URL} \
-                        -licenseUsername ${PARASOFT_USER} \
-                        -licensePassword ${PARASOFT_PASS} \
-                        -licenseVus 1000 \
-                        "
-                    '''
-                }
             }
         }
 
@@ -530,12 +522,11 @@ EOF
             archiveArtifacts(
                 artifacts: '''
                     **/target/**/*.war,
-                    **/target/jtest/sa/**,
-                    **/target/jtest/ut/**,
+                    **/target/jtest/sa-tia/**,
+                    **/target/jtest/ut-tia/**,
                     **/target/jtest/monitor/**,
                     **/soatest/func-report/**,
-                    **/soatest/tsa/**,
-                    **/soatest/load-report/**''',
+                    **/soatest/tsa/**''',
                 fingerprint: true,
                 onlyIfSuccessful: false,
                 excludes: '''
