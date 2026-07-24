@@ -188,9 +188,14 @@ between builds and keeping it for files that did not.
 ### Prerequisites
 - A DTP project named **`Parabank-Jenkins-Cumulative`** with the **cumulative build** feature enabled
   in the project settings (server-side; not managed by the pipeline).
-- A CTP System + Environment representing the Parabank deployment (used by the coverage-integration
-  library to correlate per-test coverage back to the deployed agent). Default names looked up by the
-  pipeline: System = `Parabank`, Environment = `QA`. Both are configurable via job parameters.
+- A DTP **filter** matching the DTP project name (`Parabank-Jenkins-Cumulative`), used as `dtp.filterID`
+  in the coverage agent's config. If the filter isn't found, the pipeline still runs but TIA scope will
+  be unfiltered (a warning is logged).
+- A CTP **System** (with a specific version), **Environment**, and **Component** representing the
+  Parabank deployment. The coverage agent registers with CTP over an outbound WebSocket connection
+  (agent-initiated model). Default names looked up by the pipeline: System = `ParaBank` version `V1`,
+  Environment = `QA - Modernization Project`, Component = `Retail`. All four are configurable via
+  job parameters.
 - Same Jenkins prerequisites as the other pipelines (credential `parasoft-demo-user`, docker network
   `demo-net`, global env `DEFAULT_LSS_URL`).
 
@@ -204,8 +209,10 @@ between builds and keeping it for files that did not.
 | `PARABANK_COMMIT` | string | `''` | SHA / tag / branch to check out. Blank ⇒ tip of `master` |
 | `TEST_SUBSET` | choice | `all` | `subset1` \| `subset2` \| `subset3` \| `all` \| `tia` |
 | `CTP_URL` | string | `''` | CTP base URL. Blank disables CTP integration; `tia` mode rejects blank |
-| `CTP_SYSTEM_NAME` | string | `Parabank` | CTP System name |
-| `CTP_ENV_NAME` | string | `QA` | CTP Environment name (must belong to `CTP_SYSTEM_NAME`) |
+| `CTP_SYSTEM_NAME` | string | `ParaBank` | CTP System name (case-sensitive; matches CTP response casing) |
+| `CTP_SYSTEM_VERSION` | string | `V1` | CTP System version — disambiguates systems that share a name (case-sensitive). Blank ⇒ pipeline picks the first system matching `CTP_SYSTEM_NAME` (with a warning if multiple match) |
+| `CTP_ENV_NAME` | string | `QA - Modernization Project` | CTP Environment name (must belong to the resolved System) |
+| `CTP_COMPONENT_NAME` | string | `Retail` | CTP Component name representing the Parabank coverage-agent registration |
 
 `TEST_SUBSET` semantics:
 - `subset1|subset2|subset3` → `mvn verify -Dgroups=<subset>` (JUnit 5 tag filter)
@@ -228,9 +235,10 @@ Trigger the pipeline three times to establish the cumulative baseline in a fresh
 | 2 | `7bc4258892300539a6da4eff46a8ba2fd41ff070` | 2026-02-16 | Don't make database calls when not in jdbc access mode (5-controller refactor) | `subset2` (`TransferIT`, `BillPayIT`, `UpdateContactIT`, `RequestLoanIT`) | `PB_20260216_7bc4258` |
 | 3 | *(blank — uses `master` HEAD)* | current | HEAD includes `9381667` "Fix the functionality to find transaction by id" | `subset3` (`FindTransactionByIdIT`, `FindTransactionByDateIT`, `FindTransactionByAmountIT`, `OpenNewAccountIT`, `RegisterIT`) | `PB_<today>_<shortsha>` |
 
-For all three runs, use the same `DTP_PUBLISH=true`, `CTP_URL=<your ctp>`, `CTP_SYSTEM_NAME`, and
-`CTP_ENV_NAME`. After run #3, the `Parabank-Jenkins-Cumulative` project in DTP should show the
-merged view of all 12 tests with coverage applied to the HEAD sources.
+For all three runs, use the same `DTP_PUBLISH=true`, `CTP_URL=<your ctp>`, `CTP_SYSTEM_NAME`,
+`CTP_SYSTEM_VERSION`, `CTP_ENV_NAME`, and `CTP_COMPONENT_NAME`. After run #3, the
+`Parabank-Jenkins-Cumulative` project in DTP should show the merged view of all 12 tests with
+coverage applied to the HEAD sources.
 
 ### Reusability
 After the initial three-run baseline, subsequent runs continue to grow DTP's cumulative history:
@@ -250,3 +258,23 @@ Coverage integration uses the [parasoft/coverage-integration](https://github.com
 library (`coverage-integration-junit5` + `coverage-integration-selenium`). The pipeline emits
 `coverage-integration.properties` onto the test classpath at Set Up time when `CTP_URL` is provided;
 password uses the library's `${env_var:...}` resolver so the file itself contains no secret.
+
+### Coverage agent registration with CTP (agent-initiated WebSocket)
+
+Unlike the other pipelines, `Jenkinsfile.cumulative` does **not** use `monitor.env`. Instead:
+
+1. **`Package: Jtest Monitor`** still runs `mvn package jtest:monitor` — this produces the Parabank
+   WAR plus a `monitor.zip` bundle (agent jars + build-scoped includes/excludes in `agent.properties`)
+   and publishes static coverage (total coverable lines) to DTP.
+2. **`Deploy: Docker + Coverage Agent (Websocket)`** first surgically patches the unzipped
+   `./monitor/agent.properties` (when `CTP_URL` is set) — preserves the build-scoped
+   `jtest.agent.includes/excludes/runtimeData`, enforces `enableMultiuserCoverage=true` +
+   `autoloadMultiuserLibs=true` + `restServerEnabled=true`, and appends the CTP + DTP block:
+   `ctp.websocket.url`, `ctp.subscription.queue` (resolved from the CTP Component API during Set Up),
+   `dtp.project`, `dtp.buildID`, `dtp.coverageImages`, `dtp.filterID` (resolved from the DTP filters
+   API during Set Up).
+3. The same stage then starts the Parabank container with an inline
+   `CATALINA_OPTS=-javaagent:/home/docker/jtest/monitor/agent.jar=settings=…,runtimeData=…`. The
+   agent reads the patched properties, opens an outbound WebSocket to CTP for the resolved Component,
+   auto-loads the OpenTelemetry javaagent from the same directory (for multi-user Baggage correlation),
+   and keeps its REST server on port 8050 for the pipeline's `/status` health check.

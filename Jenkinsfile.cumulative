@@ -23,8 +23,10 @@ pipeline {
 
         // Parasoft CTP integration (used by both coverage-integration.properties emission and `tia` mode)
         string(name: 'CTP_URL', defaultValue: '', description: 'Parasoft CTP base URL (e.g. http://ctp:8080). Blank disables CTP integration; tests run without per-test coverage correlation.')
-        string(name: 'CTP_SYSTEM_NAME', defaultValue: 'Parabank', description: 'CTP System name that owns the deployed Parabank coverage agent')
-        string(name: 'CTP_ENV_NAME', defaultValue: 'QA', description: 'CTP Environment name for this deployed Parabank instance')
+        string(name: 'CTP_SYSTEM_NAME', defaultValue: 'ParaBank', description: 'CTP System name that owns the deployed Parabank coverage agent (case-sensitive)')
+        string(name: 'CTP_SYSTEM_VERSION', defaultValue: 'V1', description: 'CTP System version to disambiguate systems that share a name (case-sensitive)')
+        string(name: 'CTP_ENV_NAME', defaultValue: 'QA - Modernization Project', description: 'CTP Environment name for this deployed Parabank instance')
+        string(name: 'CTP_COMPONENT_NAME', defaultValue: 'Retail', description: 'CTP Component name representing the Parabank coverage-agent registration')
 
         // Other Parasoft settings moved to either Jenkins Credentials Store or Global Environment Variables
     }
@@ -166,19 +168,21 @@ EOF
                     '''
                 }
 
-                // Optional: resolve CTP envId + emit coverage-integration.properties for the Selenic tests.
+                // Optional: resolve CTP systemId + envId + component websocket coords + DTP filter ID,
+                // then emit coverage-integration.properties for the Selenic tests.
                 // Only runs when CTP_URL is provided; without it, tests still execute but without per-test
                 // CTP correlation (coverage flows via the jtest:monitor snapshot instead).
                 script {
                     if (env.CTP_URL) {
                         def encodedSystem = java.net.URLEncoder.encode(params.CTP_SYSTEM_NAME, 'UTF-8')
                         def encodedEnv    = java.net.URLEncoder.encode(params.CTP_ENV_NAME, 'UTF-8')
+                        def encodedFilter = java.net.URLEncoder.encode(env.project_name, 'UTF-8')
 
                         withCredentials([
                             usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
                         ]) {
-                            withEnv(["ENCODED_SYSTEM=${encodedSystem}", "ENCODED_ENV=${encodedEnv}"]) {
-                                // Resolve systemId
+                            withEnv(["ENCODED_SYSTEM=${encodedSystem}", "ENCODED_ENV=${encodedEnv}", "ENCODED_FILTER=${encodedFilter}"]) {
+                                // Resolve CTP systemId — filter by name AND (optionally) version, case-sensitive
                                 def systemResp = sh(returnStdout: true, script: '''
                                     if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
                                     curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
@@ -186,12 +190,31 @@ EOF
                                 ''').trim()
                                 if (params.CI_DEBUG) { echo "CTP systems response:\n${systemResp}" }
                                 def systemJson = new groovy.json.JsonSlurperClassic().parseText(systemResp)
-                                def systemId = systemJson.systems?.find { it.name == params.CTP_SYSTEM_NAME }?.id
-                                if (!systemId) {
-                                    error("Failed to resolve CTP systemId for system '${params.CTP_SYSTEM_NAME}'. Verify the system exists in CTP.")
+                                def systemId
+                                if (params.CTP_SYSTEM_VERSION?.trim()) {
+                                    // Version specified: require exactly one match on name AND version
+                                    def systemMatches = systemJson.systems?.findAll {
+                                        it.name == params.CTP_SYSTEM_NAME && it.version == params.CTP_SYSTEM_VERSION
+                                    } ?: []
+                                    if (systemMatches.size() != 1) {
+                                        error("Expected exactly one CTP system matching name='${params.CTP_SYSTEM_NAME}' version='${params.CTP_SYSTEM_VERSION}', got ${systemMatches.size()}. Response: ${systemResp}")
+                                    }
+                                    systemId = systemMatches[0].id
+                                } else {
+                                    // Version blank: filter by name only; take the first match
+                                    def systemMatches = systemJson.systems?.findAll {
+                                        it.name == params.CTP_SYSTEM_NAME
+                                    } ?: []
+                                    if (systemMatches.size() == 0) {
+                                        error("No CTP system found matching name='${params.CTP_SYSTEM_NAME}'. Response: ${systemResp}")
+                                    }
+                                    if (systemMatches.size() > 1) {
+                                        echo "WARNING: ${systemMatches.size()} CTP systems match name='${params.CTP_SYSTEM_NAME}'; using the first (id=${systemMatches[0].id}, version='${systemMatches[0].version}'). Set CTP_SYSTEM_VERSION to disambiguate."
+                                    }
+                                    systemId = systemMatches[0].id
                                 }
 
-                                // Resolve envId (matching systemId)
+                                // Resolve CTP envId (matching systemId)
                                 def envResp = sh(returnStdout: true, script: '''
                                     if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
                                     curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
@@ -201,10 +224,51 @@ EOF
                                 def envJson = new groovy.json.JsonSlurperClassic().parseText(envResp)
                                 def envId = envJson.environments?.find { it.name == params.CTP_ENV_NAME && it.systemId == systemId }?.id
                                 if (!envId) {
-                                    error("Failed to resolve CTP envId for environment '${params.CTP_ENV_NAME}' under system '${params.CTP_SYSTEM_NAME}'.")
+                                    error("Failed to resolve CTP envId for environment '${params.CTP_ENV_NAME}' under system '${params.CTP_SYSTEM_NAME} ${params.CTP_SYSTEM_VERSION}' (systemId=${systemId}).")
                                 }
                                 env.CTP_ENV_ID = envId.toString()
                                 echo "Resolved CTP envId: ${env.CTP_ENV_ID}"
+
+                                // Resolve CTP component websocket URL + subscription queue — used to patch agent.properties
+                                def compResp = sh(returnStdout: true, script: '''
+                                    if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
+                                    curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                        "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/components"
+                                ''').trim()
+                                if (params.CI_DEBUG) { echo "CTP components response:\n${compResp}" }
+                                def compJson = new groovy.json.JsonSlurperClassic().parseText(compResp)
+                                def comp = compJson.components?.find { it.name == params.CTP_COMPONENT_NAME }
+                                if (!comp) {
+                                    error("CTP component '${params.CTP_COMPONENT_NAME}' not found under envId=${env.CTP_ENV_ID}. Response: ${compResp}")
+                                }
+                                if (!comp.ctpWebsocketUrl || !comp.ctpSubscriptionQueue) {
+                                    error("CTP component '${params.CTP_COMPONENT_NAME}' is missing ctpWebsocketUrl or ctpSubscriptionQueue. Response: ${compResp}")
+                                }
+                                env.COMPONENT_WS_URL    = comp.ctpWebsocketUrl
+                                env.COMPONENT_SUB_QUEUE = comp.ctpSubscriptionQueue
+                                echo "Resolved CTP component '${params.CTP_COMPONENT_NAME}' — websocket=${env.COMPONENT_WS_URL}, subscription=${env.COMPONENT_SUB_QUEUE}"
+
+                                // Resolve DTP filter ID (soft-warn on miss; empty filter means TIA scope will be unfiltered)
+                                if (env.DTP_URL) {
+                                    def filterResp = sh(returnStdout: true, script: '''
+                                        if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
+                                        curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                            "${DTP_URL}/grs/api/v1.12/filters?managedOnly=false&name=${ENCODED_FILTER}"
+                                    ''').trim()
+                                    if (params.CI_DEBUG) { echo "DTP filters response:\n${filterResp}" }
+                                    def filterJson = new groovy.json.JsonSlurperClassic().parseText(filterResp)
+                                    def filterId = filterJson[0]?.id
+                                    if (filterId) {
+                                        env.DTP_FILTER_ID = filterId.toString()
+                                        echo "Resolved DTP filter ID for '${env.project_name}': ${env.DTP_FILTER_ID}"
+                                    } else {
+                                        env.DTP_FILTER_ID = ""
+                                        echo "WARNING: DTP filter for '${env.project_name}' not found — dtp.filterID will be empty (TIA scope will be unfiltered)"
+                                    }
+                                } else {
+                                    env.DTP_FILTER_ID = ""
+                                    echo "DTP_URL not set — skipping DTP filter lookup; dtp.filterID will be empty"
+                                }
                             }
 
                             // Emit coverage-integration.properties on the Selenic test classpath.
@@ -277,10 +341,68 @@ EOF
             }
         }
 
-        stage('Deploy: Docker + Jtest Coverage') {
+        stage('Deploy: Docker + Coverage Agent (Websocket)') {
             when { equals expected: true, actual: true }
             steps {
-                // Run Parabank docker image with the Jtest coverage agent attached
+                // Patch ./monitor/agent.properties for the CTP websocket workflow (only when CTP_URL is set).
+                // Preserves build-scoped keys (jtest.agent.includes / excludes / runtimeData / appLocation*)
+                // that jtest:monitor produced, enforces the settings required for agent-initiated CTP
+                // registration + multiuser coverage, and appends the CTP + DTP block resolved during Set Up.
+                script {
+                    if (env.CTP_URL?.trim()) {
+                        sh '''
+                            if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+
+                            PROPS_FILE=./monitor/agent.properties
+                            if [ ! -f "${PROPS_FILE}" ]; then
+                                echo "ERROR: expected ${PROPS_FILE} to exist after unzipping monitor.zip"
+                                exit 1
+                            fi
+
+                            # Idempotent property upsert: replace existing key, else append
+                            set_or_add_prop() {
+                                local key="$1" val="$2" file="$3"
+                                if grep -qE "^${key}=" "$file"; then
+                                    sed -i "s|^${key}=.*|${key}=${val}|" "$file"
+                                else
+                                    echo "${key}=${val}" >> "$file"
+                                fi
+                            }
+
+                            # Enforce agent settings required for CTP websocket + multiuser coverage
+                            set_or_add_prop jtest.agent.session.autostart       false ${PROPS_FILE}
+                            set_or_add_prop jtest.agent.enableMultiuserCoverage true  ${PROPS_FILE}
+                            set_or_add_prop jtest.agent.autoloadMultiuserLibs   true  ${PROPS_FILE}
+                            set_or_add_prop jtest.agent.restServerEnabled       true  ${PROPS_FILE}
+                            set_or_add_prop jtest.agent.restServerPort          8050  ${PROPS_FILE}
+
+                            # Append CTP + DTP block (these keys are new — not emitted by jtest:monitor)
+                            cat >> ${PROPS_FILE} << EOF
+
+# CTP websocket integration (added by pipeline)
+ctp.websocket.url=${COMPONENT_WS_URL}
+ctp.subscription.queue=${COMPONENT_SUB_QUEUE}
+
+# DTP reporting (added by pipeline)
+dtp.project=${project_name}
+dtp.buildID=${buildId}
+dtp.coverageImages=${selenicCovImage}
+dtp.filterID=${DTP_FILTER_ID}
+EOF
+
+                            if [ "${CI_DEBUG}" = "true" ]; then
+                                echo "--- patched agent.properties ---"
+                                cat ${PROPS_FILE}
+                            fi
+                        '''
+                    } else {
+                        echo "CTP_URL not set — skipping agent.properties patch; agent runs with jtest:monitor defaults."
+                    }
+                }
+
+                // Run Parabank docker image with the Jtest coverage agent attached.
+                // CATALINA_OPTS is passed inline (not via monitor.env, which the other pipelines still use)
+                // so the Jtest agent picks up the CTP + DTP settings from the patched ./monitor/agent.properties.
                 sh '''
                     docker run \
                     -d \
@@ -289,7 +411,7 @@ EOF
                     -p ${app_cov_port}:8050 \
                     -p ${app_db_port}:9001 \
                     -p ${app_jms_port}:61616 \
-                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
+                    -e "CATALINA_OPTS=-javaagent:/home/docker/jtest/monitor/agent.jar=settings=/home/docker/jtest/monitor/agent.properties,runtimeData=/home/docker/jtest/monitor/runtime_coverage" \
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
                     --network=demo-net \
                     --name ${app_name} \
