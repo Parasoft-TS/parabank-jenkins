@@ -7,25 +7,246 @@ This repository is a working demonstration of Parasoft's Continuous Quality Plat
 - (Optional) Access to a Parasoft DTP Server
 
 ## AWS EC2 Notes:
-- If using Jenkins running on EC2 (Amazon Linux), where a jenkins:jenkins user was created and you're using the default node, review the jtest, soatest, and parabank-docker Dockerfile scripts to make sure the UID and GID settings match the UID:GID of your jenkins user.  Also check the Jenkinsfiles for the UID and GID settings to match.
 - The docker script is connecting all containers to an external docker bridge network named "demo-net".  Make sure the Jenkins EC2 instance or build node (docker host) has this docker network created: docker network create demo-net
 - The tree command is used for debugging in the pipeline scripts, which does not come pre-installed with Amazon Linux.  If your Jenkins machine is running on EC2: sudo yum install tree
 
 ## Jenkins Setup:
 - Add the following Jenkins plugins: Pipeline.*, Parasoft Environment Manager, Parasoft Findings
 
-## Jenkins Parameterized Pipeline Build Paramaters:
-- PARASOFT_LS_URL
-- PARASOFT_LS_USER
-- PARASOFT_LS_PASS
-- PARASOFT_DTP_URL
-- PARASOFT_DTP_USER
-- PARASOFT_DTP_PASS
-- PARASOFT_DTP_PUBLISH
-    - true/false
-- NVD_APIKEY (for OWASP Dependency Check API in Jenkinsfile.security)
-
 ## Configure Jenkins Pipeline with the following:
 - Jenkinsfile: Quality Scan, Unit Tests, Deploy with coverage, Functional Test
 - Jenkinsfile.security: SAST, Deploy with coverage, DAST
 - Jenkinsfile.deployonly: Deploy with coverage, ephemeral for 30 minutes, primed for manual testing in the future
+- Jenkinsfile.cumulative: Deploy with coverage, Selenic (JUnit 5 + Selenium) subset execution, results published to a dedicated DTP project for the cumulative-build demo
+
+## Jenkinsfile — Quality + Functional pipeline
+
+`Jenkinsfile` runs the "full-fat" quality pipeline against Parabank's `master` HEAD: Jtest static
+analysis, Jtest unit tests with coverage, packages Parabank with the Jtest coverage agent, deploys
+it, runs SOAtest functional tests against the running deployment, and closes with a SOAtest load
+test. Results publish to a single DTP project.
+
+### Job parameters
+| Parameter | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `DTP_URL` | string | `''` | Parasoft DTP base URL |
+| `DTP_PUBLISH` | boolean | `false` | Publish analysis + coverage results to DTP |
+| `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files |
+| `BUILD_ID_OVERRIDE` | string | `''` | Override auto-computed `buildId` (default: `PB-<yyyy-MM-dd>`) |
+
+### Stages
+1. **Set Up** — checks out this repo into `./parabank-jenkins`, clones `parasoft/parabank@master`
+   into `./parabank`, starts a `selenium-grid` container on `demo-net`, and emits
+   `jtestcli.properties` + `soatestcli.properties` with credentials from `parasoft-demo-user`.
+2. **Analyze: Jtest Static** — `mvn jtest:jtest` with the Recommended Rules and Metrics configs
+   (via `parabank-jenkins/jtest/Dockerfile`).
+3. **Test: Jtest Unit** — `mvn test-compile jtest:agent test jtest:jtest` for unit tests with
+   coverage.
+4. **Package: Jtest Monitor** — `mvn package jtest:monitor` produces the coverage-agent-instrumented
+   WAR and `monitor.zip`; the zip is unzipped for the Deploy stage to bind-mount.
+5. **Deploy: Docker + Jtest Coverage** — runs the `parabank:baseline` image (custom
+   `parabank-docker/Dockerfile`) with the Jtest coverage agent env-file; exposes app on
+   `${app_port}=8090`, agent on `${app_cov_port}=8050`.
+6. **Test: SOAtest Functional** — `soatestcli` against the deployed Parabank; coverage flows
+   through the agent under the `Parabank_All;Parabank_SOAtest` image.
+7. **Test: Selenic** — currently a `TODO` stub (Selenic tests are being built out under
+   `selenic/selenic-tests/`; see the [Jenkinsfile.cumulative](#jenkinsfilecumulative--dtp-cumulative-build-demo)
+   section for the initial implementation).
+8. **Performance: SOAtest Load Test** — `soavirt/loadtest` CLI against the deployed Parabank
+   (1000 virtual users).
+9. **Release** — no-op placeholder; container cleanup happens in `post.always`.
+
+### DTP settings
+- DTP project: `Parabank-Jenkins`
+- Jtest session tag: `ParabankJenkins-Jtest`
+- SOAtest session tag: `ParabankJenkins-SOAtest`
+- Coverage images: `Parabank_All;Parabank_UnitTest` (unit),
+  `Parabank_All;Parabank_SOAtest;Parabank_Manual` (functional / monitor)
+
+### Notes
+- The deployed container is named `parabank-baseline` and binds host ports
+  `8090/8050/9021/63616`. Torn down in `post.always`.
+- `Jenkinsfile` and `Jenkinsfile.security` share the same container name, host ports, and DTP
+  project (`Parabank-Jenkins`), so the two cannot run concurrently on the same Jenkins agent.
+  `Jenkinsfile.deployonly` uses isolated names/ports so it CAN run alongside them; the cumulative
+  pipeline publishes to a separate DTP project (`Parabank-Jenkins-Cumulative`).
+
+---
+
+## Jenkinsfile.security — Security scan pipeline
+
+`Jenkinsfile.security` runs the security-focused pipeline against Parabank's `master` HEAD: seven
+Jtest SAST scans (each covering a distinct standard or regulation), one SCA scan via OWASP
+Dependency Check, then packages + deploys Parabank with the Jtest coverage agent and runs a SOAtest
+DAST (dynamic security tests + API pentest) against the deployment. Findings publish to the shared
+DTP project.
+
+### Additional prerequisites
+- Jenkins credential `nvd-api-key` (Secret Text) — an
+  [NVD API key](https://nvd.nist.gov/developers/request-an-api-key) used by OWASP Dependency Check
+  to fetch CVE data at higher rate limits.
+- Jenkins credential `oss-index` (Username/Password) — Sonatype OSS Index credential used by
+  Dependency Check for the OSS Index analyzer.
+- Persistent host directory `/var/lib/jenkins-nvd-cache` (owned/writable by the `jenkins` user)
+  bind-mounted into the dependency-check container so the NVD database persists across builds. The
+  first build populates it; subsequent builds only fetch the delta.
+
+### Job parameters
+| Parameter | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `DTP_URL` | string | `''` | Parasoft DTP base URL |
+| `DTP_PUBLISH` | boolean | `false` | Publish analysis + coverage results to DTP |
+| `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files |
+| `BUILD_ID_OVERRIDE` | string | `''` | Override auto-computed `buildId` (default: `PB-<yyyy-MM-dd>`) |
+
+### Stages
+1. **Set Up** — same shape as `Jenkinsfile`'s Set Up (checks out both repos, emits
+   `jtestcli.properties` + `soatestcli.properties`; no Selenium Grid needed here).
+2. **Analyze: Jtest (SAST)** — seven sequential stages, one per configuration (each config lives
+   under `jtest/configs/`):
+   - CWE Top 25 (2025)
+   - OWASP Top 10 (2025)
+   - OWASP API Security Top 10 (2023)
+   - PCI DSS 4.0
+   - HIPAA
+   - DISA-ASD-STIG
+   - CERT for Java
+3. **Analyze: (SCA) OWASP Dependency Check** — dependency scan via the `dependencycheck.sh` wrapper
+   in `jtest/dependency-check-pack/`, using the `nvd-api-key` + `oss-index` credentials and the
+   persistent NVD cache.
+4. **Package: Jtest Monitor** — same as `Jenkinsfile`.
+5. **Deploy: Docker + Coverage** — same as `Jenkinsfile` (container `parabank-baseline` on
+   `8090/8050/9021/63616`).
+6. **Test: SOAtest (DAST) UI + API** — dynamic security tests + API pentest via `soatestcli`
+   against the deployed Parabank; coverage flows through the agent.
+7. **Release** — no-op placeholder.
+
+### DTP settings
+- DTP project: `Parabank-Jenkins` (shared with `Jenkinsfile`)
+- Jtest session tag: `ParabankJenkins-Jtest-Security`
+- SOAtest session tag: `ParabankJenkins-SOAtest-Security`
+
+### Notes
+- Uses the same container name and host ports as `Jenkinsfile` (`parabank-baseline`,
+  `8090/8050/9021/63616`), so this pipeline cannot run concurrently with `Jenkinsfile`.
+- Each SAST config runs as its own stage (rather than as one config-list run) so each publishes its
+  own findings report to Jenkins UI + DTP; this makes it easy to see which standard flagged a given
+  finding.
+
+---
+
+## Jenkinsfile.deployonly — Ephemeral deployment
+
+`Jenkinsfile.deployonly` builds Parabank with the Jtest coverage agent and stands up an ephemeral
+deployment on **isolated ports** for manual exploration, ad-hoc test tooling, or interactive DAST
+sessions. The deployment lives for `KEEPALIVE_MINUTES` minutes and is torn down automatically in
+`post.always`.
+
+### Job parameters
+| Parameter | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `DTP_URL` | string | `''` | Parasoft DTP base URL (only used by the monitor packaging) |
+| `DTP_PUBLISH` | boolean | `false` | Publish the monitor packaging result to DTP |
+| `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files |
+| `BUILD_ID_OVERRIDE` | string | `''` | Override auto-computed `buildId` (default: `PB-<yyyy-MM-dd>`) |
+| `KEEPALIVE_MINUTES` | string | `30` | How long to keep the ephemeral deployment alive after Deploy (`0` skips the KeepAlive stage — teardown happens immediately) |
+
+### Stages
+1. **Set Up + Build** — checks out both repos, emits `jtestcli.properties`, and runs
+   `mvn package jtest:monitor` in one shot (no separate analysis stages).
+2. **Deploy: Docker + Coverage** — starts the `parabank-baseline-ephemeral` container on isolated
+   ports (see below).
+3. **KeepAlive** — `sleep $((KEEPALIVE_MINUTES * 60))`. Skipped when `KEEPALIVE_MINUTES=0`.
+
+### Isolation notes
+- Container name: `parabank-baseline-ephemeral` (distinct from the `-baseline` used by `Jenkinsfile`
+  and `Jenkinsfile.security`).
+- Host ports: `9876` (app), `8850` (coverage agent), `9091` (H2 DB), `63626` (JMS). These
+  deliberately do NOT overlap with the other pipelines' `8090/8050/9021/63616`, so this ephemeral
+  deployment can run alongside a full quality/security pipeline execution without port conflicts.
+- DTP project: `Parabank-Jenkins` (shared) — the monitor packaging still publishes coverage-image
+  metadata under `Jenkins-Jtest`.
+
+### Use cases
+- Manual UI/API exploration of a monitored Parabank deployment while a longer analysis pipeline
+  runs separately.
+- Interactive DAST (Burp, ZAP, Postman) against a Parasoft-coverage-instrumented target.
+- Recording SOAtest test suites against a controlled deployment before folding them into
+  `Jenkinsfile` or `Jenkinsfile.security`.
+
+---
+
+## Jenkinsfile.cumulative — DTP cumulative-build demo
+
+`Jenkinsfile.cumulative` demonstrates DTP's **cumulative build** feature. Each pipeline run builds ONE
+`parasoft/parabank` commit, deploys it with the Jtest coverage agent, and runs a **subset** of the
+Selenic (JUnit 5 + Selenium) suite under `selenic/selenic-tests/`. Running the pipeline several times
+against different commits publishes partial test + coverage results per run; DTP's cumulative-build
+feature merges them into a single up-to-date view — invalidating coverage and test results for files that changed
+between builds and keeping it for files that did not.
+
+### Prerequisites
+- A DTP project named **`Parabank-Jenkins-Cumulative`** with the **cumulative build** feature enabled
+  in the project settings (server-side; not managed by the pipeline).
+- A CTP System + Environment representing the Parabank deployment (used by the coverage-integration
+  library to correlate per-test coverage back to the deployed agent). Default names looked up by the
+  pipeline: System = `Parabank`, Environment = `QA`. Both are configurable via job parameters.
+- Same Jenkins prerequisites as the other pipelines (credential `parasoft-demo-user`, docker network
+  `demo-net`, global env `DEFAULT_LSS_URL`).
+
+### Job parameters
+| Parameter | Type | Default | Notes |
+|-----------|------|---------|-------|
+| `DTP_URL` | string | `''` | Parasoft DTP base URL |
+| `DTP_PUBLISH` | boolean | `false` | Publish coverage results to DTP |
+| `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files |
+| `BUILD_ID_OVERRIDE` | string | `''` | Override auto-computed `buildId` |
+| `PARABANK_COMMIT` | string | `''` | SHA / tag / branch to check out. Blank ⇒ tip of `master` |
+| `TEST_SUBSET` | choice | `all` | `subset1` \| `subset2` \| `subset3` \| `all` \| `tia` |
+| `CTP_URL` | string | `''` | CTP base URL. Blank disables CTP integration; `tia` mode rejects blank |
+| `CTP_SYSTEM_NAME` | string | `Parabank` | CTP System name |
+| `CTP_ENV_NAME` | string | `QA` | CTP Environment name (must belong to `CTP_SYSTEM_NAME`) |
+
+`TEST_SUBSET` semantics:
+- `subset1|subset2|subset3` → `mvn verify -Dgroups=<subset>` (JUnit 5 tag filter)
+- `all` → no filter (full suite)
+- `tia` → pipeline queries CTP `/em/api/v3/environments/{envId}/coverage/impactedTests` (no
+  `baselineBuildId` — cumulative build makes that argument optional; CTP derives the baseline from
+  its cumulative history) and passes the returned test names as `-Dit.test="..."` to Failsafe. An
+  empty impacted-tests result is a green build (via `-Dfailsafe.failIfNoSpecifiedTests=false`).
+
+The `buildId` follows the convention `{app_short}_{commitYYYYMMDD}_{commitShaShort}`
+(e.g. `PB_20240625_3fdce5c`), computed after checkout so it reflects the actual commit under test.
+
+### The 3-commit cumulative baseline (initial demo)
+
+Trigger the pipeline three times to establish the cumulative baseline in a fresh DTP instance.
+
+| # | `PARABANK_COMMIT` | Commit date | Summary | `TEST_SUBSET` | Expected buildId |
+|---|-------------------|-------------|---------|---------------|------------------|
+| 1 | `3fdce5c74ab63df3ef5600ca419a41eb51b3715f` | 2024-06-25 | Update swagger ui, integrate swagger → openapi backend | `subset1` (`LoginIT`, `OverviewIT`, `LogoutIT`) | `PB_20240625_3fdce5c` |
+| 2 | `7bc4258892300539a6da4eff46a8ba2fd41ff070` | 2026-02-16 | Don't make database calls when not in jdbc access mode (5-controller refactor) | `subset2` (`TransferIT`, `BillPayIT`, `UpdateContactIT`, `RequestLoanIT`) | `PB_20260216_7bc4258` |
+| 3 | *(blank — uses `master` HEAD)* | current | HEAD includes `9381667` "Fix the functionality to find transaction by id" | `subset3` (`FindTransactionByIdIT`, `FindTransactionByDateIT`, `FindTransactionByAmountIT`, `OpenNewAccountIT`, `RegisterIT`) | `PB_<today>_<shortsha>` |
+
+For all three runs, use the same `DTP_PUBLISH=true`, `CTP_URL=<your ctp>`, `CTP_SYSTEM_NAME`, and
+`CTP_ENV_NAME`. After run #3, the `Parabank-Jenkins-Cumulative` project in DTP should show the
+merged view of all 12 tests with coverage applied to the HEAD sources.
+
+### Reusability
+After the initial three-run baseline, subsequent runs continue to grow DTP's cumulative history:
+- Point `PARABANK_COMMIT` at newer commits (or leave blank for HEAD) and pick a `TEST_SUBSET` to
+  contribute new coverage without re-running the whole suite.
+- Use `TEST_SUBSET=tia` once the cumulative history is established — CTP will compute impacted tests
+  automatically based on the source deltas.
+
+### Selenic module + coverage-integration library
+
+The Selenic tests live at [selenic/selenic-tests/](selenic/selenic-tests) (JUnit 5 + Selenium 4, run
+by Failsafe as `*IT.java` integration tests). They run inside a custom image built from
+[selenic/Dockerfile](selenic/Dockerfile) — `parasoft/selenic` (Red Hat UBI + OpenJDK 21 + Selenic)
+plus a Maven layer — targeting Selenium Grid via `RemoteWebDriver`.
+
+Coverage integration uses the [parasoft/coverage-integration](https://github.com/parasoft/coverage-integration)
+library (`coverage-integration-junit5` + `coverage-integration-selenium`). The pipeline emits
+`coverage-integration.properties` onto the test classpath at Set Up time when `CTP_URL` is provided;
+password uses the library's `${env_var:...}` resolver so the file itself contains no secret.

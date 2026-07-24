@@ -1,0 +1,437 @@
+pipeline {
+    agent any
+
+    parameters {
+        // Parasoft License Server / DTP endpoints
+        string(name: 'DTP_URL', defaultValue: '', description: 'Parasoft DTP URL for this run (e.g. https://dtp:8443)')
+        booleanParam(name: 'DTP_PUBLISH', defaultValue: false, description: 'Publish Parasoft coverage results to DTP')
+
+        // CI debug toggle: enables shell trace (set -x) + echoes generated .properties files to the console
+        booleanParam(name: 'CI_DEBUG', defaultValue: false, description: 'Enable verbose CI debug logging (shell trace + properties-file echo)')
+
+        // Optional buildId override; leave blank to use the auto-generated <app_short>_<commitYYYYMMDD>_<commitShaShort>
+        string(name: 'BUILD_ID_OVERRIDE', defaultValue: '', description: 'Optional buildId override (leave blank to use the auto-generated <app_short>_<commitYYYYMMDD>_<commitShaShort> value)')
+
+        // Parabank commit to build/deploy/test against. Blank => tip of PARABANK_REPO_BRANCH.
+        string(name: 'PARABANK_COMMIT', defaultValue: '', description: 'parasoft/parabank SHA (or tag/branch) to check out. Blank uses tip of PARABANK_REPO_BRANCH.')
+
+        // Which subset of Selenic tests to run.
+        //   subset1|subset2|subset3 => -Dgroups=<subset>
+        //   all                     => no test filter
+        //   tia                     => fetch impacted tests from CTP and pass as -Dit.test="..."
+        choice(name: 'TEST_SUBSET', choices: ['all', 'subset1', 'subset2', 'subset3', 'tia'], description: 'Which Selenic tests to run this build. `tia` requires CTP_URL.')
+
+        // Parasoft CTP integration (used by both coverage-integration.properties emission and `tia` mode)
+        string(name: 'CTP_URL', defaultValue: '', description: 'Parasoft CTP base URL (e.g. http://ctp:8080). Blank disables CTP integration; tests run without per-test coverage correlation.')
+        string(name: 'CTP_SYSTEM_NAME', defaultValue: 'Parabank', description: 'CTP System name that owns the deployed Parabank coverage agent')
+        string(name: 'CTP_ENV_NAME', defaultValue: 'QA', description: 'CTP Environment name for this deployed Parabank instance')
+
+        // Other Parasoft settings moved to either Jenkins Credentials Store or Global Environment Variables
+    }
+
+    environment {
+        // App Settings
+        project_name = "Parabank-Jenkins-Cumulative"  // DTP Project — dedicated for cumulative-build demo
+        app_name     = "parabank-baseline"          // docker container
+        image        = "parasoft/parabank:baseline"   // docker image
+        app_short    = "PB"                           // parabank
+        app_port     = 8090
+        app_cov_port = 8050
+        app_db_port  = 9021
+        app_jms_port = 63616
+
+        // Parasoft License Server URL (sourced from Jenkins global env var DEFAULT_LSS_URL)
+        LS_URL = "${env.DEFAULT_LSS_URL ?: ''}"
+
+        // Upstream Parabank app-under-test repository
+        PARABANK_REPO_URL    = "https://github.com/parasoft/parabank"
+        PARABANK_REPO_BRANCH = "master"
+
+        // Parasoft Jtest Settings (only jtest:monitor packaging is used here; no static/unit analysis)
+        jtestSessionTag = "ParabankJenkins-Cumulative"
+
+        // Parasoft Selenic Settings
+        selenicCovImage  = "Parabank_All;Parabank_Selenic"
+        seleniumHubUrl   = "http://selenium-grid:4444/wd/hub"
+        parabankBaseUrl  = "http://${app_name}:${app_port}/parabank"
+    }
+
+    stages {
+        stage('Set Up') {
+            steps {
+                deleteDir()
+
+                // Normalize URL values (strip trailing slashes) and export debug flag for shell steps
+                script {
+                    env.LS_URL          = (env.LS_URL     ?: '').replaceAll('/+$', '')
+                    env.DTP_URL         = (params.DTP_URL ?: '').replaceAll('/+$', '')
+                    env.CTP_URL         = (params.CTP_URL ?: '').replaceAll('/+$', '')
+                    env.DTP_PUBLISH     = params.DTP_PUBLISH.toString()
+                    env.CI_DEBUG        = params.CI_DEBUG.toString()
+                    env.TEST_SUBSET     = params.TEST_SUBSET
+                    env.PARABANK_COMMIT = (params.PARABANK_COMMIT ?: '').trim()
+                }
+
+                // Preflight: `tia` mode requires CTP_URL — fail early with a clear message
+                script {
+                    if (env.TEST_SUBSET == 'tia' && !env.CTP_URL) {
+                        error("TEST_SUBSET=tia requires CTP_URL to be set (CTP is queried for impacted tests).")
+                    }
+                }
+
+                // Start Selenium Grid for Selenium test execution
+                sh '''
+                    if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                    docker run -d --rm \
+                        -p 4444:4444 -p 7900:7900 \
+                        --network=demo-net \
+                        --shm-size "2g" \
+                        --name selenium-grid \
+                        selenium/standalone-chrome:latest
+                '''
+
+                // Check out this pipeline repo into ./parabank-jenkins (matches downstream $PWD/parabank-jenkins mounts)
+                dir('parabank-jenkins') {
+                    checkout scm
+                }
+
+                // Clone upstream Parabank app-under-test into ./parabank, then optionally check out a specific commit
+                sh '''
+                    if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                    git clone -b "${PARABANK_REPO_BRANCH}" "${PARABANK_REPO_URL}" parabank
+
+                    if [ -n "${PARABANK_COMMIT}" ]; then
+                        git -C parabank checkout "${PARABANK_COMMIT}"
+                    fi
+                    echo "--- parabank HEAD after optional checkout ---"
+                    git -C parabank log -1 --format='%h %ad %s' --date=short
+                '''
+
+                // Resolve build environment (uid/gid, commit metadata, buildId)
+                script {
+                    env.jenkins_uid = sh(script: 'id -u jenkins', returnStdout: true).trim()
+                    env.jenkins_gid = sh(script: 'id -g jenkins', returnStdout: true).trim()
+                    env.commitSha   = sh(script: 'git -C parabank rev-parse --short HEAD', returnStdout: true).trim()
+                    env.commitDate  = sh(script: 'git -C parabank log -1 --format=%cd --date=format:%Y%m%d HEAD', returnStdout: true).trim()
+
+                    if (params.BUILD_ID_OVERRIDE?.trim()) {
+                        env.buildId = params.BUILD_ID_OVERRIDE.trim()
+                        echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
+                    } else {
+                        // Convention documented in README: PB_<commitYYYYMMDD>_<commitShaShort>
+                        env.buildId = "${app_short}_${env.commitDate}_${env.commitSha}"
+                        echo "Using auto-generated buildId: ${env.buildId}"
+                    }
+                }
+
+                // Emit jtestcli.properties (used only for jtest:monitor packaging; no static/unit analysis in this pipeline)
+                withCredentials([
+                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                ]) {
+                    sh '''
+                        if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                        cat > ./parabank-jenkins/jtest/jtestcli.properties << EOF
+parasoft.eula.accepted=true
+jtest.license.use_network=true
+jtest.license.network.edition=custom_edition
+jtest.license.custom_edition_features=Jtest, Static Analysis, Flow Analysis, OWASP Rules, CWE Rules, PCI DSS Rules, DISA STIG Rules, Security Rules, Automation, Desktop Command Line, DTP Publish, Coverage, Unit Test, Unit Test Bulk Creation, Unit Test Tier 1, Unit Test Tier 2, Unit Test Tier 3, Unit Test Tier 4, Unit Test Spring Framework, Test Impact Analysis
+license.network.use.specified.server=true
+license.network.auth.enabled=true
+license.network.url=${LS_URL}
+license.network.user=${PARASOFT_USER}
+license.network.password=${PARASOFT_PASS}
+
+report.associations=false
+report.scontrol=full
+scope.local=true
+scope.scontrol=true
+scope.xmlmap=false
+
+scontrol.git.exec=git
+scontrol.rep1.git.branch=${PARABANK_REPO_BRANCH}
+scontrol.rep1.git.url=${PARABANK_REPO_URL}
+scontrol.rep1.type=git
+
+build.id=${buildId}
+session.tag=${jtestSessionTag}
+dtp.url=${DTP_URL}
+dtp.user=${PARASOFT_USER}
+dtp.password=${PARASOFT_PASS}
+dtp.project=${project_name}
+EOF
+                        if [ "${CI_DEBUG}" = "true" ]; then
+                            echo "--- jtestcli.properties ---"
+                            cat ./parabank-jenkins/jtest/jtestcli.properties
+                        fi
+                    '''
+                }
+
+                // Optional: resolve CTP envId + emit coverage-integration.properties for the Selenic tests.
+                // Only runs when CTP_URL is provided; without it, tests still execute but without per-test
+                // CTP correlation (coverage flows via the jtest:monitor snapshot instead).
+                script {
+                    if (env.CTP_URL) {
+                        def encodedSystem = java.net.URLEncoder.encode(params.CTP_SYSTEM_NAME, 'UTF-8')
+                        def encodedEnv    = java.net.URLEncoder.encode(params.CTP_ENV_NAME, 'UTF-8')
+
+                        withCredentials([
+                            usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                        ]) {
+                            withEnv(["ENCODED_SYSTEM=${encodedSystem}", "ENCODED_ENV=${encodedEnv}"]) {
+                                // Resolve systemId
+                                def systemResp = sh(returnStdout: true, script: '''
+                                    if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
+                                    curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                        "${CTP_URL}/em/api/v3/systems?name=${ENCODED_SYSTEM}&limit=50&offset=0"
+                                ''').trim()
+                                if (params.CI_DEBUG) { echo "CTP systems response:\n${systemResp}" }
+                                def systemJson = new groovy.json.JsonSlurperClassic().parseText(systemResp)
+                                def systemId = systemJson.systems?.find { it.name == params.CTP_SYSTEM_NAME }?.id
+                                if (!systemId) {
+                                    error("Failed to resolve CTP systemId for system '${params.CTP_SYSTEM_NAME}'. Verify the system exists in CTP.")
+                                }
+
+                                // Resolve envId (matching systemId)
+                                def envResp = sh(returnStdout: true, script: '''
+                                    if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
+                                    curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                        "${CTP_URL}/em/api/v3/environments?name=${ENCODED_ENV}&limit=50&offset=0"
+                                ''').trim()
+                                if (params.CI_DEBUG) { echo "CTP environments response:\n${envResp}" }
+                                def envJson = new groovy.json.JsonSlurperClassic().parseText(envResp)
+                                def envId = envJson.environments?.find { it.name == params.CTP_ENV_NAME && it.systemId == systemId }?.id
+                                if (!envId) {
+                                    error("Failed to resolve CTP envId for environment '${params.CTP_ENV_NAME}' under system '${params.CTP_SYSTEM_NAME}'.")
+                                }
+                                env.CTP_ENV_ID = envId.toString()
+                                echo "Resolved CTP envId: ${env.CTP_ENV_ID}"
+                            }
+
+                            // Emit coverage-integration.properties on the Selenic test classpath.
+                            // Password uses the library's ${env_var:...} resolver so the file has no secret;
+                            // PARASOFT_PASS is passed to the Selenic container at run time via -e.
+                            sh '''
+                                if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                                mkdir -p ./parabank-jenkins/selenic/selenic-tests/src/test/resources
+                                cat > ./parabank-jenkins/selenic/selenic-tests/src/test/resources/coverage-integration.properties << EOF
+parasoft.coverage.integration.ctp.url=${CTP_URL}/em/
+parasoft.coverage.integration.ctp.envId=${CTP_ENV_ID}
+parasoft.coverage.integration.dtp.sessionTag=${jtestSessionTag}
+parasoft.coverage.integration.ctp.auth.username=${PARASOFT_USER}
+parasoft.coverage.integration.ctp.auth.password=\\${env_var:PARASOFT_PASS}
+parasoft.coverage.integration.parallel.test.enabled=false
+parasoft.coverage.integration.ctp.userId=${PARASOFT_USER}
+EOF
+                                if [ "${CI_DEBUG}" = "true" ]; then
+                                    echo "--- coverage-integration.properties ---"
+                                    cat ./parabank-jenkins/selenic/selenic-tests/src/test/resources/coverage-integration.properties
+                                fi
+                            '''
+                        }
+                    } else {
+                        echo "CTP_URL not set — skipping coverage-integration.properties emission. Tests will run without per-test CTP correlation."
+                    }
+                }
+            }
+        }
+
+        stage('Package: Jtest Monitor') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Stage-specific coverage image override for functional coverage
+                sh '''
+                    if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
+                    cat > ./parabank-jenkins/jtest/jtestcli-ft.properties << EOF
+report.coverage.images=${selenicCovImage}
+EOF
+                    if [ "${CI_DEBUG}" = "true" ]; then
+                        echo "--- jtestcli-ft.properties ---"
+                        cat ./parabank-jenkins/jtest/jtestcli-ft.properties
+                    fi
+                '''
+
+                // Package the application with the Jtest Monitor coverage agent
+                sh '''
+                    docker run \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    --rm -i \
+                    --name jtest \
+                    -v "$PWD/parabank:/home/parasoft/jenkins/parabank" \
+                    -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                    -w "/home/parasoft/jenkins/parabank" \
+                    --network=demo-net \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/jtest) /bin/bash -c " \
+
+                    mvn -ntp package jtest:monitor \
+                    -s /home/parasoft/.m2/settings.xml \
+                    -Dmaven.test.skip=true \
+                    -Djtest.settingsList='../parabank-jenkins/jtest/jtestcli.properties,../parabank-jenkins/jtest/jtestcli-ft.properties' \
+                    -Djtest.showSettings=true \
+                    -Dproperty.report.dtp.publish=${DTP_PUBLISH}; \
+                    "
+
+                    # Unzip monitor.zip for the Deploy stage to mount
+                    mkdir monitor
+                    unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+                '''
+            }
+        }
+
+        stage('Deploy: Docker + Jtest Coverage') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Run Parabank docker image with the Jtest coverage agent attached
+                sh '''
+                    docker run \
+                    -d \
+                    -u ${jenkins_uid}:${jenkins_gid} \
+                    -p ${app_port}:8080 \
+                    -p ${app_cov_port}:8050 \
+                    -p ${app_db_port}:9001 \
+                    -p ${app_jms_port}:61616 \
+                    --env-file "$PWD/parabank-jenkins/jtest/monitor.env" \
+                    -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    --network=demo-net \
+                    --name ${app_name} \
+                    $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
+
+                    # Health check
+                    sleep 15
+                    docker ps -f name=${app_name}
+                    curl -iv --raw http://localhost:${app_port}/parabank      || true
+                    curl -iv --raw http://localhost:${app_cov_port}/status    || true
+                '''
+            }
+        }
+
+        stage('Test: Selenic') {
+            when { equals expected: true, actual: true }
+            steps {
+                // Compute the Failsafe filter flag based on TEST_SUBSET:
+                //   tia          => fetch impacted tests from CTP, pass -Dit.test="..."
+                //   subset1|2|3  => -Dgroups=<subset>
+                //   all          => no filter
+                script {
+                    if (env.TEST_SUBSET == 'tia') {
+                        withCredentials([
+                            usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                        ]) {
+                            def testNames = sh(returnStdout: true, script: '''
+                                if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
+                                # Cumulative build: no baselineBuildId — CTP derives the baseline from its cumulative history.
+                                curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/coverage/impactedTests" \
+                                    | jq -r '.[] | select(.analysisType == "FT") | .testName' \
+                                    | paste -sd ',' -
+                            ''').trim()
+                            if (params.CI_DEBUG) { echo "CTP impacted tests: ${testNames}" }
+                            env.MVN_FILTER = "-Dit.test=\"${testNames}\""
+                        }
+                    } else if (env.TEST_SUBSET in ['subset1', 'subset2', 'subset3']) {
+                        env.MVN_FILTER = "-Dgroups=${env.TEST_SUBSET}"
+                    } else {
+                        env.MVN_FILTER = ""
+                    }
+                    env.CTP_ENABLED = env.CTP_URL ? "true" : "false"
+                }
+
+                withCredentials([
+                    usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                ]) {
+                    sh '''
+                        docker run \
+                        -u ${jenkins_uid}:${jenkins_gid} \
+                        --rm -i \
+                        --name selenic \
+                        -e ACCEPT_EULA=true \
+                        -e LICENSE_SERVER_URL=${LS_URL} \
+                        -e LICENSE_SERVER_AUTH_ENABLED=true \
+                        -e LICENSE_SERVER_USERNAME=${PARASOFT_USER} \
+                        -e LICENSE_SERVER_PASSWORD=${PARASOFT_PASS} \
+                        -e PARASOFT_PASS=${PARASOFT_PASS} \
+                        -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
+                        -v "$PWD/parabank-jenkins/jtest/.m2:/home/parasoft/.m2" \
+                        -w "/home/parasoft/jenkins/parabank-jenkins/selenic/selenic-tests" \
+                        --network=demo-net \
+                        $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/selenic) /bin/bash -c " \
+
+                        mvn -ntp verify \
+                        -s /home/parasoft/.m2/settings.xml \
+                        ${MVN_FILTER} \
+                        -Dparabank.baseUrl=${parabankBaseUrl} \
+                        -Dselenium.hubUrl=${seleniumHubUrl} \
+                        -Dselenic.enabled=true \
+                        -Dctp.enabled=${CTP_ENABLED} \
+                        -Djunit.jupiter.extensions.autodetection.enabled=true \
+                        "
+                    '''
+                }
+
+                // Publish JUnit test results (native step only — Parasoft-side reporting flows through
+                // the coverage-integration library -> CTP -> DTP, not through a Jenkins publisher).
+                junit(
+                    testResults: '**/selenic/selenic-tests/target/failsafe-reports/*.xml',
+                    allowEmptyResults: true
+                )
+            }
+        }
+
+        stage('Release') {
+            steps {
+                // Placeholder release stage; container cleanup is handled by post.always
+                sh 'echo "no-op release stage"'
+            }
+        }
+    }
+
+    post {
+        // Clean after build
+        always {
+            // Capture detached-container logs before cleanup, when CI_DEBUG=true
+            sh '''
+                if [ "${CI_DEBUG}" = "true" ]; then
+                    mkdir -p ./debug-logs
+                    docker logs ${app_name}   > ./debug-logs/${app_name}.log   2>&1 || true
+                    docker logs selenium-grid > ./debug-logs/selenium-grid.log 2>&1 || true
+                fi
+            '''
+
+            // Consolidated Docker cleanup — tolerate missing containers/images
+            sh '''
+                docker container stop selenium-grid || true
+                docker container stop ${app_name}   || true
+                docker container rm   ${app_name}   || true
+                docker container prune -f
+                docker image     prune -f
+            '''
+
+            archiveArtifacts(
+                artifacts: '''
+                    **/target/**/*.war,
+                    **/target/jtest/monitor/**,
+                    **/selenic/selenic-tests/target/failsafe-reports/**''',
+                fingerprint: true,
+                onlyIfSuccessful: false,
+                excludes: '''
+                    **/.jtest/**,
+                    **/metadata.json'''
+            )
+
+            // Debug-only archive: detached-container logs + unzipped Jtest monitor contents
+            script {
+                if (params.CI_DEBUG) {
+                    archiveArtifacts(
+                        artifacts: '''
+                            debug-logs/**,
+                            monitor/**''',
+                        fingerprint: false,
+                        onlyIfSuccessful: false,
+                        allowEmptyArchive: true
+                    )
+                }
+            }
+
+            deleteDir()
+        }
+    }
+}

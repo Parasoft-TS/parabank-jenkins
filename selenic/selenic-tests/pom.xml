@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.parasoft.parabank</groupId>
+    <artifactId>selenic-tests</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Parabank Selenic Tests</name>
+    <description>JUnit 5 + Selenium 4 integration tests for Parabank, packaged for the DTP cumulative-build demo.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
+        <junit.jupiter.version>5.10.2</junit.jupiter.version>
+        <selenium.version>4.20.0</selenium.version>
+
+        <!-- TODO: bump to the GA version once parasoft/coverage-integration is published to Maven Central.
+             Currently pinned at 1.0.0-SNAPSHOT, which requires a local `mvn install` from a clone of
+             https://github.com/parasoft/coverage-integration (populates ~/.m2/repository/com/parasoft/...).
+             GA is expected on Maven Central in the week of 2026-07-27. -->
+        <coverage-integration.version>1.0.0-SNAPSHOT</coverage-integration.version>
+
+        <failsafe.version>3.2.5</failsafe.version>
+
+        <!-- Injected by the -Dselenic.enabled=true profile; empty by default so standalone `mvn verify`
+             (without Selenic) runs cleanly. -->
+        <selenic.argLine></selenic.argLine>
+    </properties>
+
+    <dependencies>
+        <!-- JUnit 5 (Jupiter) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Selenium WebDriver + RemoteWebDriver (Grid) -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Parasoft coverage-integration: JUnit 5 auto-registered via SPI when
+             -Djunit.jupiter.extensions.autodetection.enabled=true. -->
+        <dependency>
+            <groupId>com.parasoft</groupId>
+            <artifactId>coverage-integration-junit5</artifactId>
+            <version>${coverage-integration.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Parasoft coverage-integration: Selenium browser Baggage propagation
+             (proxy-based ChromeOptions from SeleniumCoverageIntegration.createChromeBrowserCoverage()). -->
+        <dependency>
+            <groupId>com.parasoft</groupId>
+            <artifactId>coverage-integration-selenium</artifactId>
+            <version>${coverage-integration.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Failsafe drives the *IT integration tests via `mvn verify`. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- Selenic agent injected via profile below when -Dselenic.enabled=true. -->
+                    <argLine>${selenic.argLine}</argLine>
+
+                    <!-- Redundant with the CLI flag but ensures the JUnit 5 SPI auto-detection is on
+                         even if the pipeline forgets to pass it. Required for coverage-integration-junit5
+                         to self-register without @ExtendWith. -->
+                    <systemPropertyVariables>
+                        <junit.jupiter.extensions.autodetection.enabled>true</junit.jupiter.extensions.autodetection.enabled>
+                    </systemPropertyVariables>
+
+                    <!-- Critical for `tia` mode: when CTP returns no impacted tests, -Dit.test="" would
+                         otherwise fail the build. `-Dgroups=` filtering also inherits this. -->
+                    <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>selenic-agent</id>
+            <activation>
+                <property>
+                    <name>selenic.enabled</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <selenic.argLine>-javaagent:/opt/parasoft/selenic/selenic_agent.jar=captureDom=true,selfHealing=true</selenic.argLine>
+            </properties>
+        </profile>
+    </profiles>
+</project>
