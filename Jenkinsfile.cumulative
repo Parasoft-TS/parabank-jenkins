@@ -75,6 +75,9 @@ pipeline {
                     env.CI_DEBUG        = params.CI_DEBUG.toString()
                     env.TEST_SUBSET     = params.TEST_SUBSET
                     env.HEADLESS        = params.HEADLESS.toString()
+                    // Selenic tests: coverage-integration library uses SLF4J; slf4j-simple backend
+                    // is on the test classpath. Raise its log level to `debug` under CI_DEBUG.
+                    env.CI_LIB_LOG_LEVEL = params.CI_DEBUG ? 'debug' : 'info'
                     env.PARABANK_COMMIT = (params.PARABANK_COMMIT ?: '').trim()
                 }
 
@@ -487,6 +490,9 @@ EOF
                         -Dselenic.enabled=true \
                         -Dctp.enabled=${CTP_ENABLED} \
                         -Djunit.jupiter.extensions.autodetection.enabled=true \
+                        -Dorg.slf4j.simpleLogger.log.com.parasoft.coverage.integration=${CI_LIB_LOG_LEVEL} \
+                        -Dorg.slf4j.simpleLogger.showDateTime=true \
+                        -Dorg.slf4j.simpleLogger.dateTimeFormat='HH:mm:ss.SSS' \
                         "
                     '''
                 }

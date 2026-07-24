@@ -67,6 +67,17 @@
             <version>${coverage-integration.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- SLF4J backend so the coverage-integration library's DEBUG logs actually appear.
+             The library ships with slf4j-api only; without a provider it routes to NOP.
+             slf4j-simple is a single jar, no config file needed — log levels are controlled
+             via -Dorg.slf4j.simpleLogger.log.<package>=<level> passed by the pipeline. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.13</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
