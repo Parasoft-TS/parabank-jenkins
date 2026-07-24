@@ -256,8 +256,9 @@ plus a Maven layer — targeting Selenium Grid via `RemoteWebDriver`.
 
 Coverage integration uses the [parasoft/coverage-integration](https://github.com/parasoft/coverage-integration)
 library (`coverage-integration-junit5` + `coverage-integration-selenium`). The pipeline emits
-`coverage-integration.properties` onto the test classpath at Set Up time when `CTP_URL` is provided;
-password uses the library's `${env_var:...}` resolver so the file itself contains no secret.
+`coverage-integration.properties` onto the test classpath at Set Up time when `CTP_URL` is provided.
+The file is written under Jenkins `withCredentials`, so the CTP password is masked in the console
+output; the file itself is neither archived by the pipeline nor committed (see `.gitignore`).
 
 ### Coverage agent registration with CTP (agent-initiated WebSocket)
 

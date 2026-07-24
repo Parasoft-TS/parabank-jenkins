@@ -272,8 +272,6 @@ EOF
                             }
 
                             // Emit coverage-integration.properties on the Selenic test classpath.
-                            // Password uses the library's ${env_var:...} resolver so the file has no secret;
-                            // PARASOFT_PASS is passed to the Selenic container at run time via -e.
                             sh '''
                                 if [ "${CI_DEBUG}" != "true" ]; then set +x; else set -x; fi
                                 mkdir -p ./parabank-jenkins/selenic/selenic-tests/src/test/resources
@@ -282,7 +280,7 @@ parasoft.coverage.integration.ctp.url=${CTP_URL}/em/
 parasoft.coverage.integration.ctp.envId=${CTP_ENV_ID}
 parasoft.coverage.integration.dtp.sessionTag=${jtestSessionTag}
 parasoft.coverage.integration.ctp.auth.username=${PARASOFT_USER}
-parasoft.coverage.integration.ctp.auth.password=\\${env_var:PARASOFT_PASS}
+parasoft.coverage.integration.ctp.auth.password=${PARASOFT_PASS}
 parasoft.coverage.integration.parallel.test.enabled=false
 parasoft.coverage.integration.ctp.userId=${PARASOFT_USER}
 EOF
@@ -470,7 +468,6 @@ EOF
                         -e LICENSE_SERVER_AUTH_ENABLED=true \
                         -e LICENSE_SERVER_USERNAME=${PARASOFT_USER} \
                         -e LICENSE_SERVER_PASSWORD=${PARASOFT_PASS} \
-                        -e PARASOFT_PASS=${PARASOFT_PASS} \
                         -v "$PWD/parabank-jenkins:/home/parasoft/jenkins/parabank-jenkins" \
                         -v "$PWD/parabank-jenkins/jtest/.m2:/home/parasoft/.m2" \
                         -w "/home/parasoft/jenkins/parabank-jenkins/selenic/selenic-tests" \

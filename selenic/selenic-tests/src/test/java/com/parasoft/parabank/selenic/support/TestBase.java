@@ -20,31 +20,17 @@ public abstract class TestBase {
     protected WebDriverWait wait;
     protected final String baseUrl = WebDriverFactory.BASE_URL;
 
-    private WebDriverFactory.DriverHandle handle;
-
     @BeforeEach
     void openBrowser() throws Exception {
-        handle = WebDriverFactory.create();
-        driver = handle.driver;
+        driver = WebDriverFactory.create().driver;
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
     @AfterEach
     void closeBrowser() {
-        try {
-            if (driver != null) {
-                driver.quit();
-            }
-        } finally {
-            // The coverage config wraps a per-driver proxy; closing releases the proxy port.
-            if (handle != null && handle.coverage != null) {
-                try {
-                    handle.coverage.close();
-                } catch (Exception ignored) {
-                    // best-effort cleanup
-                }
-            }
+        if (driver != null) {
+            driver.quit();
         }
     }
 }

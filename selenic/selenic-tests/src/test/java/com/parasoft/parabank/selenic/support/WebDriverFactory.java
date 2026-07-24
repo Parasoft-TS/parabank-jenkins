@@ -3,13 +3,13 @@ package com.parasoft.parabank.selenic.support;
 import java.net.URL;
 import java.util.Arrays;
 
-import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.chromium.HasCdp;
+import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration;
-import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration.ChromeCoverageConfig;
 
 /**
  * Builds a RemoteWebDriver pointed at Selenium Grid.
@@ -18,13 +18,15 @@ import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration.Ch
  * <ul>
  *   <li>{@code selenium.hubUrl}   — Grid hub URL (default {@code http://selenium-grid:4444/wd/hub}).</li>
  *   <li>{@code parabank.baseUrl}  — Parabank base URL (default {@code http://parabank-feature:8080/parabank}).</li>
- *   <li>{@code ctp.enabled}       — when {@code true}, the driver's ChromeOptions are sourced from the
- *       Parasoft coverage-integration proxy so per-test Baggage headers are propagated to Parabank's
- *       coverage agent. Default {@code false} (plain headless Chrome).</li>
+ *   <li>{@code ctp.enabled}       — when {@code true}, the driver is augmented to expose Chrome DevTools
+ *       Protocol so the Parasoft coverage-integration library can inject the per-test Baggage header
+ *       via CDP (no proxy — works cross-container over Selenium Grid). Default {@code false}
+ *       (plain headless Chrome).</li>
  * </ul>
  *
- * <p>The returned handle wraps the driver plus an optional {@link ChromeCoverageConfig} that
- * {@link TestBase} closes after each test.
+ * <p>CDP was chosen over the library's proxy-based path because our Selenic tests and Grid browser
+ * run in separate docker containers; a proxy bound to the Selenic container's 127.0.0.1 is not
+ * reachable from the Grid container's Chrome process ({@code ERR_PROXY_CONNECTION_FAILED}).
  */
 public final class WebDriverFactory {
 
@@ -35,42 +37,35 @@ public final class WebDriverFactory {
     public static final boolean CTP_ENABLED = Boolean.parseBoolean(System.getProperty("ctp.enabled", "false"));
 
     public static DriverHandle create() throws Exception {
-        ChromeOptions options;
-        ChromeCoverageConfig coverage = null;
-
-        if (CTP_ENABLED) {
-            // Build ChromeOptions via the coverage-integration proxy so the browser propagates the
-            // current test's Baggage header to Parabank. The config is closed by TestBase.afterEach().
-            coverage = SeleniumCoverageIntegration.createChromeBrowserCoverage();
-            options = coverage.getChromeOptions();
-            applyHeadlessArgs(options);
-        } else {
-            options = new ChromeOptions();
-            applyHeadlessArgs(options);
-        }
+        ChromeOptions options = new ChromeOptions();
+        applyHeadlessArgs(options);
 
         WebDriver driver = new RemoteWebDriver(new URL(HUB_URL), options);
-        return new DriverHandle(driver, coverage);
-    }
 
-    private static void applyHeadlessArgs(MutableCapabilities caps) {
-        if (caps instanceof ChromeOptions chrome) {
-            chrome.addArguments(Arrays.asList(
-                    "--headless=new",
-                    "--no-sandbox",
-                    "--disable-dev-shm-usage",
-                    "--disable-gpu"));
+        if (CTP_ENABLED) {
+            // RemoteWebDriver does not implement HasCdp directly; Augmenter attaches the
+            // CDP-capable interface at runtime so the library can drive Chrome DevTools Protocol
+            // through the existing Grid session.
+            driver = new Augmenter().augment(driver);
+            SeleniumCoverageIntegration.configureCdpBaggageHeader((HasCdp) driver);
         }
+        return new DriverHandle(driver);
     }
 
-    /** Simple carrier for a driver + optional coverage config so both can be released together. */
+    private static void applyHeadlessArgs(ChromeOptions options) {
+        options.addArguments(Arrays.asList(
+                "--headless=new",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu"));
+    }
+
+    /** Simple carrier for the driver so TestBase has a single object to release. */
     public static final class DriverHandle {
         public final WebDriver driver;
-        public final ChromeCoverageConfig coverage;
 
-        DriverHandle(WebDriver driver, ChromeCoverageConfig coverage) {
+        DriverHandle(WebDriver driver) {
             this.driver = driver;
-            this.coverage = coverage;
         }
     }
 }
