@@ -22,6 +22,15 @@ public abstract class TestBase {
 
     @BeforeEach
     void openBrowser() throws Exception {
+        // TEMP DIAGNOSTIC: print the Baggage the coverage-integration library will hand to CDP.
+        // If this prints `null` or empty, CTP did not return a baggage header from /agents/test/start,
+        // which means the CDP call effectively sends empty extra HTTP headers and no per-test
+        // Baggage reaches Parabank's coverage agent. Remove once the issue is diagnosed.
+        String baggage = com.parasoft.coverage.integration.core.internal.CoverageExecutionContext
+                .getCurrentBaggageHeader();
+        System.out.println("[DIAG] CoverageExecutionContext baggage = "
+                + (baggage == null ? "<null>" : "'" + baggage + "'"));
+
         driver = WebDriverFactory.create().driver;
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
