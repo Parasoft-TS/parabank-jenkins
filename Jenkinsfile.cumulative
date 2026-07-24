@@ -55,7 +55,7 @@ pipeline {
         // Parasoft Selenic Settings
         selenicCovImage  = "Parabank_All;Parabank_Selenic"
         seleniumHubUrl   = "http://selenium-grid:4444/wd/hub"
-        parabankBaseUrl  = "http://${app_name}:${app_port}/parabank"
+        parabankBaseUrl  = "http://${app_name}:8080/parabank"  // in-container URL; uses container's internal Tomcat port 8080, not the host-mapped ${app_port}
     }
 
     stages {
