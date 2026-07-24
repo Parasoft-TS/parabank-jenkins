@@ -204,10 +204,11 @@ between builds and keeping it for files that did not.
 |-----------|------|---------|-------|
 | `DTP_URL` | string | `''` | Parasoft DTP base URL |
 | `DTP_PUBLISH` | boolean | `false` | Publish coverage results to DTP |
-| `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files |
+| `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files. Also raises the `com.parasoft.coverage.integration` SLF4J logger to `debug` during `mvn verify`, so per-test CTP start/stop calls, Baggage header values, and coverage-session lifecycle events appear in the Test: Selenic console output (backed by `slf4j-simple`) |
 | `BUILD_ID_OVERRIDE` | string | `''` | Override auto-computed `buildId` |
 | `PARABANK_COMMIT` | string | `''` | SHA / tag / branch to check out. Blank ⇒ tip of `master` |
 | `TEST_SUBSET` | choice | `all` | `subset1` \| `subset2` \| `subset3` \| `all` \| `tia` |
+| `HEADLESS` | boolean | `true` | Run Chrome headless. Uncheck to run headed so you can watch tests via the Selenium Grid noVNC endpoint at `http://<jenkins-host>:7900/?autoconnect=1&resize=scale&password=secret` |
 | `CTP_URL` | string | `''` | CTP base URL. Blank disables CTP integration; `tia` mode rejects blank |
 | `CTP_SYSTEM_NAME` | string | `ParaBank` | CTP System name (case-sensitive; matches CTP response casing) |
 | `CTP_SYSTEM_VERSION` | string | `V1` | CTP System version — disambiguates systems that share a name (case-sensitive). Blank ⇒ pipeline picks the first system matching `CTP_SYSTEM_NAME` (with a warning if multiple match) |

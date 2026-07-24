@@ -96,7 +96,7 @@ pipeline {
                         --network=demo-net \
                         --shm-size "2g" \
                         --name selenium-grid \
-                        selenium/standalone-chrome:latest
+                        selenium/standalone-chrome:4.46.0
                 '''
 
                 // Check out this pipeline repo into ./parabank-jenkins (matches downstream $PWD/parabank-jenkins mounts)
