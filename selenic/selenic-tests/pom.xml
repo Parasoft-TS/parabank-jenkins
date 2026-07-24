@@ -82,6 +82,29 @@
 
     <build>
         <plugins>
+            <!-- Skip Surefire entirely. This module has no unit tests (all tests are *IT.java run by
+                 Failsafe). Without this skip, Surefire would still spawn a JUnit Platform Launcher
+                 during the `test` phase, which triggers the coverage-integration library's
+                 LauncherSessionListener (SPI-registered) and creates a ghost CTP session + empty
+                 DTP publish before any real test runs. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Suppress the "JAR will be empty" warning during the `package` phase: this module has
+                 no src/main/java, only src/test/java. The empty jar has no downstream consumers. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <skipIfEmpty>true</skipIfEmpty>
+                </configuration>
+            </plugin>
+
             <!-- Failsafe drives the *IT integration tests via `mvn verify`. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

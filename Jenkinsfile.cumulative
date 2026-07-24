@@ -288,7 +288,7 @@ parasoft.coverage.integration.ctp.envId=${CTP_ENV_ID}
 parasoft.coverage.integration.dtp.sessionTag=${jtestSessionTag}
 parasoft.coverage.integration.ctp.auth.username=${PARASOFT_USER}
 parasoft.coverage.integration.ctp.auth.password=${PARASOFT_PASS}
-parasoft.coverage.integration.parallel.test.enabled=false
+parasoft.coverage.integration.parallel.test.enabled=true
 parasoft.coverage.integration.ctp.userId=${PARASOFT_USER}
 EOF
                                 if [ "${CI_DEBUG}" = "true" ]; then
