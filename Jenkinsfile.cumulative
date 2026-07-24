@@ -21,6 +21,9 @@ pipeline {
         //   tia                     => fetch impacted tests from CTP and pass as -Dit.test="..."
         choice(name: 'TEST_SUBSET', choices: ['all', 'subset1', 'subset2', 'subset3', 'tia'], description: 'Which Selenic tests to run this build. `tia` requires CTP_URL.')
 
+        // Whether Chrome runs headless (invisible in Grid VNC) or headed (watchable via noVNC on port 7900).
+        booleanParam(name: 'HEADLESS', defaultValue: true, description: 'Run Chrome headless. Uncheck to run headed so you can watch tests via the Selenium Grid noVNC endpoint (http://<jenkins-host>:7900/).')
+
         // Parasoft CTP integration (used by both coverage-integration.properties emission and `tia` mode)
         string(name: 'CTP_URL', defaultValue: '', description: 'Parasoft CTP base URL (e.g. http://ctp:8080). Blank disables CTP integration; tests run without per-test coverage correlation.')
         string(name: 'CTP_SYSTEM_NAME', defaultValue: 'ParaBank', description: 'CTP System name that owns the deployed Parabank coverage agent (case-sensitive)')
@@ -71,6 +74,7 @@ pipeline {
                     env.DTP_PUBLISH     = params.DTP_PUBLISH.toString()
                     env.CI_DEBUG        = params.CI_DEBUG.toString()
                     env.TEST_SUBSET     = params.TEST_SUBSET
+                    env.HEADLESS        = params.HEADLESS.toString()
                     env.PARABANK_COMMIT = (params.PARABANK_COMMIT ?: '').trim()
                 }
 
@@ -479,6 +483,7 @@ EOF
                         ${MVN_FILTER} \
                         -Dparabank.baseUrl=${parabankBaseUrl} \
                         -Dselenium.hubUrl=${seleniumHubUrl} \
+                        -Dheadless=${HEADLESS} \
                         -Dselenic.enabled=true \
                         -Dctp.enabled=${CTP_ENABLED} \
                         -Djunit.jupiter.extensions.autodetection.enabled=true \

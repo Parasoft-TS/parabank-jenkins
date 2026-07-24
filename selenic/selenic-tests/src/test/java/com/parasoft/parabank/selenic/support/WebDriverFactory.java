@@ -22,6 +22,9 @@ import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration;
  *       Protocol so the Parasoft coverage-integration library can inject the per-test Baggage header
  *       via CDP (no proxy — works cross-container over Selenium Grid). Default {@code false}
  *       (plain headless Chrome).</li>
+ *   <li>{@code headless}          — when {@code true} (default), Chrome runs headless (renders off-screen,
+ *       invisible in Grid VNC). Set to {@code false} to run headed so the browser is watchable via
+ *       the Grid's noVNC endpoint on port 7900.</li>
  * </ul>
  *
  * <p>CDP was chosen over the library's proxy-based path because our Selenic tests and Grid browser
@@ -35,10 +38,11 @@ public final class WebDriverFactory {
     public static final String HUB_URL      = System.getProperty("selenium.hubUrl", "http://selenium-grid:4444/wd/hub");
     public static final String BASE_URL     = System.getProperty("parabank.baseUrl", "http://parabank-feature:8080/parabank");
     public static final boolean CTP_ENABLED = Boolean.parseBoolean(System.getProperty("ctp.enabled", "false"));
+    public static final boolean HEADLESS    = Boolean.parseBoolean(System.getProperty("headless", "true"));
 
     public static DriverHandle create() throws Exception {
         ChromeOptions options = new ChromeOptions();
-        applyHeadlessArgs(options);
+        applyChromeArgs(options);
 
         WebDriver driver = new RemoteWebDriver(new URL(HUB_URL), options);
 
@@ -52,12 +56,16 @@ public final class WebDriverFactory {
         return new DriverHandle(driver);
     }
 
-    private static void applyHeadlessArgs(ChromeOptions options) {
+    private static void applyChromeArgs(ChromeOptions options) {
+        // The non-headless args are always safe/useful inside the Grid container.
         options.addArguments(Arrays.asList(
-                "--headless=new",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu"));
+        if (HEADLESS) {
+            // Off-screen render; nothing appears in the Grid's VNC session.
+            options.addArguments("--headless=new");
+        }
     }
 
     /** Simple carrier for the driver so TestBase has a single object to release. */
