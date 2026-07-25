@@ -6,6 +6,9 @@ pipeline {
         string(name: 'DTP_URL', defaultValue: '', description: 'Parasoft DTP URL for this run (e.g. https://dtp:8443)')
         booleanParam(name: 'DTP_PUBLISH', defaultValue: false, description: 'Publish Parasoft coverage results to DTP')
 
+        // Optional DTP project override; leave blank to publish under the default cumulative project
+        string(name: 'DTP_PROJECT_OVERRIDE', defaultValue: '', description: 'Publish results to a unique DTP project for comparison against the default cumulative build project')
+
         // CI debug toggle: enables shell trace (set -x) + echoes generated .properties files to the console
         booleanParam(name: 'CI_DEBUG', defaultValue: false, description: 'Enable verbose CI debug logging (shell trace + properties-file echo)')
 
@@ -79,6 +82,15 @@ pipeline {
                     // is on the test classpath. Raise its log level to `debug` under CI_DEBUG.
                     env.CI_LIB_LOG_LEVEL = params.CI_DEBUG ? 'debug' : 'info'
                     env.PARABANK_COMMIT = (params.PARABANK_COMMIT ?: '').trim()
+
+                    // Optional DTP project override — replaces the default cumulative project everywhere
+                    // env.project_name is read (jtestcli.properties, agent.properties, DTP filter lookup, log messages).
+                    if (params.DTP_PROJECT_OVERRIDE?.trim()) {
+                        env.project_name = params.DTP_PROJECT_OVERRIDE.trim()
+                        echo "Using DTP_PROJECT_OVERRIDE: ${env.project_name}"
+                    } else {
+                        echo "Using default DTP project: ${env.project_name}"
+                    }
                 }
 
                 // Preflight: `tia` mode requires CTP_URL — fail early with a clear message
