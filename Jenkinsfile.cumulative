@@ -398,9 +398,6 @@ EOF
                             set_or_add_prop jtest.agent.autoloadMultiuserLibs   true  ${PROPS_FILE}
                             set_or_add_prop jtest.agent.restServerEnabled       true  ${PROPS_FILE}
                             set_or_add_prop jtest.agent.restServerPort          8050  ${PROPS_FILE}
-                            # TEMP: agent debug logs to diagnose per-test coverage attribution.
-                            # Remove once per-test baggage handshake is confirmed working end-to-end.
-                            set_or_add_prop jtest.agent.debug                   true  ${PROPS_FILE}
 
                             # Append CTP + DTP block (these keys are new — not emitted by jtest:monitor)
                             cat >> ${PROPS_FILE} << EOF
