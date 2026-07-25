@@ -1,10 +1,8 @@
 package com.parasoft.parabank.selenic.support;
 
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Properties;
 
 import org.openqa.selenium.WebDriver;
@@ -69,47 +67,25 @@ public final class WebDriverFactory {
      * CDP header injector, which then injects nothing — leaving the agent unable to attribute
      * coverage to a test.
      *
-     * <p>The workaround reads the {@code parallelId} the library already sent to CTP by
-     * reflecting into {@code CoverageExecutionContext.CURRENT_TESTS} (a package-private static
-     * map keyed by thread id) and formats the baggage using the format documented on
-     * {@link SeleniumCoverageIntegration#configureCdpBaggageHeader(HasCdp, String)}:
-     * {@code test-operator-id=<userId>+<parallelId>}. When CTP is upgraded to 2026.2, this method
-     * still produces the same baggage string CTP would return, so no code change is needed at
-     * upgrade time — the method can be removed after verification.
+     * <p>On CTP 2026.1 the coverage agent tracks a single active test per {@code userId}. We
+     * therefore emit the baggage in its single-user form — {@code test-operator-id=<userId>} —
+     * so every browser request originating from this test carries the userId the agent will use
+     * to look up the currently-started test in CTP. This pairs with
+     * {@code parasoft.coverage.integration.parallel.test.enabled=false} in
+     * {@code coverage-integration.properties}, which tells the library to omit {@code parallelId}
+     * from the {@code /test/start} request body.
      *
-     * @return baggage header string, or {@code null} if the library context is unavailable
+     * <p>When CTP is upgraded to 2026.2, {@code /test/start} will return a baggage value that
+     * includes a parallelId. At that point the recommended migration is to flip the property
+     * back to {@code true}, delete this method, and pass the library-supplied baggage through
+     * via the single-arg {@link SeleniumCoverageIntegration#configureCdpBaggageHeader(HasCdp)}
+     * overload.
+     *
+     * @return baggage header string, or {@code null} if the CTP userId is unresolvable
      */
     private static String computeManualBaggageHeader() {
-        String parallelId = readLibraryParallelId();
-        if (parallelId == null) {
-            return null;
-        }
-        return "test-operator-id=" + readCtpUserId() + "+" + parallelId;
-    }
-
-    /**
-     * Reflects the current thread's {@code CoverageTestContext} out of the library's private
-     * static {@code CURRENT_TESTS} map and returns its {@code parallelId}. Returns {@code null}
-     * if the library is not on the classpath, the map is empty for this thread, or reflection
-     * fails for any reason.
-     */
-    private static String readLibraryParallelId() {
-        try {
-            Class<?> ctxCls = Class.forName(
-                    "com.parasoft.coverage.integration.core.internal.CoverageExecutionContext");
-            Field field = ctxCls.getDeclaredField("CURRENT_TESTS");
-            field.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            Map<Long, ?> map = (Map<Long, ?>) field.get(null);
-            Object testCtx = map.get(Thread.currentThread().getId());
-            if (testCtx == null) {
-                return null;
-            }
-            return (String) testCtx.getClass().getMethod("getParallelId").invoke(testCtx);
-        }
-        catch (Exception e) {
-            return null;
-        }
+        String userId = readCtpUserId();
+        return (userId == null || userId.isBlank()) ? null : "test-operator-id=" + userId;
     }
 
     /**

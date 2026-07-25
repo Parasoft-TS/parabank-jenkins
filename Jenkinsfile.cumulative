@@ -288,7 +288,10 @@ parasoft.coverage.integration.ctp.envId=${CTP_ENV_ID}
 parasoft.coverage.integration.dtp.sessionTag=${jtestSessionTag}
 parasoft.coverage.integration.ctp.auth.username=${PARASOFT_USER}
 parasoft.coverage.integration.ctp.auth.password=${PARASOFT_PASS}
-parasoft.coverage.integration.parallel.test.enabled=true
+# CTP 2026.1 does not return baggage from /test/start and behaves in single-slot mode per userId.
+# Setting parallel.test.enabled=false makes the library omit parallelId from the request, matching
+# the CTP 2026.1 REST contract. When CTP is upgraded to 2026.2, flip this back to true.
+parasoft.coverage.integration.parallel.test.enabled=false
 parasoft.coverage.integration.ctp.userId=${PARASOFT_USER}
 EOF
                                 if [ "${CI_DEBUG}" = "true" ]; then
@@ -380,6 +383,9 @@ EOF
                             set_or_add_prop jtest.agent.autoloadMultiuserLibs   true  ${PROPS_FILE}
                             set_or_add_prop jtest.agent.restServerEnabled       true  ${PROPS_FILE}
                             set_or_add_prop jtest.agent.restServerPort          8050  ${PROPS_FILE}
+                            # TEMP: agent debug logs to diagnose per-test coverage attribution.
+                            # Remove once per-test baggage handshake is confirmed working end-to-end.
+                            set_or_add_prop jtest.agent.debug                   true  ${PROPS_FILE}
 
                             # Append CTP + DTP block (these keys are new — not emitted by jtest:monitor)
                             cat >> ${PROPS_FILE} << EOF
