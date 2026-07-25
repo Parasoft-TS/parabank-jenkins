@@ -1,7 +1,11 @@
 package com.parasoft.parabank.selenic.support;
 
+import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Properties;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -51,9 +55,87 @@ public final class WebDriverFactory {
             // CDP-capable interface at runtime so the library can drive Chrome DevTools Protocol
             // through the existing Grid session.
             driver = new Augmenter().augment(driver);
-            SeleniumCoverageIntegration.configureCdpBaggageHeader((HasCdp) driver);
+            String baggage = computeManualBaggageHeader();
+            SeleniumCoverageIntegration.configureCdpBaggageHeader((HasCdp) driver, baggage);
         }
         return new DriverHandle(driver);
+    }
+
+    /**
+     * Builds the per-test {@code Baggage} header manually because CTP 2026.1's
+     * {@code /agents/test/start} endpoint does not include a {@code baggage} field in its response
+     * (that support was added in CTP 2026.2). The coverage-integration library has no fallback:
+     * it stores whatever CTP returns (null in our case) and passes it straight through to the
+     * CDP header injector, which then injects nothing — leaving the agent unable to attribute
+     * coverage to a test.
+     *
+     * <p>The workaround reads the {@code parallelId} the library already sent to CTP by
+     * reflecting into {@code CoverageExecutionContext.CURRENT_TESTS} (a package-private static
+     * map keyed by thread id) and formats the baggage using the format documented on
+     * {@link SeleniumCoverageIntegration#configureCdpBaggageHeader(HasCdp, String)}:
+     * {@code test-operator-id=<userId>+<parallelId>}. When CTP is upgraded to 2026.2, this method
+     * still produces the same baggage string CTP would return, so no code change is needed at
+     * upgrade time — the method can be removed after verification.
+     *
+     * @return baggage header string, or {@code null} if the library context is unavailable
+     */
+    private static String computeManualBaggageHeader() {
+        String parallelId = readLibraryParallelId();
+        if (parallelId == null) {
+            return null;
+        }
+        return "test-operator-id=" + readCtpUserId() + "+" + parallelId;
+    }
+
+    /**
+     * Reflects the current thread's {@code CoverageTestContext} out of the library's private
+     * static {@code CURRENT_TESTS} map and returns its {@code parallelId}. Returns {@code null}
+     * if the library is not on the classpath, the map is empty for this thread, or reflection
+     * fails for any reason.
+     */
+    private static String readLibraryParallelId() {
+        try {
+            Class<?> ctxCls = Class.forName(
+                    "com.parasoft.coverage.integration.core.internal.CoverageExecutionContext");
+            Field field = ctxCls.getDeclaredField("CURRENT_TESTS");
+            field.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<Long, ?> map = (Map<Long, ?>) field.get(null);
+            Object testCtx = map.get(Thread.currentThread().getId());
+            if (testCtx == null) {
+                return null;
+            }
+            return (String) testCtx.getClass().getMethod("getParallelId").invoke(testCtx);
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Resolves the CTP {@code userId} to embed in the manual baggage header. Prefers a system
+     * property (matches how everything else in this class is configured) and falls back to the
+     * {@code coverage-integration.properties} file the pipeline emits.
+     */
+    private static String readCtpUserId() {
+        String sys = System.getProperty("parasoft.coverage.integration.ctp.userId");
+        if (sys != null && !sys.isBlank()) {
+            return sys;
+        }
+        try (InputStream in = WebDriverFactory.class.getResourceAsStream("/coverage-integration.properties")) {
+            if (in != null) {
+                Properties props = new Properties();
+                props.load(in);
+                String value = props.getProperty("parasoft.coverage.integration.ctp.userId");
+                if (value != null && !value.isBlank()) {
+                    return value;
+                }
+            }
+        }
+        catch (Exception ignore) {
+            // fall through to default
+        }
+        return "demo";
     }
 
     private static void applyChromeArgs(ChromeOptions options) {
