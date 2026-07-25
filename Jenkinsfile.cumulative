@@ -345,6 +345,21 @@ EOF
                     # Unzip monitor.zip for the Deploy stage to mount
                     mkdir monitor
                     unzip -q ./parabank/target/jtest/monitor/monitor.zip -d .
+
+                    # Explode the freshly-built parabank.war so the Deploy stage can bind-mount it
+                    # over the baseline image's baked-in exploded webapp. This is what makes the
+                    # bytecode running under the coverage agent match the source jtest:monitor
+                    # analyzed statically; without it, dynamic coverage records lines from the
+                    # baseline image's WAR (built from whatever commit Parasoft baked in) while
+                    # static coverage reflects PARABANK_COMMIT, and the two never line up.
+                    WAR_FILE=$(find ./parabank/target -maxdepth 1 -name '*.war' -type f | head -n1)
+                    if [ -z "${WAR_FILE}" ]; then
+                        echo "ERROR: no .war file found in ./parabank/target after jtest:monitor build"
+                        exit 1
+                    fi
+                    echo "Exploding ${WAR_FILE} for runtime bind-mount"
+                    mkdir -p parabank-webapp
+                    unzip -q "${WAR_FILE}" -d parabank-webapp
                 '''
             }
         }
@@ -424,6 +439,7 @@ EOF
                     -p ${app_jms_port}:61616 \
                     -e "CATALINA_OPTS=-javaagent:/home/docker/jtest/monitor/agent.jar=settings=/home/docker/jtest/monitor/agent.properties,runtimeData=/home/docker/jtest/monitor/runtime_coverage" \
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
+                    -v "$PWD/parabank-webapp:/usr/local/tomcat/webapps/parabank:ro" \
                     --network=demo-net \
                     --name ${app_name} \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
