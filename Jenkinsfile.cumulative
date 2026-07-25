@@ -439,7 +439,7 @@ EOF
                     -p ${app_jms_port}:61616 \
                     -e "CATALINA_OPTS=-javaagent:/home/docker/jtest/monitor/agent.jar=settings=/home/docker/jtest/monitor/agent.properties,runtimeData=/home/docker/jtest/monitor/runtime_coverage" \
                     -v "$PWD/monitor:/home/docker/jtest/monitor" \
-                    -v "$PWD/parabank-webapp:/usr/local/tomcat/webapps/parabank:ro" \
+                    -v "$PWD/parabank-webapp:/usr/local/tomcat/webapps/parabank" \
                     --network=demo-net \
                     --name ${app_name} \
                     $(docker build --build-arg HOST_UID="$jenkins_uid" --build-arg HOST_GID="$jenkins_gid" -q ./parabank-jenkins/parabank-docker)
