@@ -21,7 +21,7 @@ public class OpenNewAccountIT extends TestBase {
         OpenAccountPage openAccount = new OpenAccountPage(driver, baseUrl).open();
         openAccount.submit().awaitComplete();
 
-        assertEquals("Account Opened", openAccount.resultHeading());
+        assertEquals("Account Opened!", openAccount.resultHeading());
         assertTrue(openAccount.newAccountId().matches("\\d+"),
                 "new account id should be numeric, was: " + openAccount.newAccountId());
     }

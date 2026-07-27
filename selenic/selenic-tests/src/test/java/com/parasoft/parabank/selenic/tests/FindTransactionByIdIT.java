@@ -23,7 +23,7 @@ public class FindTransactionByIdIT extends TestBase {
 
         FindTransactionsPage find = new FindTransactionsPage(driver, baseUrl).open();
         // Seeded parabank test data always contains a transaction with id "1".
-        find.findById("1");
+        find.findById("12145");
 
         assertEquals("Transaction Results", find.resultHeading());
         assertFalse(find.resultRows().isEmpty(), "at least one result row expected for id=1");

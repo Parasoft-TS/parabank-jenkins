@@ -11,6 +11,7 @@ import org.openqa.selenium.chromium.HasCdp;
 import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import com.parasoft.coverage.integration.api.CoverageIntegration;
 import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration;
 
 /**
@@ -85,7 +86,9 @@ public final class WebDriverFactory {
      */
     private static String computeManualBaggageHeader() {
         String userId = readCtpUserId();
-        return (userId == null || userId.isBlank()) ? null : "test-operator-id=" + userId;
+        return (userId == null || userId.isBlank())
+                ? null
+                : CoverageIntegration.TEST_OPERATOR_ID_BAGGAGE_KEY + "=" + userId;
     }
 
     /**

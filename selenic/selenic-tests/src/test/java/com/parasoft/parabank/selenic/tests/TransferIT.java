@@ -21,6 +21,6 @@ public class TransferIT extends TestBase {
         // Default from/to selections use the customer's first two accounts (populated via AJAX).
         transfer.submit("100").awaitComplete();
 
-        assertEquals("Transfer Complete", transfer.resultHeading());
+        assertEquals("Transfer Complete!", transfer.resultHeading());
     }
 }

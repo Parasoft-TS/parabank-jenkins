@@ -59,7 +59,7 @@ public final class RegisterPage {
         driver.findElement(PASSWORD).sendKeys(password);
         driver.findElement(REPEAT_PASSWORD).sendKeys(password);
         driver.findElement(SUBMIT).click();
-        return new OverviewPage(driver, baseUrl).awaitLoaded();
+        return new OverviewPage(driver, baseUrl).open();
     }
 
     public String heading() {
