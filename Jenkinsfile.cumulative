@@ -31,7 +31,7 @@ pipeline {
         string(name: 'CTP_URL', defaultValue: '', description: 'Parasoft CTP base URL (e.g. http://ctp:8080). Blank disables CTP integration; tests run without per-test coverage correlation.')
         string(name: 'CTP_SYSTEM_NAME', defaultValue: 'ParaBank', description: 'CTP System name that owns the deployed Parabank coverage agent (case-sensitive)')
         string(name: 'CTP_SYSTEM_VERSION', defaultValue: 'V1', description: 'CTP System version to disambiguate systems that share a name (case-sensitive)')
-        string(name: 'CTP_ENV_NAME', defaultValue: 'QA - Modernization Project', description: 'CTP Environment name for this deployed Parabank instance')
+        string(name: 'CTP_ENV_NAME', defaultValue: 'DEV', description: 'CTP Environment name for this deployed Parabank instance')
         string(name: 'CTP_COMPONENT_NAME', defaultValue: 'Retail', description: 'CTP Component name representing the Parabank coverage-agent registration')
 
         // Other Parasoft settings moved to either Jenkins Credentials Store or Global Environment Variables
