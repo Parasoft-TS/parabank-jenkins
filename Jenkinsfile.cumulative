@@ -481,9 +481,11 @@ EOF
                             sh '''
                                 set +x
                                 echo "[DEBUG] GET ${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/components/${COMPONENT_ID}/config"
+                                echo "[DEBUG] --- component config (YAML) ---"
                                 curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
-                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/components/${COMPONENT_ID}/config" \
-                                    | (command -v jq >/dev/null && jq . || cat)
+                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/components/${COMPONENT_ID}/config"
+                                echo ""
+                                echo "[DEBUG] --- end component config ---"
                             '''
                         }
                     }
