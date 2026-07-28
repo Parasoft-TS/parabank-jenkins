@@ -59,7 +59,6 @@ pipeline {
         jtestSessionTag = "ParabankJenkins-Cumulative"
 
         // Parasoft Selenic Settings
-        selenicCovImage  = "Parabank_All;Parabank_Selenic"
         seleniumHubUrl   = "http://selenium-grid:4444/wd/hub"
         parabankBaseUrl  = "http://${app_name}:8080/parabank"  // in-container URL; uses container's internal Tomcat port 8080, not the host-mapped ${app_port}
     }
@@ -94,6 +93,13 @@ pipeline {
                         env.project_name = env.default_project_name
                         echo "Using default DTP project: ${env.project_name}"
                     }
+
+                    // Derive Selenic coverage image names from the resolved project. Matches the DTP
+                    // convention <project>_All + <project>_Selenic and stays in sync automatically when
+                    // DTP_PROJECT_OVERRIDE is used. Read downstream by jtestcli-ft.properties
+                    // (report.coverage.images) and agent.properties (dtp.coverageImages).
+                    env.selenicCovImage = "${env.project_name}_All;${env.project_name}_Selenic"
+                    echo "Selenic coverage images: ${env.selenicCovImage}"
                 }
 
                 // Preflight: `tia` mode requires CTP_URL — fail early with a clear message

@@ -9,8 +9,8 @@ import com.parasoft.parabank.selenic.pages.LoginPage;
 import com.parasoft.parabank.selenic.pages.UpdateContactPage;
 import com.parasoft.parabank.selenic.support.TestBase;
 
-/** subset2 — edits the customer profile phone number via the Update Contact Info AJAX form. */
-@Tag("subset2")
+/** subset3 — edits the customer profile phone number via the Update Contact Info AJAX form. */
+@Tag("subset3")
 public class UpdateContactIT extends TestBase {
 
     @Test

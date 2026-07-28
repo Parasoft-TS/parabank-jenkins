@@ -11,10 +11,13 @@ import com.parasoft.parabank.selenic.pages.LoginPage;
 import com.parasoft.parabank.selenic.support.TestBase;
 
 /**
- * subset3 — exercises the fix from parabank commit 9381667 (included in HEAD 11ddb2a5) that
+ * subset2 — exercises the fix from parabank commit 9381667 (included in HEAD 11ddb2a5) that
  * enables lookup by transaction id via {@code AccessModeController} + {@code RestServiceProxyController}.
+ * <p>Assigned to subset2 (runs at B2) so that when B3 arrives with the find-transaction fix, DTP's
+ * cumulative-build feature invalidates this test's coverage and cumulative TIA correctly reports it
+ * as impacted — the poster child for the "targeted invalidation" story in the demo.
  */
-@Tag("subset3")
+@Tag("subset2")
 public class FindTransactionByIdIT extends TestBase {
 
     @Test
