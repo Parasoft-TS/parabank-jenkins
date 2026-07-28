@@ -272,9 +272,10 @@ EOF
                                 if (!comp.ctpWebsocketUrl || !comp.ctpSubscriptionQueue) {
                                     error("CTP component '${params.CTP_COMPONENT_NAME}' is missing ctpWebsocketUrl or ctpSubscriptionQueue. Response: ${compResp}")
                                 }
+                                env.COMPONENT_ID        = comp.id.toString()
                                 env.COMPONENT_WS_URL    = comp.ctpWebsocketUrl
                                 env.COMPONENT_SUB_QUEUE = comp.ctpSubscriptionQueue
-                                echo "Resolved CTP component '${params.CTP_COMPONENT_NAME}' — websocket=${env.COMPONENT_WS_URL}, subscription=${env.COMPONENT_SUB_QUEUE}"
+                                echo "Resolved CTP component '${params.CTP_COMPONENT_NAME}' (id=${env.COMPONENT_ID}) — websocket=${env.COMPONENT_WS_URL}, subscription=${env.COMPONENT_SUB_QUEUE}"
 
                                 // Resolve DTP filter ID (soft-warn on miss; empty filter means TIA scope will be unfiltered)
                                 if (env.DTP_URL) {
@@ -468,6 +469,25 @@ EOF
                     curl -iv --raw http://localhost:${app_port}/parabank      || true
                     curl -iv --raw http://localhost:${app_cov_port}/status    || true
                 '''
+
+                // Debug: dump the CTP component config after the agent has had time to register.
+                // Useful for verifying the agent's runtime state, multi-user coverage flags, and DTP
+                // wiring as CTP currently sees them. Only runs when CI_DEBUG=true and CTP_URL is set.
+                script {
+                    if (params.CI_DEBUG && env.CTP_URL?.trim() && env.CTP_ENV_ID && env.COMPONENT_ID) {
+                        withCredentials([
+                            usernamePassword(credentialsId: 'parasoft-demo-user', usernameVariable: 'PARASOFT_USER', passwordVariable: 'PARASOFT_PASS')
+                        ]) {
+                            sh '''
+                                set +x
+                                echo "[DEBUG] GET ${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/components/${COMPONENT_ID}/config"
+                                curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/components/${COMPONENT_ID}/config" \
+                                    | (command -v jq >/dev/null && jq . || cat)
+                            '''
+                        }
+                    }
+                }
             }
         }
 
