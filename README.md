@@ -212,7 +212,7 @@ between builds and keeping it for files that did not.
 | `CTP_URL` | string | `''` | CTP base URL. Blank disables CTP integration; `tia` mode rejects blank |
 | `CTP_SYSTEM_NAME` | string | `ParaBank` | CTP System name (case-sensitive; matches CTP response casing) |
 | `CTP_SYSTEM_VERSION` | string | `V1` | CTP System version — disambiguates systems that share a name (case-sensitive). Blank ⇒ pipeline picks the first system matching `CTP_SYSTEM_NAME` (with a warning if multiple match) |
-| `CTP_ENV_NAME` | string | `QA - Modernization Project` | CTP Environment name (must belong to the resolved System) |
+| `CTP_ENV_NAME` | string | `DEV` | CTP Environment name (must belong to the resolved System) |
 | `CTP_COMPONENT_NAME` | string | `Retail` | CTP Component name representing the Parabank coverage-agent registration |
 
 `TEST_SUBSET` semantics:
