@@ -486,12 +486,27 @@ EOF
                             def testNames = sh(returnStdout: true, script: '''
                                 if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
                                 # Cumulative build: no baselineBuildId — CTP derives the baseline from its cumulative history.
-                                curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
-                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/coverage/impactedTests" \
-                                    | jq -r '.[] | select(.analysisType == "FT") | .testName' \
+                                IMPACTED_JSON=$(curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
+                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/coverage/impactedTests")
+
+                                # Always echo the raw response to stderr (visible in the Jenkins console)
+                                # so TIA parsing failures can be diagnosed without needing CI_DEBUG=true.
+                                # stderr does NOT feed into returnStdout, so the captured value stays clean.
+                                echo "[TIA] impactedTests response body:" >&2
+                                echo "${IMPACTED_JSON}" >&2
+
+                                # Defensive extraction: some CTP responses come back as an object (error
+                                # envelope, wrapper shape) instead of an array. The `if type == "array"`
+                                # guard prevents jq's "Cannot index number with string" error from
+                                # bubbling up when the shape is not what we expect.
+                                echo "${IMPACTED_JSON}" \
+                                    | jq -r 'if type == "array" then .[] | select(.analysisType == "FT") | .testName else empty end' \
                                     | paste -sd ',' -
                             ''').trim()
                             if (params.CI_DEBUG) { echo "CTP impacted tests: ${testNames}" }
+                            if (!testNames?.trim()) {
+                                error("TIA mode: CTP returned no impacted tests (or the response could not be parsed). See the '[TIA] impactedTests response body:' line above for the raw payload. Failing fast to avoid silently running the full regression suite.")
+                            }
                             env.MVN_FILTER = "-Dit.test=\"${testNames}\""
                         }
                     } else if (env.TEST_SUBSET in ['subset1', 'subset2', 'subset3']) {
