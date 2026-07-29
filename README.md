@@ -204,6 +204,7 @@ between builds and keeping it for files that did not.
 |-----------|------|---------|-------|
 | `DTP_URL` | string | `''` | Parasoft DTP base URL |
 | `DTP_PUBLISH` | boolean | `false` | Publish coverage results to DTP |
+| `DTP_PROJECT_OVERRIDE` | string | `''` | Publish results to a unique DTP project for comparison against the default cumulative build project. Blank uses `Parabank-Jenkins-Cumulative`. When set, the buildId prefix also changes from `PB_` to `PBc_` so the two projects' build histories stay cleanly separable. The DTP Demo VM is configured to use `Parabank-Jenkins-Cumulative-Compare` as the comparison project. See the [Reusability](#reusability) section for the comparison-build workflow. |
 | `CI_DEBUG` | boolean | `false` | Verbose shell trace + echo generated `.properties` files. Also raises the `com.parasoft.coverage.integration` SLF4J logger to `debug` during `mvn verify`, so per-test CTP start/stop calls, Baggage header values, and coverage-session lifecycle events appear in the Test: Selenic console output (backed by `slf4j-simple`) |
 | `BUILD_ID_OVERRIDE` | string | `''` | Override auto-computed `buildId` |
 | `PARABANK_COMMIT` | string | `''` | SHA / tag / branch to check out. Blank ⇒ tip of `master` |
@@ -218,13 +219,19 @@ between builds and keeping it for files that did not.
 `TEST_SUBSET` semantics:
 - `subset1|subset2|subset3` → `mvn verify -Dgroups=<subset>` (JUnit 5 tag filter)
 - `all` → no filter (full suite)
-- `tia` → pipeline queries CTP `/em/api/v3/environments/{envId}/coverage/impactedTests` (no
+- `tia` → pipeline queries CTP
+  `/em/api/v3/environments/{envId}/coverage/impactedTests?includeFailedTests=true` (no
   `baselineBuildId` — cumulative build makes that argument optional; CTP derives the baseline from
-  its cumulative history) and passes the returned test names as `-Dit.test="..."` to Failsafe. An
-  empty impacted-tests result is a green build (via `-Dfailsafe.failIfNoSpecifiedTests=false`).
+  its cumulative history) and passes the returned test names as `-Dit.test="..."` to Failsafe. If
+  CTP returns no test names (either an empty impacted list or an error/wrapper response the
+  pipeline can't parse), the run **fails fast** rather than silently degrade to a full regression;
+  the raw CTP response is echoed to the console to make diagnosis obvious.
 
 The `buildId` follows the convention `{app_short}_{commitYYYYMMDD}_{commitShaShort}`
 (e.g. `PB_20240625_3fdce5c`), computed after checkout so it reflects the actual commit under test.
+When `DTP_PROJECT_OVERRIDE` is set, the prefix switches from `PB_` to `PBc_` (e.g.
+`PBc_20240625_3fdce5c`) so the override project's build history stays cleanly separable from the
+default project's.
 
 ### The 3-commit cumulative baseline (initial demo)
 
@@ -276,7 +283,14 @@ After the initial three-run baseline, subsequent runs continue to grow DTP's cum
 - Point `PARABANK_COMMIT` at newer commits (or leave blank for HEAD) and pick a `TEST_SUBSET` to
   contribute new coverage without re-running the whole suite.
 - Use `TEST_SUBSET=tia` once the cumulative history is established — CTP will compute impacted tests
-  automatically based on the source deltas.
+  automatically based on the source deltas (and, per the `includeFailedTests=true` query flag,
+  include any tests that failed on the prior build).
+- Set `DTP_PROJECT_OVERRIDE=<alternate project>` when you want to run an A/B comparison. Example:
+  drive the same three commits through subsets 1–3 into the default project, then repeat with
+  `DTP_PROJECT_OVERRIDE=Parabank-Jenkins-Cumulative-Compare` and `TEST_SUBSET=all` on each commit
+  to publish a "full regression on every build" baseline alongside the cumulative one — side-by-side
+  in DTP for the demo. The override changes the DTP project, the DTP filter lookup name, the
+  Selenic coverage image names, and the buildId prefix so the two histories never collide.
 
 ### Selenic module + coverage-integration library
 
