@@ -250,15 +250,23 @@ direct-child fix commit reduces the B2→B3 diff to two method changes in
 `AccessModeController` / `RestServiceProxyController` — making DTP's method-level baseline/target
 TIA cleanly report only the tests whose coverage overlaps those two methods.
 
-**Why the three find-transaction tests are in subset2.** All three of `FindTransactionByIdIT`,
-`FindTransactionByAmountIT`, and `FindTransactionByDateIT` build their REST lookup URLs through
-`AccessModeController.createGetTransactionsRestUrl(...)`, and `FindTransactionByIdIT` additionally
-covers `RestServiceProxyController.getTransaction(...)`. Both methods are modified by the B3 fix
-commit. Placing these three tests in subset2 (so they capture their coverage against B2, before the
-fix) means DTP's method-level baseline/target TIA will report them as impacted at B2→B3 — the
-canonical "targeted invalidation" story for the demo. `FindTransactionByIdIT` additionally
-demonstrates a fail-at-B2 / pass-at-B3 progression because the by-id lookup is precisely what the
-B3 commit fixes.
+**Why the three find-transaction tests are in subset2.** `FindTransactionByAmountIT` and
+`FindTransactionByDateIT` submit their searches through the B2 JSP's existing by-amount and by-date
+UI options, which drive REST calls that build their lookup URLs through
+`AccessModeController.createGetTransactionsRestUrl(...)`. That method is modified by the B3 fix
+commit, so both tests genuinely cover it at B2 and DTP's method-level baseline/target TIA correctly
+reports them as impacted at B2→B3 — the intended "targeted invalidation" story for the demo.
+
+`FindTransactionByIdIT` is a different beast worth calling out. The B2 version of `findtrans.jsp`
+has no by-id search UI at all — that branch is added by the same B3 commit. At B2 the test fails
+during Selenium interaction (the by-id radio / input isn't on the page) *before* it can trigger any
+REST call, so it covers **zero lines** of the changed backend methods. Consequently, DTP's
+method-level baseline/target TIA at B2→B3 does **not** list `FindTransactionByIdIT` as impacted —
+correctly, because its recorded B2 coverage never touched the changed methods. It still shows up in
+the TIA-mode rerun set, but via a different mechanism: CTP's `?includeFailedTests=true` flag
+(documented in the `TEST_SUBSET=tia` section above) re-adds any test that failed on the prior
+build. So the test's demo value is the fail-at-B2 / pass-at-B3 progression, not method-level TIA
+impact.
 
 **Why Parabank runs in REST(JSON) access mode.** Parabank's default access mode is JDBC. In JDBC
 mode, service-layer calls skip `AccessModeController.createGetTransactionsRestUrl(...)` entirely
