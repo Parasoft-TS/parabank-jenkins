@@ -194,7 +194,7 @@ between builds and keeping it for files that did not.
 - A CTP **System** (with a specific version), **Environment**, and **Component** representing the
   Parabank deployment. The coverage agent registers with CTP over an outbound WebSocket connection
   (agent-initiated model). Default names looked up by the pipeline: System = `ParaBank` version `V1`,
-  Environment = `QA - Modernization Project`, Component = `Retail`. All four are configurable via
+  Environment = `DEV`, Component = `Retail`. All four are configurable via
   job parameters.
 - Same Jenkins prerequisites as the other pipelines (credential `parasoft-demo-user`, docker network
   `demo-net`, global env `DEFAULT_LSS_URL`).

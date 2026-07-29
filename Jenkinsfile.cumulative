@@ -513,8 +513,14 @@ EOF
                             def testNames = sh(returnStdout: true, script: '''
                                 if [ "${CI_DEBUG}" != "true" ]; then set +x; fi
                                 # Cumulative build: no baselineBuildId — CTP derives the baseline from its cumulative history.
+                                # includeFailedTests=true: CTP-specific convenience (not a DTP feature — DTP treats
+                                # impacted-tests as its own category alongside pass/fail/incomplete). CTP unions
+                                # DTP's impacted-tests list with tests that failed on the prior build so the caller
+                                # can re-run the combined set. In this demo it picks up FindTransactionByIdIT (which
+                                # fails at B2 because of the find-transaction bug) alongside FindTxByAmount /
+                                # FindTxByDate (impacted at B2→B3 because they cover a method the fix modified).
                                 IMPACTED_JSON=$(curl -sk -u "${PARASOFT_USER}:${PARASOFT_PASS}" \
-                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/coverage/impactedTests")
+                                    "${CTP_URL}/em/api/v3/environments/${CTP_ENV_ID}/coverage/impactedTests?includeFailedTests=true")
 
                                 # Always echo the raw response to stderr (visible in the Jenkins console)
                                 # so TIA parsing failures can be diagnosed without needing CI_DEBUG=true.
