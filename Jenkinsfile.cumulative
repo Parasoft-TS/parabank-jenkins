@@ -40,13 +40,14 @@ pipeline {
     environment {
         // App Settings
         default_project_name = "Parabank-Jenkins-Cumulative"  // DTP Project default — overridable via DTP_PROJECT_OVERRIDE param
-        app_name     = "parabank-baseline"          // docker container
-        image        = "parasoft/parabank:baseline"   // docker image
-        app_short    = "PB"                           // parabank
-        app_port     = 8090
-        app_cov_port = 8050
-        app_db_port  = 9021
-        app_jms_port = 63616
+        app_name          = "parabank-baseline"           // docker container
+        image             = "parasoft/parabank:baseline"  // docker image
+        app_short         = "PB"                           // parabank — buildId prefix for the default DTP project
+        app_short_compare = "PBc"                          // parabank compare — buildId prefix when DTP_PROJECT_OVERRIDE is set
+        app_port          = 8090
+        app_cov_port      = 8050
+        app_db_port       = 9021
+        app_jms_port      = 63616
 
         // Parasoft License Server URL (sourced from Jenkins global env var DEFAULT_LSS_URL)
         LS_URL = "${env.DEFAULT_LSS_URL ?: ''}"
@@ -148,8 +149,12 @@ pipeline {
                         env.buildId = params.BUILD_ID_OVERRIDE.trim()
                         echo "Using BUILD_ID_OVERRIDE parameter: ${env.buildId}"
                     } else {
-                        // Convention documented in README: PB_<commitYYYYMMDD>_<commitShaShort>
-                        env.buildId = "${app_short}_${env.commitDate}_${env.commitSha}"
+                        // Convention documented in README:
+                        //   default project      → PB_<commitYYYYMMDD>_<commitShaShort>
+                        //   DTP_PROJECT_OVERRIDE → PBc_<commitYYYYMMDD>_<commitShaShort>
+                        // Using distinct prefixes keeps the two projects' build histories separable in DTP.
+                        def prefix = params.DTP_PROJECT_OVERRIDE?.trim() ? env.app_short_compare : env.app_short
+                        env.buildId = "${prefix}_${env.commitDate}_${env.commitSha}"
                         echo "Using auto-generated buildId: ${env.buildId}"
                     }
                 }
