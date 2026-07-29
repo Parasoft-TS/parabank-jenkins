@@ -1,9 +1,10 @@
 package com.parasoft.parabank.selenic.support;
 
-import org.openqa.selenium.WebDriver;
-
-import com.parasoft.parabank.selenic.pages.AdminPage;
-import com.parasoft.parabank.selenic.pages.LoginPage;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 
 /**
  * One-time-per-JVM setup that switches Parabank's data-access mode from JDBC (default) to a
@@ -19,13 +20,13 @@ import com.parasoft.parabank.selenic.pages.LoginPage;
  * method-level TIA numbers align with what users intuitively expect.
  *
  * <p>The switch persists in Parabank's database until the container is torn down, so it only
- * needs to happen once per pipeline invocation. The {@link #ensureAccessMode(WebDriver, String, String)}
+ * needs to happen once per pipeline invocation. The {@link #ensureAccessMode(String, String)}
  * method is guarded by a static double-checked lock: the first test in the JVM performs the
  * setup while subsequent tests short-circuit.
  */
 public final class AdminSetup {
 
-    /** Access mode used by the cumulative-build demo. See {@link AdminPage} for other values. */
+    /** Access mode used by the cumulative-build demo. Values: {@code soap}, {@code restxml}, {@code restjson}, {@code jdbc}. */
     public static final String DEFAULT_MODE_FOR_DEMO = "restjson";
 
     private static final Object LOCK = new Object();
@@ -38,13 +39,10 @@ public final class AdminSetup {
      * JVM. Subsequent invocations are no-ops. If the setup itself throws, the {@code done} flag
      * is left {@code false} so the next test can retry.
      *
-     * @param driver  an already-created {@code WebDriver} session; the method logs in as
-     *                {@code john/demo}, visits {@code admin.htm}, flips the access-mode radio,
-     *                submits the form, and logs back out so the driver is in a clean state.
      * @param baseUrl Parabank base URL (matches {@code TestBase.baseUrl}).
      * @param mode    one of {@code soap}, {@code restxml}, {@code restjson}, {@code jdbc}.
      */
-    public static void ensureAccessMode(WebDriver driver, String baseUrl, String mode) {
+    public static void ensureAccessMode(String baseUrl, String mode) {
         if (done) {
             return;
         }
@@ -52,22 +50,33 @@ public final class AdminSetup {
             if (done) {
                 return;
             }
+            URI uri = URI.create(baseUrl + "/services/bank/setParameter/accessmode/" + mode);
             try {
-                // admin.htm requires an authenticated session; log in as the default demo user.
-                new LoginPage(driver, baseUrl).open().loginAs("john", "demo");
-                new AdminPage(driver, baseUrl).open().setAccessMode(mode).submit(mode);
-                // Return the driver to a logged-out state so the test that follows can drive its
-                // own login flow without inheriting the admin-setup session cookies.
-                driver.get(baseUrl + "/logout.htm");
+                HttpResponse<String> response = HttpClient.newBuilder()
+                        .connectTimeout(Duration.ofSeconds(10))
+                        .build()
+                        .send(HttpRequest.newBuilder(uri)
+                                .header("Content-Type", "application/json; charset=UTF-8")
+                                .header("Accept", "application/json")
+                                .timeout(Duration.ofSeconds(15))
+                                .POST(HttpRequest.BodyPublishers.noBody())
+                                .build(),
+                                HttpResponse.BodyHandlers.ofString());
+                int status = response.statusCode();
+                if (status < 200 || status >= 300) {
+                    throw new IllegalStateException("Parabank returned HTTP " + status
+                            + " when setting access mode. Body: " + response.body());
+                }
                 done = true;
             }
-            catch (RuntimeException e) {
+            catch (Exception e) {
                 throw new IllegalStateException(
-                        "Failed to set Parabank access mode to '" + mode + "'. "
-                                + "Verify admin.htm is reachable at " + baseUrl + " and that "
-                                + "john/demo can log in.",
+                        "Failed to set Parabank access mode to '" + mode + "' via " + uri
+                                + ". Verify Parabank is reachable at " + baseUrl + ".",
                         e);
             }
         }
     }
 }
+
+

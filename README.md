@@ -259,9 +259,9 @@ and route straight to the `bankManager` — which means the changed classes are 
 never touched by the tests, and DTP's method-level baseline/target TIA would report 0 impacted at
 B2→B3 no matter how the subsets are arranged. To route service calls through the code the demo
 commits target, the Selenic base fixture ([TestBase.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/support/TestBase.java))
-flips Parabank's access mode from JDBC to REST(JSON) once per JVM via the admin UI
-([AdminSetup.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/support/AdminSetup.java) +
-[AdminPage.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/pages/AdminPage.java)).
+flips Parabank's access mode from JDBC to REST(JSON) once per JVM by POSTing directly to Parabank's
+REST admin endpoint (`/services/bank/setParameter/accessmode/restjson`, see
+[AdminSetup.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/support/AdminSetup.java)).
 The switch persists in the deployed Parabank's database for the lifetime of the container. If you
 need the demo to run in a different mode (e.g. `soap`, `restxml`, or the JDBC default), change the
 mode string passed to `AdminSetup.ensureAccessMode(...)` in `TestBase.openBrowser()`.

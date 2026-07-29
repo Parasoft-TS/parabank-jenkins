@@ -32,7 +32,7 @@ public abstract class TestBase {
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         // One-time-per-JVM: switch Parabank into REST(JSON) access mode. No-op on every call
         // after the first successful setup — see AdminSetup.ensureAccessMode.
-        AdminSetup.ensureAccessMode(driver, baseUrl, AdminSetup.DEFAULT_MODE_FOR_DEMO);
+        AdminSetup.ensureAccessMode(baseUrl, AdminSetup.DEFAULT_MODE_FOR_DEMO);
     }
 
     @AfterEach
