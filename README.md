@@ -233,27 +233,25 @@ Trigger the pipeline three times to establish the cumulative baseline in a fresh
 | # | `PARABANK_COMMIT` | Commit date | Summary | `TEST_SUBSET` | Expected buildId |
 |---|-------------------|-------------|---------|---------------|------------------|
 | 1 | `3fdce5c74ab63df3ef5600ca419a41eb51b3715f` | 2024-06-25 | Update swagger ui, integrate swagger → openapi backend | `subset1` (`LoginIT`, `OverviewIT`, `LogoutIT`) | `PB_20240625_3fdce5c` |
-| 2 | `7bc4258892300539a6da4eff46a8ba2fd41ff070` | 2026-02-16 | Don't make database calls when not in jdbc access mode (5-controller refactor) | `subset2` (`TransferIT`, `BillPayIT`, `RequestLoanIT`, `FindTransactionByIdIT` — expected to fail on this commit because the find-transaction-by-id bug is still present) | `PB_20260216_7bc4258` |
-| 3 | `93816676ffdea4fa0c498e2cabb9a9494e82c012` | 2026-02-16 | Fix the functionality to find transaction by id (direct child of commit 2 — B2→B3 diff is a single targeted fix) | `subset3` (`FindTransactionByDateIT`, `FindTransactionByAmountIT`, `OpenNewAccountIT`, `RegisterIT`, `UpdateContactIT`) | `PB_20260216_9381667` |
+| 2 | `7bc4258892300539a6da4eff46a8ba2fd41ff070` | 2026-02-16 | Don't make database calls when not in jdbc access mode (5-controller refactor) | `subset2` (`TransferIT`, `BillPayIT`, `RequestLoanIT`, `FindTransactionByIdIT` — expected to fail on this commit because the find-transaction-by-id bug is still present, `FindTransactionByAmountIT`, `FindTransactionByDateIT`) | `PB_20260216_7bc4258` |
+| 3 | `93816676ffdea4fa0c498e2cabb9a9494e82c012` | 2026-02-16 | Fix the functionality to find transaction by id (direct child of commit 2 — B2→B3 diff is a single targeted fix) | `subset3` (`OpenNewAccountIT`, `RegisterIT`, `UpdateContactIT`) | `PB_20260216_9381667` |
 
-**Why commit 3 is pinned to `9381667` rather than `master` HEAD.** DTP's cumulative-build coverage
-invalidation works at *class* granularity: if any line of a class changes between two commits, all
-prior coverage on that class is invalidated in the cumulative view. Using `master` HEAD as commit 3
+**Why commit 3 is pinned to `9381667` rather than `master` HEAD.** Using `master` HEAD as commit 3
 means five months of upstream churn (dependency bumps, JSP tweaks, small fixes) between commit 2
-and commit 3, which touches most classes at least once and effectively wipes all subset2 coverage
-from the cumulative view. Pinning commit 3 to the direct-child fix commit reduces the B2→B3 diff to
-one targeted change to `AccessModeController` / `RestServiceProxyController`; only
-`FindTransactionByIdIT`'s coverage on those classes gets invalidated, while the other subset2 tests'
-coverage on all the other classes they touch is **retained** in the cumulative view. This is what
-lets the demo show a real "cumulative kept prior coverage without re-running these tests" moment
-rather than falling back to just subset3's fresh numbers.
+and commit 3, touching many classes that subset2 tests transitively cover. Pinning commit 3 to the
+direct-child fix commit reduces the B2→B3 diff to two method changes in
+`AccessModeController` / `RestServiceProxyController` — making DTP's method-level baseline/target
+TIA cleanly report only the tests whose coverage overlaps those two methods.
 
-**Why `FindTransactionByIdIT` is in subset2 rather than subset3.** With `FindTransactionByIdIT`
-running against commit 2 (which still has the find-transaction bug), the test fails and captures
-partial coverage on the buggy code path. When commit 3 arrives with the fix, the cumulative feature
-invalidates that coverage and cumulative TIA correctly reports `FindTransactionByIdIT` as
-impacted — the canonical "targeted invalidation" demo. A follow-on TIA-driven build re-runs just
-`FindTransactionByIdIT` and it passes against the fixed code.
+**Why the three find-transaction tests are in subset2.** All three of `FindTransactionByIdIT`,
+`FindTransactionByAmountIT`, and `FindTransactionByDateIT` build their REST lookup URLs through
+`AccessModeController.createGetTransactionsRestUrl(...)`, and `FindTransactionByIdIT` additionally
+covers `RestServiceProxyController.getTransaction(...)`. Both methods are modified by the B3 fix
+commit. Placing these three tests in subset2 (so they capture their coverage against B2, before the
+fix) means DTP's method-level baseline/target TIA will report them as impacted at B2→B3 — the
+canonical "targeted invalidation" story for the demo. `FindTransactionByIdIT` additionally
+demonstrates a fail-at-B2 / pass-at-B3 progression because the by-id lookup is precisely what the
+B3 commit fixes.
 
 For all three runs, use the same `DTP_PUBLISH=true`, `CTP_URL=<your ctp>`, `CTP_SYSTEM_NAME`,
 `CTP_SYSTEM_VERSION`, `CTP_ENV_NAME`, and `CTP_COMPONENT_NAME`. After run #3, the
