@@ -5,6 +5,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
 
 /**
  * One-time-per-JVM setup that switches Parabank's data-access mode from JDBC (default) to a
@@ -29,6 +30,10 @@ public final class AdminSetup {
     /** Access mode used by the cumulative-build demo. Values: {@code soap}, {@code restxml}, {@code restjson}, {@code jdbc}. */
     public static final String DEFAULT_MODE_FOR_DEMO = "restjson";
 
+    private static final Duration READY_TIMEOUT   = Duration.ofSeconds(60);
+    private static final Duration RETRY_INTERVAL  = Duration.ofSeconds(2);
+    private static final int      SET_MAX_ATTEMPTS = 5;
+
     private static final Object LOCK = new Object();
     private static volatile boolean done = false;
 
@@ -38,6 +43,16 @@ public final class AdminSetup {
      * Sets Parabank's access mode to {@code mode} the first time it is invoked in the current
      * JVM. Subsequent invocations are no-ops. If the setup itself throws, the {@code done} flag
      * is left {@code false} so the next test can retry.
+     *
+     * <p>Two-phase implementation:
+     * <ol>
+     *   <li>Poll Parabank's index page until it responds with a non-5xx status — this ensures
+     *       the JDBC pool and Spring context are fully up before we try to write config.
+     *   <li>{@code POST} to the {@code setParameter} endpoint. If it returns 5xx (typically a
+     *       transient database-not-yet-ready condition), retry a handful of times with a short
+     *       backoff. This is what makes the setup reliable against fresh Parabank containers
+     *       that have only just finished serving the pipeline's health-check request.</li>
+     * </ol>
      *
      * @param baseUrl Parabank base URL (matches {@code TestBase.baseUrl}).
      * @param mode    one of {@code soap}, {@code restxml}, {@code restjson}, {@code jdbc}.
@@ -50,33 +65,92 @@ public final class AdminSetup {
             if (done) {
                 return;
             }
-            URI uri = URI.create(baseUrl + "/services/bank/setParameter/accessmode/" + mode);
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
             try {
-                HttpResponse<String> response = HttpClient.newBuilder()
-                        .connectTimeout(Duration.ofSeconds(10))
-                        .build()
-                        .send(HttpRequest.newBuilder(uri)
-                                .header("Content-Type", "application/json; charset=UTF-8")
-                                .header("Accept", "application/json")
-                                .timeout(Duration.ofSeconds(15))
-                                .POST(HttpRequest.BodyPublishers.noBody())
-                                .build(),
-                                HttpResponse.BodyHandlers.ofString());
-                int status = response.statusCode();
-                if (status < 200 || status >= 300) {
-                    throw new IllegalStateException("Parabank returned HTTP " + status
-                            + " when setting access mode. Body: " + response.body());
-                }
+                waitUntilParabankReady(client, baseUrl);
+                setAccessModeWithRetry(client, baseUrl, mode);
                 done = true;
             }
             catch (Exception e) {
                 throw new IllegalStateException(
-                        "Failed to set Parabank access mode to '" + mode + "' via " + uri
-                                + ". Verify Parabank is reachable at " + baseUrl + ".",
+                        "Failed to set Parabank access mode to '" + mode
+                                + "'. Verify Parabank is reachable at " + baseUrl + ".",
                         e);
             }
         }
     }
+
+    /**
+     * Poll the index page until it responds with something other than a 5xx (i.e. Tomcat can
+     * dispatch the request through the Parabank context). A 200 means fully ready; a 4xx (like
+     * 302 redirect to login) means the app is answering — either is a green light for the
+     * follow-up setParameter POST.
+     */
+    private static void waitUntilParabankReady(HttpClient client, String baseUrl) throws Exception {
+        URI uri = URI.create(baseUrl + "/index.htm");
+        Instant deadline = Instant.now().plus(READY_TIMEOUT);
+        Exception lastFailure = null;
+        while (Instant.now().isBefore(deadline)) {
+            try {
+                HttpResponse<Void> response = client.send(
+                        HttpRequest.newBuilder(uri).GET().timeout(Duration.ofSeconds(10)).build(),
+                        HttpResponse.BodyHandlers.discarding());
+                if (response.statusCode() < 500) {
+                    return;
+                }
+                lastFailure = new IllegalStateException("index.htm returned HTTP " + response.statusCode());
+            }
+            catch (Exception e) {
+                lastFailure = e;
+            }
+            Thread.sleep(RETRY_INTERVAL.toMillis());
+        }
+        throw new IllegalStateException(
+                "Parabank did not become ready within " + READY_TIMEOUT + " at " + uri, lastFailure);
+    }
+
+    private static void setAccessModeWithRetry(HttpClient client, String baseUrl, String mode)
+            throws Exception {
+        URI uri = URI.create(baseUrl + "/services/bank/setParameter/accessmode/" + mode);
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(15))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        Exception lastFailure = null;
+        for (int attempt = 1; attempt <= SET_MAX_ATTEMPTS; attempt++) {
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                int status = response.statusCode();
+                // Happy path is HTTP 204 (No Content); accept any 2xx.
+                if (status >= 200 && status < 300) {
+                    return;
+                }
+                lastFailure = new IllegalStateException("Parabank returned HTTP " + status
+                        + " on attempt " + attempt + "/" + SET_MAX_ATTEMPTS
+                        + ". Body: " + response.body());
+                // 4xx is a permanent client error — no point retrying.
+                if (status < 500) {
+                    throw lastFailure;
+                }
+            }
+            catch (IllegalStateException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                lastFailure = e;
+            }
+            if (attempt < SET_MAX_ATTEMPTS) {
+                Thread.sleep(RETRY_INTERVAL.toMillis());
+            }
+        }
+        throw new IllegalStateException("setParameter still failing after " + SET_MAX_ATTEMPTS
+                + " attempts against " + uri, lastFailure);
+    }
 }
+
 
 
