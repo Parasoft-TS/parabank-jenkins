@@ -44,14 +44,17 @@ public final class AdminSetup {
      * JVM. Subsequent invocations are no-ops. If the setup itself throws, the {@code done} flag
      * is left {@code false} so the next test can retry.
      *
-     * <p>Two-phase implementation:
+     * <p>Three-phase implementation:
      * <ol>
      *   <li>Poll Parabank's index page until it responds with a non-5xx status — this ensures
-     *       the JDBC pool and Spring context are fully up before we try to write config.
-     *   <li>{@code POST} to the {@code setParameter} endpoint. If it returns 5xx (typically a
-     *       transient database-not-yet-ready condition), retry a handful of times with a short
-     *       backoff. This is what makes the setup reliable against fresh Parabank containers
-     *       that have only just finished serving the pipeline's health-check request.</li>
+     *       the JDBC pool and Spring context are fully up before we try to write config.</li>
+     *   <li>{@code POST} to {@code /services/bank/initializeDB}. Fresh Parabank containers only
+     *       lazily create the customer/account tables on first request to {@code index.htm}; the
+     *       {@code parameters} table (used by {@code setParameter}) is populated only by the
+     *       full DB init. Without this, the follow-up {@code setParameter} POST fails with HTTP
+     *       500 because the row it's trying to UPDATE doesn't exist yet.</li>
+     *   <li>{@code POST} to the {@code setParameter} endpoint. Retries a handful of times with
+     *       a short backoff to absorb any residual transient errors.</li>
      * </ol>
      *
      * @param baseUrl Parabank base URL (matches {@code TestBase.baseUrl}).
@@ -70,6 +73,7 @@ public final class AdminSetup {
                     .build();
             try {
                 waitUntilParabankReady(client, baseUrl);
+                initializeDb(client, baseUrl);
                 setAccessModeWithRetry(client, baseUrl, mode);
                 done = true;
             }
@@ -109,6 +113,51 @@ public final class AdminSetup {
         }
         throw new IllegalStateException(
                 "Parabank did not become ready within " + READY_TIMEOUT + " at " + uri, lastFailure);
+    }
+
+    /**
+     * Force a full database initialization via the {@code /services/bank/initializeDB} endpoint.
+     * On fresh Parabank containers, {@code IndexController}'s lazy init only creates the
+     * customer/account tables. The {@code parameters} table (used by {@code setParameter}) is
+     * populated only by this endpoint. Idempotent — safe to call even when the DB is already
+     * fully initialized. Retries a couple of times to absorb transient 5xx just after container
+     * start.
+     */
+    private static void initializeDb(HttpClient client, String baseUrl) throws Exception {
+        URI uri = URI.create(baseUrl + "/services/bank/initializeDB");
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(30))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        Exception lastFailure = null;
+        for (int attempt = 1; attempt <= SET_MAX_ATTEMPTS; attempt++) {
+            try {
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                int status = response.statusCode();
+                if (status >= 200 && status < 300) {
+                    return;
+                }
+                lastFailure = new IllegalStateException("initializeDB returned HTTP " + status
+                        + " on attempt " + attempt + "/" + SET_MAX_ATTEMPTS
+                        + ". Body: " + response.body());
+                if (status < 500) {
+                    throw lastFailure;
+                }
+            }
+            catch (IllegalStateException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                lastFailure = e;
+            }
+            if (attempt < SET_MAX_ATTEMPTS) {
+                Thread.sleep(RETRY_INTERVAL.toMillis());
+            }
+        }
+        throw new IllegalStateException("initializeDB still failing after " + SET_MAX_ATTEMPTS
+                + " attempts against " + uri, lastFailure);
     }
 
     private static void setAccessModeWithRetry(HttpClient client, String baseUrl, String mode)
