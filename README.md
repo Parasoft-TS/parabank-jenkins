@@ -253,6 +253,19 @@ canonical "targeted invalidation" story for the demo. `FindTransactionByIdIT` ad
 demonstrates a fail-at-B2 / pass-at-B3 progression because the by-id lookup is precisely what the
 B3 commit fixes.
 
+**Why Parabank runs in REST(JSON) access mode.** Parabank's default access mode is JDBC. In JDBC
+mode, service-layer calls skip `AccessModeController.createGetTransactionsRestUrl(...)` entirely
+and route straight to the `bankManager` — which means the changed classes are effectively
+never touched by the tests, and DTP's method-level baseline/target TIA would report 0 impacted at
+B2→B3 no matter how the subsets are arranged. To route service calls through the code the demo
+commits target, the Selenic base fixture ([TestBase.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/support/TestBase.java))
+flips Parabank's access mode from JDBC to REST(JSON) once per JVM via the admin UI
+([AdminSetup.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/support/AdminSetup.java) +
+[AdminPage.java](selenic/selenic-tests/src/test/java/com/parasoft/parabank/selenic/pages/AdminPage.java)).
+The switch persists in the deployed Parabank's database for the lifetime of the container. If you
+need the demo to run in a different mode (e.g. `soap`, `restxml`, or the JDBC default), change the
+mode string passed to `AdminSetup.ensureAccessMode(...)` in `TestBase.openBrowser()`.
+
 For all three runs, use the same `DTP_PUBLISH=true`, `CTP_URL=<your ctp>`, `CTP_SYSTEM_NAME`,
 `CTP_SYSTEM_VERSION`, `CTP_ENV_NAME`, and `CTP_COMPONENT_NAME`. After run #3, the
 `Parabank-Jenkins-Cumulative` project in DTP should show the merged view of all 12 tests with
