@@ -239,7 +239,7 @@ Trigger the pipeline three times to establish the cumulative baseline in a fresh
 
 | # | `PARABANK_COMMIT` | Commit date | Summary | `TEST_SUBSET` | Expected buildId |
 |---|-------------------|-------------|---------|---------------|------------------|
-| 1 | `3fdce5c74ab63df3ef5600ca419a41eb51b3715f` | 2024-06-25 | Update swagger ui, integrate swagger → openapi backend | `subset1` (`LoginIT`, `OverviewIT`, `LogoutIT`) | `PB_20240625_3fdce5c` |
+| 1 | `3fdce5c74ab63df3ef5600ca419a41eb51b3715f` | 2024-06-25 | Update swagger ui, integrate swagger → openapi backend | `subset1` (`LoginIT`, `OverviewIT`, `LogoutIT`, `ContactUsIT`, `AboutPageIT`, `SitemapIT` — see [note](#surviving-coverage-static-page-tests-in-subset1) below) | `PB_20240625_3fdce5c` |
 | 2 | `7bc4258892300539a6da4eff46a8ba2fd41ff070` | 2026-02-16 | Don't make database calls when not in jdbc access mode (5-controller refactor) | `subset2` (`TransferIT`, `BillPayIT`, `RequestLoanIT`, `FindTransactionByIdIT` — expected to fail on this commit because the find-transaction-by-id bug is still present, `FindTransactionByAmountIT`, `FindTransactionByDateIT`) | `PB_20260216_7bc4258` |
 | 3 | `93816676ffdea4fa0c498e2cabb9a9494e82c012` | 2026-02-16 | Fix the functionality to find transaction by id (direct child of commit 2 — B2→B3 diff is a single targeted fix) | `subset3` (`OpenNewAccountIT`, `RegisterIT`, `UpdateContactIT`) | `PB_20260216_9381667` |
 
@@ -283,8 +283,26 @@ mode string passed to `AdminSetup.ensureAccessMode(...)` in `TestBase.openBrowse
 
 For all three runs, use the same `DTP_PUBLISH=true`, `CTP_URL=<your ctp>`, `CTP_SYSTEM_NAME`,
 `CTP_SYSTEM_VERSION`, `CTP_ENV_NAME`, and `CTP_COMPONENT_NAME`. After run #3, the
-`Parabank-Jenkins-Cumulative` project in DTP should show the merged view of all 12 tests with
+`Parabank-Jenkins-Cumulative` project in DTP should show the merged view of all 15 tests with
 coverage applied to the HEAD sources.
+
+#### Surviving Coverage: static-page tests in subset1
+
+`ContactUsIT`, `AboutPageIT`, and `SitemapIT` were deliberately added to subset1 to
+probe the class-level cumulative TIA behavior described below. The three
+authenticated-bank tests already in subset1 (`LoginIT`, `OverviewIT`, `LogoutIT`) all route through
+`RestServiceProxyController` in REST(JSON) access mode, so at B3 their entire coverage
+contribution to the cumulative view is invalidated by the class-level diff. The three new tests
+exercise pages served by lightweight controllers that do **not** touch
+`AccessModeController` / `RestServiceProxyController` / `findtrans.jsp`:
+
+- `ContactUsIT` → `/contact.htm` (`ContactController` + `ContactService`)
+- `AboutPageIT` → `/about.htm` (static controller/JSP)
+- `SitemapIT` → `/sitemap.htm` (static controller/JSP)
+
+The expectation is that after B3, cumulative coverage for these three pages **survives**
+class-level invalidation and shows up in the merged DTP view, giving cumulative a non-zero floor
+that isn't hostage to the REST-proxy refactor.
 
 ### Reusability
 After the initial three-run baseline, subsequent runs continue to grow DTP's cumulative history:
