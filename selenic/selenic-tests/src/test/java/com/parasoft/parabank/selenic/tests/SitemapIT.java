@@ -1,6 +1,5 @@
 package com.parasoft.parabank.selenic.tests;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Tag;
@@ -24,10 +23,15 @@ public class SitemapIT extends TestBase {
     void sitemapListsLinks() {
         SiteMapPage sitemap = new SiteMapPage(driver, baseUrl).open();
 
-        assertFalse(sitemap.heading().isBlank(), "sitemap heading should be non-empty");
         // Parabank's site map lists every top-level navigation entry plus authenticated actions.
         // Assert on a conservative lower bound to stay robust against menu changes.
         assertTrue(sitemap.links().size() >= 5,
                 "sitemap should list at least 5 links — found " + sitemap.links().size());
+        // sitemap.htm has no h1.title heading. Instead, its right panel groups links under section
+        // headings like "Solutions" and "Account Services". Assert one of them is present as a
+        // durable content marker.
+        String panel = sitemap.panelText().toLowerCase();
+        assertTrue(panel.contains("solutions") || panel.contains("account services"),
+                "sitemap panel should show section headings — was: " + panel);
     }
 }
