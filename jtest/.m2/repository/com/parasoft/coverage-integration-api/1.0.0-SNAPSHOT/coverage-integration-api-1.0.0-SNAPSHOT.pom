@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>coverage-integration-api</artifactId>
+    <description>Parasoft coverage integration Java API for any situation</description>
 
     <dependencies>
         <dependency>
@@ -23,25 +24,15 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.javadoc.version}</version>
-                <executions>
-                    <execution>
-                        <id>generate-api-javadoc</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>javadoc</goal>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <doclint>all,-missing</doclint>
-                            <sourcepath>${project.basedir}/src/main/java</sourcepath>
-                            <sourceFileIncludes>
-                                <sourceFileInclude>**/*.java</sourceFileInclude>
-                            </sourceFileIncludes>
-                        </configuration>
-                    </execution>
-                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

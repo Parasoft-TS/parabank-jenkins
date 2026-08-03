@@ -9,6 +9,11 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>Parasoft Coverage Integration</name>
+    <description>This project is available from Parasoft under the Apache 2.0 license.</description>
+    <url>https://github.com/parasoft/coverage-integration</url>
+    <inceptionYear>2026</inceptionYear>
+
     <modules>
         <module>coverage-integration-core</module>
         <module>coverage-integration-api</module>
@@ -24,23 +29,86 @@
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
+        <maven.version>3.6.3</maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openapi.generator.version>7.14.0</openapi.generator.version>
-        <okhttp.version>4.12.0</okhttp.version>
-        <okio.version>3.9.0</okio.version>
-        <gson.version>2.13.1</gson.version>
+        <cucumber.version>7.34.6</cucumber.version>
+        <gherkin.version>42.0.0</gherkin.version>
+        <gson.version>2.14.0</gson.version>
         <gsonfire.version>1.9.0</gsonfire.version>
         <jakarta.annotation.version>3.0.0</jakarta.annotation.version>
-        <cucumber.version>7.34.4</cucumber.version>
         <junit4.version>4.13.2</junit4.version>
-        <junit5.version>5.14.2</junit5.version>
-        <maven.javadoc.version>3.11.2</maven.javadoc.version>
+        <junit.version>6.1.2</junit.version>
+        <littleproxy.version>2.8.0</littleproxy.version>
+        <logback.version>1.6.1</logback.version>
+        <maven.enforcer.version>3.6.3</maven.enforcer.version>
+        <maven.jar.version>3.5.1</maven.jar.version>
+        <maven.javadoc.version>3.12.0</maven.javadoc.version>
+        <maven.reports.version>3.9.0</maven.reports.version>
+        <maven.site.version>3.22.0</maven.site.version>
+        <maven.source.version>3.4.0</maven.source.version>
+        <messages.version>34.2.0</messages.version>
+        <okhttp.version>5.4.0</okhttp.version>
+        <okio.version>3.18.1</okio.version>
+        <openapi.generator.version>7.14.0</openapi.generator.version>
         <playwright.version>1.61.0</playwright.version>
-        <selenium.version>4.44.0</selenium.version>
-        <slf4j.version>2.0.17</slf4j.version>
-        <littleproxy.version>2.7.0</littleproxy.version>
+        <selenium.version>4.46.0</selenium.version>
+        <slf4j.version>2.0.18</slf4j.version>
         <testng.version>7.12.0</testng.version>
+        <wiremock.version>3.13.2</wiremock.version>
     </properties>
+
+    <developers>
+        <developer>
+            <id>mattloveparasoft</id>
+            <name>Matt Love</name>
+            <email>matt.love@parasoft.com</email>
+            <organization>Parasoft</organization>
+            <organizationUrl>https://www.parasoft.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>humphrey-parasoft</id>
+            <name>Aaron Humphrey</name>
+            <email>aaron.humphrey@parasoft.com</email>
+            <organization>Parasoft</organization>
+            <organizationUrl>https://www.parasoft.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>kailunc</id>
+            <name>Kailun Chen</name>
+            <email>kailun.chen@parasoft.com</email>
+            <organization>Parasoft</organization>
+            <organizationUrl>https://www.parasoft.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>rjnares</id>
+            <name>Roberto Nares</name>
+            <email>roberto.nares@parasoft.com</email>
+            <organization>Parasoft</organization>
+            <organizationUrl>https://www.parasoft.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <organization>
+        <name>Parasoft Corporation</name>
+        <url>https://www.parasoft.com</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>© Copyright 2026 Parasoft Corporation</comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/parasoft/coverage-integration</url>
+        <connection>scm:git:https://github.com/parasoft/coverage-integration.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/parasoft/coverage-integration.git</developerConnection>
+        <tag>master</tag>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -50,6 +118,21 @@
     </dependencies>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.playwright</groupId>
+                <artifactId>playwright</artifactId>
+                <version>${playwright.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.parasoft</groupId>
                 <artifactId>coverage-integration-api</artifactId>
@@ -71,19 +154,34 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>logging-interceptor</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>${okio.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.cucumber</groupId>
                 <artifactId>cucumber-java</artifactId>
                 <version>${cucumber.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.playwright</groupId>
-                <artifactId>playwright</artifactId>
-                <version>${playwright.version}</version>
+                <groupId>io.cucumber</groupId>
+                <artifactId>gherkin</artifactId>
+                <version>${gherkin.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-java</artifactId>
-                <version>${selenium.version}</version>
+                <groupId>io.cucumber</groupId>
+                <artifactId>messages</artifactId>
+                <version>${messages.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.littleproxy</groupId>
@@ -91,42 +189,10 @@
                 <version>${littleproxy.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>${junit5.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>${okhttp.version}</version>
-            </dependency>
-    
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>logging-interceptor</artifactId>
-                <version>${okhttp.version}</version>
-            </dependency>
-    
-            <dependency>
-                <groupId>com.squareup.okio</groupId>
-                <artifactId>okio</artifactId>
-                <version>${okio.version}</version>
-            </dependency>
-    
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>${gson.version}</version>
-            </dependency>
-    
-            <dependency>
                 <groupId>io.gsonfire</groupId>
                 <artifactId>gson-fire</artifactId>
                 <version>${gsonfire.version}</version>
             </dependency>
-    
             <dependency>
                 <groupId>jakarta.annotation</groupId>
                 <artifactId>jakarta.annotation-api</artifactId>
@@ -138,13 +204,59 @@
                 <version>${junit4.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>${selenium.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wiremock</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>${maven.compiler.release}</version>
+                                </requireJavaVersion>
+                                <!-- versions:display-plugin-updates calculates our minimum
+                                  Maven requirement. This minimum requirement should be updated
+                                  as needed as we update versions of our Maven plugins. -->
+                                <requireMavenVersion>
+                                    <version>${maven.version}</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -152,7 +264,93 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.13.0</version>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven.jar.version}</version>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven.javadoc.version}</version>
+                    <executions>
+                        <execution>
+                            <id>generate-javadoc</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>javadoc</goal>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <doclint>all,-missing</doclint>
+                                <sourcepath>${project.basedir}/src/main/java</sourcepath>
+                                <sourceFileIncludes>
+                                    <sourceFileInclude>**/*.java</sourceFileInclude>
+                                </sourceFileIncludes>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>${maven.reports.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>${maven.site.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven.javadoc.version}</version>
+		<reportSets>
+                    <reportSet>
+                        <id>default</id>
+                        <configuration>
+                            <!-- Specific configuration for the given reports -->
+                        </configuration>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <skippedModules>coverage-integration-core</skippedModules>
+                        </configuration>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>

@@ -1,4 +1,6 @@
 #NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
-#Fri Jul 24 11:40:54 PDT 2026
+#Mon Aug 03 14:22:12 PDT 2026
 coverage-integration-selenium-1.0.0-SNAPSHOT.jar>=
+coverage-integration-selenium-1.0.0-SNAPSHOT-javadoc.jar>=
+coverage-integration-selenium-1.0.0-SNAPSHOT-sources.jar>=
 coverage-integration-selenium-1.0.0-SNAPSHOT.pom>=

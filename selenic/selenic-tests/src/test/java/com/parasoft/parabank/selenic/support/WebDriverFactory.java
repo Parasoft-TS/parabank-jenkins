@@ -1,9 +1,7 @@
 package com.parasoft.parabank.selenic.support;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Properties;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -11,7 +9,6 @@ import org.openqa.selenium.chromium.HasCdp;
 import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import com.parasoft.coverage.integration.api.CoverageIntegration;
 import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration;
 
 /**
@@ -33,6 +30,16 @@ import com.parasoft.coverage.integration.selenium.SeleniumCoverageIntegration;
  * <p>CDP was chosen over the library's proxy-based path because our Selenic tests and Grid browser
  * run in separate docker containers; a proxy bound to the Selenic container's 127.0.0.1 is not
  * reachable from the Grid container's Chrome process ({@code ERR_PROXY_CONNECTION_FAILED}).
+ *
+ * <p>Baggage handling relies entirely on coverage-integration 1.0.0-SNAPSHOT's built-in mechanics:
+ * the JUnit 5 extension (SPI-registered by {@code coverage-integration-junit5}) starts a test with
+ * CTP and stores the resulting {@code CoverageTestContext} in the library's thread-local
+ * {@code CoverageExecutionContext} <em>before</em> our {@code @BeforeEach openBrowser()} runs. The
+ * single-argument {@link SeleniumCoverageIntegration#configureCdpBaggageHeader(HasCdp)} overload
+ * reads whichever baggage value the library currently holds — CTP's server-supplied value on
+ * CTP 2026.2+, or the {@code test-operator-id=<userId>} fallback the library synthesizes from
+ * {@code parasoft.coverage.integration.ctp.userId} when CTP omits baggage (CTP-11040, CTP 2026.1
+ * behavior).
  */
 public final class WebDriverFactory {
 
@@ -54,67 +61,9 @@ public final class WebDriverFactory {
             // CDP-capable interface at runtime so the library can drive Chrome DevTools Protocol
             // through the existing Grid session.
             driver = new Augmenter().augment(driver);
-            String baggage = computeManualBaggageHeader();
-            SeleniumCoverageIntegration.configureCdpBaggageHeader((HasCdp) driver, baggage);
+            SeleniumCoverageIntegration.configureCdpBaggageHeader((HasCdp) driver);
         }
         return new DriverHandle(driver);
-    }
-
-    /**
-     * Builds the per-test {@code Baggage} header manually because CTP 2026.1's
-     * {@code /agents/test/start} endpoint does not include a {@code baggage} field in its response
-     * (that support was added in CTP 2026.2). The coverage-integration library has no fallback:
-     * it stores whatever CTP returns (null in our case) and passes it straight through to the
-     * CDP header injector, which then injects nothing — leaving the agent unable to attribute
-     * coverage to a test.
-     *
-     * <p>On CTP 2026.1 the coverage agent tracks a single active test per {@code userId}. We
-     * therefore emit the baggage in its single-user form — {@code test-operator-id=<userId>} —
-     * so every browser request originating from this test carries the userId the agent will use
-     * to look up the currently-started test in CTP. This pairs with
-     * {@code parasoft.coverage.integration.parallel.test.enabled=false} in
-     * {@code coverage-integration.properties}, which tells the library to omit {@code parallelId}
-     * from the {@code /test/start} request body.
-     *
-     * <p>When CTP is upgraded to 2026.2, {@code /test/start} will return a baggage value that
-     * includes a parallelId. At that point the recommended migration is to flip the property
-     * back to {@code true}, delete this method, and pass the library-supplied baggage through
-     * via the single-arg {@link SeleniumCoverageIntegration#configureCdpBaggageHeader(HasCdp)}
-     * overload.
-     *
-     * @return baggage header string, or {@code null} if the CTP userId is unresolvable
-     */
-    private static String computeManualBaggageHeader() {
-        String userId = readCtpUserId();
-        return (userId == null || userId.isBlank())
-                ? null
-                : CoverageIntegration.TEST_OPERATOR_ID_BAGGAGE_KEY + "=" + userId;
-    }
-
-    /**
-     * Resolves the CTP {@code userId} to embed in the manual baggage header. Prefers a system
-     * property (matches how everything else in this class is configured) and falls back to the
-     * {@code coverage-integration.properties} file the pipeline emits.
-     */
-    private static String readCtpUserId() {
-        String sys = System.getProperty("parasoft.coverage.integration.ctp.userId");
-        if (sys != null && !sys.isBlank()) {
-            return sys;
-        }
-        try (InputStream in = WebDriverFactory.class.getResourceAsStream("/coverage-integration.properties")) {
-            if (in != null) {
-                Properties props = new Properties();
-                props.load(in);
-                String value = props.getProperty("parasoft.coverage.integration.ctp.userId");
-                if (value != null && !value.isBlank()) {
-                    return value;
-                }
-            }
-        }
-        catch (Exception ignore) {
-            // fall through to default
-        }
-        return "demo";
     }
 
     private static void applyChromeArgs(ChromeOptions options) {

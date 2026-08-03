@@ -11,9 +11,10 @@
     </parent>
 
     <artifactId>coverage-integration-junit6</artifactId>
+    <description>Parasoft coverage integration code specific to JUnit 6</description>
 
     <properties>
-        <junit6.version>6.1.0</junit6.version>
+        <junit6.version>6.1.2</junit6.version>
     </properties>
 
     <dependencies>
@@ -37,5 +38,22 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

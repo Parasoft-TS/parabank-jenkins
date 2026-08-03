@@ -1,4 +1,6 @@
 #NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
-#Fri Jul 24 11:40:55 PDT 2026
+#Mon Aug 03 14:22:16 PDT 2026
 coverage-integration-testng-1.0.0-SNAPSHOT.jar>=
+coverage-integration-testng-1.0.0-SNAPSHOT-javadoc.jar>=
 coverage-integration-testng-1.0.0-SNAPSHOT.pom>=
+coverage-integration-testng-1.0.0-SNAPSHOT-sources.jar>=

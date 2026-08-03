@@ -50,16 +50,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Parasoft coverage-integration: public API module. Provides CoverageIntegration
-             constants used by WebDriverFactory (TEST_OPERATOR_ID_BAGGAGE_KEY, BAGGAGE_HEADER_NAME).
-             Not a transitive dep of -junit5 or -selenium, so must be declared directly. -->
-        <dependency>
-            <groupId>com.parasoft</groupId>
-            <artifactId>coverage-integration-api</artifactId>
-            <version>${coverage-integration.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Parasoft coverage-integration: JUnit 5 auto-registered via SPI when
              -Djunit.jupiter.extensions.autodetection.enabled=true. -->
         <dependency>
@@ -69,8 +59,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Parasoft coverage-integration: Selenium browser Baggage propagation
-             (proxy-based ChromeOptions from SeleniumCoverageIntegration.createChromeBrowserCoverage()). -->
+        <!-- Parasoft coverage-integration: Selenium browser Baggage propagation. WebDriverFactory
+             uses SeleniumCoverageIntegration.configureCdpBaggageHeader(HasCdp) — the CDP-based path
+             — because our Selenic container and Grid browser container are separate, and the
+             proxy-based path (createChromeProxyConfig / configureProxyBaggageHeader) binds to a
+             loopback address the browser container cannot reach. -->
         <dependency>
             <groupId>com.parasoft</groupId>
             <artifactId>coverage-integration-selenium</artifactId>

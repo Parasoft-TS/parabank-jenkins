@@ -1,4 +1,5 @@
 #NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
-#Fri Jul 24 11:40:06 PDT 2026
+#Mon Aug 03 14:20:30 PDT 2026
+coverage-integration-core-1.0.0-SNAPSHOT-sources.jar>=
 coverage-integration-core-1.0.0-SNAPSHOT.pom>=
 coverage-integration-core-1.0.0-SNAPSHOT.jar>=

@@ -11,6 +11,12 @@
     </parent>
 
     <artifactId>coverage-integration-junit5</artifactId>
+    <description>Parasoft coverage integration code specific to JUnit 5</description>
+
+    <properties>
+        <junit5.version>5.14.4</junit5.version>
+        <junit5.launcher.version>1.14.4</junit5.launcher.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -22,14 +28,33 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit5.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit5.launcher.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
